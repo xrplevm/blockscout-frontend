@@ -51,8 +51,8 @@ frontend:
     NEXT_PUBLIC_FEATURED_NETWORKS: https://raw.githubusercontent.com/blockscout/frontend-configs/dev/configs/featured-networks/eth-goerli.json
     NEXT_PUBLIC_NETWORK_LOGO: https://raw.githubusercontent.com/blockscout/frontend-configs/main/configs/network-logos/goerli.svg
     NEXT_PUBLIC_NETWORK_ICON: https://raw.githubusercontent.com/blockscout/frontend-configs/main/configs/network-icons/goerli.svg
-    NEXT_PUBLIC_API_HOST: eth-goerli.blockscout.com
-    NEXT_PUBLIC_STATS_API_HOST: https://stats-goerli.k8s-dev.blockscout.com/
+    NEXT_PUBLIC_API_HOST: eth.blockscout.com
+    NEXT_PUBLIC_STATS_API_HOST: https://stats-eth-main.k8s.blockscout.com/
     NEXT_PUBLIC_VISUALIZE_API_HOST: http://visualizer-svc.visualizer-testing.svc.cluster.local/
     NEXT_PUBLIC_CONTRACT_INFO_API_HOST: https://contracts-info-test.k8s-dev.blockscout.com
     NEXT_PUBLIC_ADMIN_SERVICE_API_HOST: https://admin-rs-test.k8s-dev.blockscout.com
@@ -75,6 +75,8 @@ frontend:
     OTEL_SDK_ENABLED: true
     OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger-collector.jaeger.svc.cluster.local:4318
     NEXT_OTEL_VERBOSE: 1
+    TRANSLATE_ENDPOINT: https://translate.noves.fi
+    TRANSLATE_SELECTED_CHAIN: eth
   envFromSecret:
     TRANSLATE_API_KEY: ref+vault://deployment-values/blockscout/dev/review?token_env=VAULT_TOKEN&address=https://vault.k8s.blockscout.com#/TRANSLATE_API_KEY
     NEXT_PUBLIC_SENTRY_DSN: ref+vault://deployment-values/blockscout/dev/review?token_env=VAULT_TOKEN&address=https://vault.k8s.blockscout.com#/NEXT_PUBLIC_SENTRY_DSN
