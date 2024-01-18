@@ -1,31 +1,33 @@
 const semanticTokens = {
   colors: {
     divider: {
-      'default': 'blackAlpha.200',
-      _dark: 'whiteAlpha.200',
+      default: "blackAlpha.200",
+      _dark: "whiteAlpha.200",
     },
     text: {
-      'default': 'blackAlpha.800',
-      _dark: 'whiteAlpha.800',
+      default: "tertiary",
+      _dark: "whiteAlpha.800",
     },
     text_secondary: {
-      'default': 'gray.500',
-      _dark: 'gray.400',
+      default: "gray.500",
+      _dark: "gray.400",
     },
     link: {
-      'default': 'blue.600',
-      _dark: 'blue.300',
+      default: "primary",
+      _dark: "white",
     },
     link_hovered: {
-      'default': 'blue.400',
+      default: "primary",
+      _dark: "white",
     },
     error: {
-      'default': 'red.400',
-      _dark: 'red.300',
+      default: "red.400",
+      _dark: "red.300",
     },
   },
   shadows: {
-    action_bar: '0 4px 4px -4px rgb(0 0 0 / 10%), 0 2px 4px -4px rgb(0 0 0 / 6%)',
+    action_bar:
+      "0 4px 4px -4px rgb(0 0 0 / 10%), 0 2px 4px -4px rgb(0 0 0 / 6%)",
   },
 };
 

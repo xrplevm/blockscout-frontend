@@ -1,31 +1,29 @@
-import { tabsAnatomy as parts } from '@chakra-ui/anatomy';
-import {
-  createMultiStyleConfigHelpers,
-} from '@chakra-ui/styled-system';
-import { mode } from '@chakra-ui/theme-tools';
+import { tabsAnatomy as parts } from "@chakra-ui/anatomy";
+import { createMultiStyleConfigHelpers } from "@chakra-ui/styled-system";
+import { mode } from "@chakra-ui/theme-tools";
 const { defineMultiStyleConfig, definePartsStyle } =
   createMultiStyleConfigHelpers(parts.keys);
 
-import Button from './Button/Button';
+import Button from "./Button/Button";
 
 const variantSoftRounded = definePartsStyle((props) => {
   return {
     tab: {
-      borderRadius: 'base',
-      fontWeight: '600',
-      color: mode('blue.700', 'gray.400')(props),
+      borderRadius: "base",
+      fontWeight: "600",
+      color: "primary",
       _selected: {
-        color: mode('blue.700', 'gray.50')(props),
-        bg: mode('blue.50', 'gray.800')(props),
+        color: "white",
+        bg: "primary",
         _hover: {
-          color: mode('blue.700', 'gray.50')(props),
+          color: "white",
         },
       },
       _hover: {
-        color: 'link_hovered',
+        color: "link_hovered",
       },
       _focusVisible: {
-        boxShadow: { base: 'none', lg: 'outline' },
+        boxShadow: { base: "none", lg: "outline" },
       },
     },
   };
@@ -51,7 +49,7 @@ const sizes = {
 };
 
 const variants = {
-  'soft-rounded': variantSoftRounded,
+  "soft-rounded": variantSoftRounded,
   outline: variantOutline,
 };
 

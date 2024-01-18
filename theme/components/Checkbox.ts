@@ -1,51 +1,51 @@
-import { checkboxAnatomy as parts } from '@chakra-ui/anatomy';
+import { checkboxAnatomy as parts } from "@chakra-ui/anatomy";
 import {
   createMultiStyleConfigHelpers,
   defineStyle,
   cssVar,
-} from '@chakra-ui/styled-system';
-import { mode } from '@chakra-ui/theme-tools';
-import { runIfFn } from '@chakra-ui/utils';
+} from "@chakra-ui/styled-system";
+import { mode } from "@chakra-ui/theme-tools";
+import { runIfFn } from "@chakra-ui/utils";
 
 const { definePartsStyle, defineMultiStyleConfig } =
   createMultiStyleConfigHelpers(parts.keys);
 
-const $size = cssVar('checkbox-size');
+const $size = cssVar("checkbox-size");
 
 const baseStyleControl = defineStyle((props) => {
   const { colorScheme: c } = props;
 
   return {
     _checked: {
-      bg: mode(`${ c }.500`, `${ c }.300`)(props),
-      borderColor: mode(`${ c }.500`, `${ c }.300`)(props),
+      bg: "primary",
+      borderColor: "primary",
       _hover: {
-        bg: mode(`${ c }.600`, `${ c }.400`)(props),
-        borderColor: mode(`${ c }.600`, `${ c }.400`)(props),
+        bg: "primary",
+        borderColor: "primary",
       },
     },
     _indeterminate: {
-      bg: mode(`${ c }.500`, `${ c }.300`)(props),
-      borderColor: mode(`${ c }.500`, `${ c }.300`)(props),
+      bg: mode(`${c}.500`, `${c}.300`)(props),
+      borderColor: mode(`${c}.500`, `${c}.300`)(props),
     },
   };
 });
 
 const sizes = {
   sm: definePartsStyle({
-    control: { [$size.variable]: 'sizes.3' },
-    label: { fontSize: 'sm' },
-    icon: { fontSize: '3xs' },
+    control: { [$size.variable]: "sizes.3" },
+    label: { fontSize: "sm" },
+    icon: { fontSize: "3xs" },
   }),
   md: definePartsStyle({
-    control: { [$size.variable]: 'sizes.4' },
-    label: { fontSize: 'md' },
-    icon: { fontSize: '2xs' },
+    control: { [$size.variable]: "sizes.4" },
+    label: { fontSize: "md" },
+    icon: { fontSize: "2xs" },
   }),
   lg: definePartsStyle({
-    control: { [$size.variable]: 'sizes.5' },
-    label: { fontSize: 'md' },
-    icon: { fontSize: '2xs' },
+    control: { [$size.variable]: "sizes.5" },
+    label: { fontSize: "md" },
+    icon: { fontSize: "2xs" },
   }),
 };
 
