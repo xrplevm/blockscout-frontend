@@ -60,6 +60,9 @@ const colors = {
   facebook: '#4460A0',
   medium: '#231F20',
   reddit: '#FF4500',
+  primary: '#7919ff',
+  secondary: '#19ff84',
+  tertiary: '#454549',
 };
 
 export default colors;

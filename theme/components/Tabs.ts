@@ -1,24 +1,21 @@
 import { tabsAnatomy as parts } from '@chakra-ui/anatomy';
-import {
-  createMultiStyleConfigHelpers,
-} from '@chakra-ui/styled-system';
-import { mode } from '@chakra-ui/theme-tools';
+import { createMultiStyleConfigHelpers } from '@chakra-ui/styled-system';
 const { defineMultiStyleConfig, definePartsStyle } =
   createMultiStyleConfigHelpers(parts.keys);
 
 import Button from './Button/Button';
 
-const variantSoftRounded = definePartsStyle((props) => {
+const variantSoftRounded = definePartsStyle(() => {
   return {
     tab: {
       borderRadius: 'base',
       fontWeight: '600',
-      color: mode('blue.700', 'gray.400')(props),
+      color: 'primary',
       _selected: {
-        color: mode('blue.700', 'gray.50')(props),
-        bg: mode('blue.50', 'gray.800')(props),
+        color: 'white',
+        bg: 'primary',
         _hover: {
-          color: mode('blue.700', 'gray.50')(props),
+          color: 'white',
         },
       },
       _hover: {

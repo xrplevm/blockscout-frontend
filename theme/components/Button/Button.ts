@@ -1,3 +1,4 @@
+import { useColorModeValue } from '@chakra-ui/react';
 import { defineStyle, defineStyleConfig } from '@chakra-ui/styled-system';
 import { mode } from '@chakra-ui/theme-tools';
 import { runIfFn } from '@chakra-ui/utils';
@@ -46,9 +47,13 @@ const variantOutline = defineStyle((props) => {
   const { colorScheme: c } = props;
 
   const isGrayTheme = c === 'gray' || c === 'gray-dark';
-  const color = isGrayTheme ? mode('blackAlpha.800', 'whiteAlpha.800')(props) : mode(`${ c }.600`, `${ c }.300`)(props);
-  const borderColor = isGrayTheme ? mode('gray.200', 'gray.600')(props) : mode(`${ c }.600`, `${ c }.300`)(props);
-  const activeBg = isGrayTheme ? mode('blue.50', 'gray.600')(props) : mode(`${ c }.50`, 'gray.600')(props);
+  const color = isGrayTheme ?
+    mode('blackAlpha.800', 'whiteAlpha.800')(props) :
+    useColorModeValue('primary', 'white');
+  const borderColor = isGrayTheme ?
+    mode('gray.200', 'gray.600')(props) :
+    'primary';
+  const activeBg = isGrayTheme ? mode('blue.50', 'gray.600')(props) : 'primary';
   const activeColor = (() => {
     if (c === 'gray') {
       return mode('blue.600', 'gray.50')(props);
@@ -57,7 +62,7 @@ const variantOutline = defineStyle((props) => {
       return mode('blue.600', 'gray.50')(props);
     }
     if (c === 'blue') {
-      return mode('blue.600', 'gray.50')(props);
+      return 'primary';
     }
     return 'blue.600';
   })();
@@ -95,7 +100,10 @@ const variantOutline = defineStyle((props) => {
     _active: {
       bg: activeBg,
       borderColor: activeBg,
-      color: activeColor,
+      _hover: {
+        color: 'white',
+      },
+      color: 'white',
       _disabled: {
         color,
         borderColor,

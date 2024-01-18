@@ -17,11 +17,11 @@ const baseStyleControl = defineStyle((props) => {
 
   return {
     _checked: {
-      bg: mode(`${ c }.500`, `${ c }.300`)(props),
-      borderColor: mode(`${ c }.500`, `${ c }.300`)(props),
+      bg: 'primary',
+      borderColor: 'primary',
       _hover: {
-        bg: mode(`${ c }.600`, `${ c }.400`)(props),
-        borderColor: mode(`${ c }.600`, `${ c }.400`)(props),
+        bg: 'primary',
+        borderColor: 'primary',
       },
     },
     _indeterminate: {

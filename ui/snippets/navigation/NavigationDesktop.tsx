@@ -18,7 +18,10 @@ const NavigationDesktop = () => {
   const appProps = useAppContext();
   const cookiesString = appProps.cookies;
 
-  const isNavBarCollapsedCookie = cookies.get(cookies.NAMES.NAV_BAR_COLLAPSED, cookiesString);
+  const isNavBarCollapsedCookie = cookies.get(
+    cookies.NAMES.NAV_BAR_COLLAPSED,
+    cookiesString,
+  );
   let isNavBarCollapsed;
   if (isNavBarCollapsedCookie === 'true') {
     isNavBarCollapsed = true;
@@ -28,14 +31,18 @@ const NavigationDesktop = () => {
   }
 
   const { mainNavItems, accountNavItems } = useNavItems();
-
   const hasAccount = useHasAccount();
 
-  const [ isCollapsed, setCollapsedState ] = React.useState<boolean | undefined>(isNavBarCollapsed);
+  const [ isCollapsed, setCollapsedState ] = React.useState<boolean | undefined>(
+    isNavBarCollapsed,
+  );
 
   const handleTogglerClick = React.useCallback(() => {
     setCollapsedState((flag) => !flag);
-    cookies.set(cookies.NAMES.NAV_BAR_COLLAPSED, isCollapsed ? 'false' : 'true');
+    cookies.set(
+      cookies.NAMES.NAV_BAR_COLLAPSED,
+      isCollapsed ? 'false' : 'true',
+    );
   }, [ isCollapsed ]);
 
   const chevronIconStyles = {
@@ -56,7 +63,10 @@ const NavigationDesktop = () => {
       borderColor="divider"
       px={{ lg: isExpanded ? 6 : 4, xl: isCollapsed ? 4 : 6 }}
       py={ 12 }
-      width={{ lg: isExpanded ? '229px' : '92px', xl: isCollapsed ? '92px' : '229px' }}
+      width={{
+        lg: isExpanded ? '229px' : '92px',
+        xl: isCollapsed ? '92px' : '229px',
+      }}
       { ...getDefaultTransitionProps({ transitionProperty: 'width, padding' }) }
       sx={{
         '&:hover #expand-icon': {
@@ -64,7 +74,17 @@ const NavigationDesktop = () => {
         },
       }}
     >
-      { config.chain.isTestnet && <IconSvg name="testnet" h="14px" w="49px" color="red.400" position="absolute" pl={ 3 } top="34px"/> }
+      { config.chain.isTestnet && (
+        <IconSvg
+          name="testnet"
+          h="14px"
+          w="49px"
+          color="red.400"
+          position="absolute"
+          pl={ 3 }
+          top="34px"
+        />
+      ) }
       <Box
         as="header"
         display="flex"
@@ -80,23 +100,46 @@ const NavigationDesktop = () => {
         transitionTimingFunction="ease"
       >
         <NetworkLogo isCollapsed={ isCollapsed }/>
-        { Boolean(config.UI.sidebar.featuredNetworks) && <NetworkMenu isCollapsed={ isCollapsed }/> }
+        { Boolean(config.UI.sidebar.featuredNetworks) && (
+          <NetworkMenu isCollapsed={ isCollapsed }/>
+        ) }
       </Box>
       <Box as="nav" mt={ 8 } w="100%">
         <VStack as="ul" spacing="1" alignItems="flex-start">
           { mainNavItems.map((item) => {
             if (isGroupItem(item)) {
-              return <NavLinkGroupDesktop key={ item.text } item={ item } isCollapsed={ isCollapsed }/>;
+              return (
+                <NavLinkGroupDesktop
+                  key={ item.text }
+                  item={ item }
+                  isCollapsed={ isCollapsed }
+                />
+              );
             } else {
-              return <NavLink key={ item.text } item={ item } isCollapsed={ isCollapsed }/>;
+              return (
+                <NavLink
+                  key={ item.text }
+                  item={ item }
+                  isCollapsed={ isCollapsed }
+                />
+              );
             }
           }) }
         </VStack>
       </Box>
       { hasAccount && (
-        <Box as="nav" borderTopWidth="1px" borderColor="divider" w="100%" mt={ 6 } pt={ 6 }>
+        <Box
+          as="nav"
+          borderTopWidth="1px"
+          borderColor="divider"
+          w="100%"
+          mt={ 6 }
+          pt={ 6 }
+        >
           <VStack as="ul" spacing="1" alignItems="flex-start">
-            { accountNavItems.map((item) => <NavLink key={ item.text } item={ item } isCollapsed={ isCollapsed }/>) }
+            { accountNavItems.map((item) => (
+              <NavLink key={ item.text } item={ item } isCollapsed={ isCollapsed }/>
+            )) }
           </VStack>
         </Box>
       ) }
@@ -108,12 +151,20 @@ const NavigationDesktop = () => {
         _hover={{ color: 'link_hovered' }}
         borderRadius="base"
         { ...chevronIconStyles }
-        transform={{ lg: isExpanded ? 'rotate(0)' : 'rotate(180deg)', xl: isCollapsed ? 'rotate(180deg)' : 'rotate(0)' }}
-        { ...getDefaultTransitionProps({ transitionProperty: 'transform, left' }) }
+        transform={{
+          lg: isExpanded ? 'rotate(0)' : 'rotate(180deg)',
+          xl: isCollapsed ? 'rotate(180deg)' : 'rotate(0)',
+        }}
+        { ...getDefaultTransitionProps({
+          transitionProperty: 'transform, left',
+        }) }
         transformOrigin="center"
         position="absolute"
         top="104px"
-        left={{ lg: isExpanded ? '216px' : '80px', xl: isCollapsed ? '80px' : '216px' }}
+        left={{
+          lg: isExpanded ? '216px' : '80px',
+          xl: isCollapsed ? '80px' : '216px',
+        }}
         cursor="pointer"
         onClick={ handleTogglerClick }
         aria-label="Expand/Collapse menu"

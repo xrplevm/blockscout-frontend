@@ -32,7 +32,10 @@ export default function getOutlinedFieldStyles(props: StyleFunctionProps) {
       },
       ':-webkit-autofill': {
         // background color for disabled input which value was selected from browser autocomplete popup
-        '-webkit-box-shadow': `0 0 0px 1000px ${ mode('rgba(16, 17, 18, 0.08)', 'rgba(255, 255, 255, 0.08)')(props) } inset`,
+        '-webkit-box-shadow': `0 0 0px 1000px ${ mode(
+          'rgba(16, 17, 18, 0.08)',
+          'rgba(255, 255, 255, 0.08)',
+        )(props) } inset`,
       },
     },
     _invalid: {
@@ -41,16 +44,23 @@ export default function getOutlinedFieldStyles(props: StyleFunctionProps) {
     },
     _focusVisible: {
       zIndex: 1,
-      borderColor: getColor(theme, focusBorderColor),
+      borderColor: focusBorderColor,
       boxShadow: 'md',
     },
     _placeholder: {
       color: mode('blackAlpha.600', 'whiteAlpha.600')(props),
     },
     // not filled input
-    ':placeholder-shown:not(:focus-visible):not(:hover):not([aria-invalid=true])': { borderColor: borderColor || mode('gray.100', 'gray.700')(props) },
-    ':-webkit-autofill': { transition: 'background-color 5000s ease-in-out 0s' },
-    ':-webkit-autofill:hover': { transition: 'background-color 5000s ease-in-out 0s' },
-    ':-webkit-autofill:focus': { transition: 'background-color 5000s ease-in-out 0s' },
+    ':placeholder-shown:not(:focus-visible):not(:hover):not([aria-invalid=true])':
+      { borderColor: borderColor || mode('gray.100', 'gray.700')(props) },
+    ':-webkit-autofill': {
+      transition: 'background-color 5000s ease-in-out 0s',
+    },
+    ':-webkit-autofill:hover': {
+      transition: 'background-color 5000s ease-in-out 0s',
+    },
+    ':-webkit-autofill:focus': {
+      transition: 'background-color 5000s ease-in-out 0s',
+    },
   };
 }

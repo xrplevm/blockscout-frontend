@@ -25,7 +25,7 @@ const baseStyleList = defineStyle({
 
 const baseStyleItem = defineStyle({
   _focus: {
-    [$bg.variable]: 'colors.blue.50',
+    [$bg.variable]: 'primary',
     _dark: {
       [$bg.variable]: 'colors.gray.800',
     },

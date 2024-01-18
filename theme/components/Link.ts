@@ -8,9 +8,9 @@ const baseStyle = defineStyle(getDefaultTransitionProps());
 
 const variantPrimary = defineStyle((props) => {
   return {
-    color: 'link',
+    color: mode('primary', 'white')(props),
     _hover: {
-      color: 'link_hovered',
+      color: props.active ? 'white' : 'link_hovered',
       textDecorationStyle: props.textDecorationStyle || 'solid',
     },
   };
@@ -32,6 +32,7 @@ const variants: Record<string, SystemStyleInterpolation> = {
 
 const defaultProps = {
   variant: 'primary',
+  active: false,
 };
 
 const Link = defineStyleConfig({

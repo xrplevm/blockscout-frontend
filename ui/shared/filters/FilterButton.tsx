@@ -1,10 +1,18 @@
 import type { As } from '@chakra-ui/react';
-import { Skeleton, Box, Button, Circle, useColorModeValue } from '@chakra-ui/react';
+import {
+  Skeleton,
+  Box,
+  Button,
+  Circle,
+  useColorModeValue,
+} from '@chakra-ui/react';
 import React from 'react';
 
 import IconSvg from 'ui/shared/IconSvg';
 
-const FilterIcon = <IconSvg name="filter" boxSize={ 5 } mr={{ base: 0, lg: 2 }}/>;
+const FilterIcon = (
+  <IconSvg name="filter" boxSize={ 5 } mr={{ base: 0, lg: 2 }}/>
+);
 
 interface Props {
   isActive?: boolean;
@@ -14,7 +22,10 @@ interface Props {
   as?: As;
 }
 
-const FilterButton = ({ isActive, isLoading, appliedFiltersNum, onClick, as }: Props, ref: React.ForwardedRef<HTMLButtonElement>) => {
+const FilterButton = (
+  { isActive, isLoading, appliedFiltersNum, onClick, as }: Props,
+  ref: React.ForwardedRef<HTMLButtonElement>,
+) => {
   const badgeColor = useColorModeValue('white', 'black');
   const badgeBgColor = useColorModeValue('blue.700', 'gray.50');
 
@@ -25,11 +36,17 @@ const FilterButton = ({ isActive, isLoading, appliedFiltersNum, onClick, as }: P
   return (
     <Button
       ref={ ref }
-      rightIcon={ appliedFiltersNum ? <Circle bg={ badgeBgColor } size={ 5 } color={ badgeColor }>{ appliedFiltersNum }</Circle> : undefined }
+      rightIcon={
+        appliedFiltersNum ? (
+          <Circle bg={ badgeBgColor } size={ 5 } color={ badgeColor }>
+            { appliedFiltersNum }
+          </Circle>
+        ) : undefined
+      }
       size="sm"
       fontWeight="500"
       variant="outline"
-      colorScheme="gray-dark"
+      colorScheme="blue"
       onClick={ onClick }
       isActive={ isActive }
       px={ 1.5 }
