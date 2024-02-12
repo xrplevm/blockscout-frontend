@@ -11,6 +11,7 @@ import useContractTabs from 'lib/hooks/useContractTabs';
 import useIsSafeAddress from 'lib/hooks/useIsSafeAddress';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { ADDRESS_INFO, ADDRESS_TABS_COUNTERS } from 'stubs/address';
+import { USER_OPS_ACCOUNT } from 'stubs/userOps';
 import AddressBlocksValidated from 'ui/address/AddressBlocksValidated';
 import AddressCoinBalance from 'ui/address/AddressCoinBalance';
 import AddressContract from 'ui/address/AddressContract';
@@ -20,14 +21,17 @@ import AddressLogs from 'ui/address/AddressLogs';
 import AddressTokens from 'ui/address/AddressTokens';
 import AddressTokenTransfers from 'ui/address/AddressTokenTransfers';
 import AddressTxs from 'ui/address/AddressTxs';
+import AddressUserOps from 'ui/address/AddressUserOps';
 import AddressWithdrawals from 'ui/address/AddressWithdrawals';
 import AddressFavoriteButton from 'ui/address/details/AddressFavoriteButton';
 import AddressQrCode from 'ui/address/details/AddressQrCode';
+import AddressEnsDomains from 'ui/address/ensDomains/AddressEnsDomains';
 import SolidityscanReport from 'ui/address/SolidityscanReport';
 import AccountActionsMenu from 'ui/shared/AccountActionsMenu/AccountActionsMenu';
 import TextAd from 'ui/shared/ad/TextAd';
 import AddressAddToWallet from 'ui/shared/address/AddressAddToWallet';
 import AddressEntity from 'ui/shared/entities/address/AddressEntity';
+import EnsEntity from 'ui/shared/entities/ens/EnsEntity';
 import EntityTags from 'ui/shared/EntityTags';
 import IconSvg from 'ui/shared/IconSvg';
 import NetworkExplorers from 'ui/shared/NetworkExplorers';
@@ -60,6 +64,14 @@ const AddressPageContent = () => {
     },
   });
 
+  const userOpsAccountQuery = useApiQuery('user_ops_account', {
+    pathParams: { hash },
+    queryOptions: {
+      enabled: Boolean(hash) && config.features.userOps.isEnabled,
+      placeholderData: USER_OPS_ACCOUNT,
+    },
+  });
+
   const isSafeAddress = useIsSafeAddress(!addressQuery.isPlaceholderData && addressQuery.data?.is_contract ? hash : undefined);
 
   const contractTabs = useContractTabs(addressQuery.data);
@@ -72,6 +84,14 @@ const AddressPageContent = () => {
         count: addressTabsCountersQuery.data?.transactions_count,
         component: <AddressTxs scrollRef={ tabsScrollRef }/>,
       },
+      config.features.userOps.isEnabled && Boolean(userOpsAccountQuery.data?.total_ops) ?
+        {
+          id: 'user_ops',
+          title: 'User operations',
+          count: userOpsAccountQuery.data?.total_ops,
+          component: <AddressUserOps/>,
+        } :
+        undefined,
       config.features.beaconChain.isEnabled && addressTabsCountersQuery.data?.withdrawals_count ?
         {
           id: 'withdrawals',
@@ -138,17 +158,20 @@ const AddressPageContent = () => {
         subTabs: contractTabs.map(tab => tab.id),
       } : undefined,
     ].filter(Boolean);
-  }, [ addressQuery.data, contractTabs, addressTabsCountersQuery.data ]);
+  }, [ addressQuery.data, contractTabs, addressTabsCountersQuery.data, userOpsAccountQuery.data ]);
+
+  const isLoading = addressQuery.isPlaceholderData || (config.features.userOps.isEnabled && userOpsAccountQuery.isPlaceholderData);
 
   const tags = (
     <EntityTags
       data={ addressQuery.data }
-      isLoading={ addressQuery.isPlaceholderData }
+      isLoading={ isLoading }
       tagsBefore={ [
         !addressQuery.data?.is_contract ? { label: 'eoa', display_name: 'EOA' } : undefined,
         addressQuery.data?.implementation_address ? { label: 'proxy', display_name: 'Proxy' } : undefined,
         addressQuery.data?.token ? { label: 'token', display_name: 'Token' } : undefined,
         isSafeAddress ? { label: 'safe', display_name: 'Multisig: Safe' } : undefined,
+        config.features.userOps.isEnabled && userOpsAccountQuery.data ? { label: 'user_ops_acc', display_name: 'Smart contract wallet' } : undefined,
       ] }
     />
   );
@@ -168,18 +191,27 @@ const AddressPageContent = () => {
     };
   }, [ appProps.referrer ]);
 
-  const isLoading = addressQuery.isPlaceholderData;
-
   const titleSecondRow = (
     <Flex alignItems="center" w="100%" columnGap={ 2 } rowGap={ 2 } flexWrap={{ base: 'wrap', lg: 'nowrap' }}>
+      { addressQuery.data?.ens_domain_name && (
+        <EnsEntity
+          name={ addressQuery.data?.ens_domain_name }
+          fontFamily="heading"
+          fontSize="lg"
+          fontWeight={ 500 }
+          mr={ 1 }
+          maxW="300px"
+        />
+      ) }
       <AddressEntity
-        address={{ ...addressQuery.data, hash, name: '' }}
+        address={{ ...addressQuery.data, hash, name: '', ens_domain_name: '' }}
         isLoading={ isLoading }
         fontFamily="heading"
         fontSize="lg"
         fontWeight={ 500 }
         noLink
         isSafeAddress={ isSafeAddress }
+        mr={ 4 }
       />
       { !isLoading && addressQuery.data?.is_contract && addressQuery.data.token &&
         <AddressAddToWallet token={ addressQuery.data.token } variant="button"/> }
@@ -190,6 +222,8 @@ const AddressPageContent = () => {
       <AccountActionsMenu isLoading={ isLoading }/>
       <HStack ml="auto" gap={ 2 }/>
       { addressQuery.data?.is_contract && addressQuery.data?.is_verified && config.UI.views.address.solidityscanEnabled && <SolidityscanReport hash={ hash }/> }
+      { !isLoading && addressQuery.data && config.features.nameService.isEnabled &&
+        <AddressEnsDomains addressHash={ hash } mainDomainName={ addressQuery.data.ens_domain_name }/> }
       <NetworkExplorers type="address" pathParam={ hash }/>
     </Flex>
   );
@@ -207,7 +241,10 @@ const AddressPageContent = () => {
       <AddressDetails addressQuery={ addressQuery } scrollRef={ tabsScrollRef }/>
       { /* should stay before tabs to scroll up with pagination */ }
       <Box ref={ tabsScrollRef }></Box>
-      { (addressQuery.isPlaceholderData || addressTabsCountersQuery.isPlaceholderData) ? <TabsSkeleton tabs={ tabs }/> : content }
+      { (isLoading || addressTabsCountersQuery.isPlaceholderData) ?
+        <TabsSkeleton tabs={ tabs }/> :
+        content
+      }
     </>
   );
 };

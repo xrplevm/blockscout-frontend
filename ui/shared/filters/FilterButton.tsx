@@ -30,7 +30,7 @@ const FilterButton = (
   const badgeBgColor = useColorModeValue('blue.700', 'gray.50');
 
   if (isLoading) {
-    return <Skeleton w={{ base: 9, lg: '78px' }} h={ 8 } borderRadius="base"/>;
+    return <Skeleton w={{ base: 9, lg: '78px' }} h={ 8 } borderRadius="base" flexShrink={ 0 }/>;
   }
 
   return (
