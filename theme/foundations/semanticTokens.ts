@@ -5,7 +5,7 @@ const semanticTokens = {
       _dark: 'whiteAlpha.200',
     },
     text: {
-      'default': 'blackAlpha.800',
+      'default': 'tertiary',
       _dark: 'whiteAlpha.800',
     },
     text_secondary: {
@@ -13,11 +13,12 @@ const semanticTokens = {
       _dark: 'gray.400',
     },
     link: {
-      'default': 'blue.600',
-      _dark: 'blue.300',
+      'default': 'primary',
+      _dark: 'white',
     },
     link_hovered: {
-      'default': 'blue.400',
+      'default': 'primary',
+      _dark: 'white',
     },
     error: {
       'default': 'red.400',
@@ -25,7 +26,8 @@ const semanticTokens = {
     },
   },
   shadows: {
-    action_bar: '0 4px 4px -4px rgb(0 0 0 / 10%), 0 2px 4px -4px rgb(0 0 0 / 6%)',
+    action_bar:
+      '0 4px 4px -4px rgb(0 0 0 / 10%), 0 2px 4px -4px rgb(0 0 0 / 6%)',
   },
 };
 

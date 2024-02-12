@@ -28,7 +28,9 @@ interface Props {
   enableTimeIncrement?: boolean;
 }
 
-const isRollup = config.features.optimisticRollup.isEnabled || config.features.zkEvmRollup.isEnabled;
+const isRollup =
+  config.features.optimisticRollup.isEnabled ||
+  config.features.zkEvmRollup.isEnabled;
 
 const BlocksListItem = ({ data, isLoading, enableTimeIncrement }: Props) => {
   const totalReward = getBlockTotalReward(data);
@@ -49,53 +51,77 @@ const BlocksListItem = ({ data, isLoading, enableTimeIncrement }: Props) => {
             fontWeight={ 600 }
           />
         </Flex>
-        <BlockTimestamp ts={ data.timestamp } isEnabled={ enableTimeIncrement } isLoading={ isLoading }/>
+        <BlockTimestamp
+          ts={ data.timestamp }
+          isEnabled={ enableTimeIncrement }
+          isLoading={ isLoading }
+        />
       </Flex>
       <Flex columnGap={ 2 }>
         <Text fontWeight={ 500 }>Size</Text>
-        <Skeleton isLoaded={ !isLoading } display="inline-block" color="text_secondary">
+        <Skeleton
+          isLoaded={ !isLoading }
+          display="inline-block"
+          color="text_secondary"
+        >
           <span>{ data.size.toLocaleString() } bytes</span>
         </Skeleton>
       </Flex>
       { !config.UI.views.block.hiddenFields?.miner && (
         <Flex columnGap={ 2 } w="100%">
           <Text fontWeight={ 500 }>{ capitalize(getNetworkValidatorTitle()) }</Text>
-          <AddressEntity
-            address={ data.miner }
-            isLoading={ isLoading }
-          />
+          <AddressEntity address={ data.miner } isLoading={ isLoading }/>
         </Flex>
       ) }
       <Flex columnGap={ 2 }>
         <Text fontWeight={ 500 }>Txn</Text>
         { data.tx_count > 0 ? (
           <Skeleton isLoaded={ !isLoading } display="inline-block">
-            <LinkInternal href={ route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: String(data.height), tab: 'txs' } }) }>
+            <LinkInternal
+              href={ route({
+                pathname: '/block/[height_or_hash]',
+                query: { height_or_hash: String(data.height), tab: 'txs' },
+              }) }
+            >
               { data.tx_count }
             </LinkInternal>
           </Skeleton>
-        ) :
+        ) : (
           <Text variant="secondary">{ data.tx_count }</Text>
-        }
+        ) }
       </Flex>
       <Box>
         <Text fontWeight={ 500 }>Gas used</Text>
         <Flex mt={ 2 }>
-          <Skeleton isLoaded={ !isLoading } display="inline-block" color="text_secondary" mr={ 4 }>
+          <Skeleton
+            isLoaded={ !isLoading }
+            display="inline-block"
+            color="text_secondary"
+            mr={ 4 }
+          >
             <span>{ BigNumber(data.gas_used || 0).toFormat() }</span>
           </Skeleton>
-          <Utilization colorScheme="gray" value={ BigNumber(data.gas_used || 0).div(BigNumber(data.gas_limit)).toNumber() } isLoading={ isLoading }/>
+          <Utilization
+            colorScheme="gray"
+            value={ BigNumber(data.gas_used || 0)
+              .div(BigNumber(data.gas_limit))
+              .toNumber() }
+            isLoading={ isLoading }
+          />
           { data.gas_target_percentage && (
             <>
               <TextSeparator color={ separatorColor } mx={ 1 }/>
-              <GasUsedToTargetRatio value={ data.gas_target_percentage } isLoading={ isLoading }/>
+              <GasUsedToTargetRatio
+                value={ data.gas_target_percentage }
+                isLoading={ isLoading }
+              />
             </>
           ) }
         </Flex>
       </Box>
       { !isRollup && !config.UI.views.block.hiddenFields?.total_reward && (
         <Flex columnGap={ 2 }>
-          <Text fontWeight={ 500 }>Reward { currencyUnits.ether }</Text>
+          <Text fontWeight={ 500 }>Reward { config.chain.currency.symbol }</Text>
           <Skeleton isLoaded={ !isLoading } display="inline-block" color="text_secondary">
             <span>{ totalReward.toFixed() }</span>
           </Skeleton>
@@ -106,12 +132,26 @@ const BlocksListItem = ({ data, isLoading, enableTimeIncrement }: Props) => {
           <Text fontWeight={ 500 }>Burnt fees</Text>
           <Flex columnGap={ 4 } mt={ 2 }>
             <Flex>
-              <IconSvg name="flame" boxSize={ 5 } color="gray.500" isLoading={ isLoading }/>
-              <Skeleton isLoaded={ !isLoading } display="inline-block" color="text_secondary" ml={ 2 }>
+              <IconSvg
+                name="flame"
+                boxSize={ 5 }
+                color="gray.500"
+                isLoading={ isLoading }
+              />
+              <Skeleton
+                isLoaded={ !isLoading }
+                display="inline-block"
+                color="text_secondary"
+                ml={ 2 }
+              >
                 <span>{ burntFees.div(WEI).toFixed() }</span>
               </Skeleton>
             </Flex>
-            <Utilization ml={ 4 } value={ burntFees.div(txFees).toNumber() } isLoading={ isLoading }/>
+            <Utilization
+              ml={ 4 }
+              value={ burntFees.div(txFees).toNumber() }
+              isLoading={ isLoading }
+            />
           </Flex>
         </Box>
       ) }
