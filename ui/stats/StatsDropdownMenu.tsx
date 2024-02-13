@@ -17,27 +17,27 @@ export function StatsDropdownMenu<T extends string>({ items, selectedId, onSelec
       const selectedId = Array.isArray(id) ? id[0] : id;
       onSelect(selectedId as T);
     },
-    [onSelect]
+    [ onSelect ],
   );
 
   return (
     <Menu>
-      <MenuButton as={Button} size='md' variant='outline' colorScheme='gray' w='100%'>
-        <Box as='span' display='flex' alignItems='center'>
-          <Text whiteSpace='nowrap' overflow='hidden' textOverflow='ellipsis'>
-            {selectedCategory?.title}
+      <MenuButton as={ Button } size="md" variant="outline" colorScheme="gray" w="100%">
+        <Box as="span" display="flex" alignItems="center">
+          <Text whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
+            { selectedCategory?.title }
           </Text>
-          <IconSvg transform='rotate(-90deg)' ml='auto' name='arrows/east-mini' w={5} h={5} />
+          <IconSvg transform="rotate(-90deg)" ml="auto" name="arrows/east-mini" w={ 5 } h={ 5 }/>
         </Box>
       </MenuButton>
 
-      <MenuList zIndex={3}>
-        <MenuOptionGroup value={selectedId} type='radio' onChange={handleSelection}>
-          {items.map((item) => (
-            <MenuItemOption key={item.id} value={item.id}>
-              {item.title}
+      <MenuList zIndex={ 3 }>
+        <MenuOptionGroup value={ selectedId } type="radio" onChange={ handleSelection }>
+          { items.map((item) => (
+            <MenuItemOption key={ item.id } value={ item.id }>
+              { item.title }
             </MenuItemOption>
-          ))}
+          )) }
         </MenuOptionGroup>
       </MenuList>
     </Menu>

@@ -11,7 +11,7 @@ const ColorModeSwitch = () => {
   const { isOpen, onToggle, onClose } = useDisclosure();
   const { setColorMode, colorMode } = useColorMode();
 
-  const [activeHex, setActiveHex] = React.useState<string>();
+  const [ activeHex, setActiveHex ] = React.useState<string>();
 
   const setTheme = React.useCallback(
     (hex: string) => {
@@ -29,7 +29,7 @@ const ColorModeSwitch = () => {
       cookies.set(cookies.NAMES.COLOR_MODE_HEX, hex);
       window.localStorage.setItem(cookies.NAMES.COLOR_MODE, nextTheme.colorMode);
     },
-    [setColorMode]
+    [ setColorMode ],
   );
 
   React.useEffect(() => {
@@ -65,32 +65,32 @@ const ColorModeSwitch = () => {
       setTheme(hex);
       setActiveHex(hex);
     },
-    [setTheme]
+    [ setTheme ],
   );
 
   const activeTheme = COLOR_THEMES.find((theme) => theme.colors.some((color) => color.hex === activeHex));
 
   return (
-    <Popover placement='bottom-start' isLazy trigger='click' isOpen={isOpen} onClose={onClose}>
+    <Popover placement="bottom-start" isLazy trigger="click" isOpen={ isOpen } onClose={ onClose }>
       <PopoverTrigger>
-        {activeTheme ? (
+        { activeTheme ? (
           <IconButton
-            variant='simple'
-            colorScheme='purple'
-            aria-label='color mode switch'
-            icon={<IconSvg name={activeTheme.icon} boxSize={5} />}
-            boxSize={5}
-            onClick={onToggle}
+            variant="simple"
+            colorScheme="purple"
+            aria-label="color mode switch"
+            icon={ <IconSvg name={ activeTheme.icon } boxSize={ 5 }/> }
+            boxSize={ 5 }
+            onClick={ onToggle }
           />
         ) : (
-          <Skeleton boxSize={5} borderRadius='sm' />
-        )}
+          <Skeleton boxSize={ 5 } borderRadius="sm"/>
+        ) }
       </PopoverTrigger>
-      <PopoverContent overflowY='hidden' w='164px' fontSize='sm'>
-        <PopoverBody boxShadow='2xl' p={3}>
-          {COLOR_THEMES.map((theme) => (
-            <ColorModeSwitchTheme key={theme.name} {...theme} onClick={handleSelect} activeHex={activeHex} />
-          ))}
+      <PopoverContent overflowY="hidden" w="164px" fontSize="sm">
+        <PopoverBody boxShadow="2xl" p={ 3 }>
+          { COLOR_THEMES.map((theme) => (
+            <ColorModeSwitchTheme key={ theme.name } { ...theme } onClick={ handleSelect } activeHex={ activeHex }/>
+          )) }
         </PopoverBody>
       </PopoverContent>
     </Popover>

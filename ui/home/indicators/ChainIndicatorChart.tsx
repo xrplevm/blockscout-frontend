@@ -34,18 +34,18 @@ const ChainIndicatorChart = ({ data }: Props) => {
   });
 
   return (
-    <svg width='100%' height='100%' ref={ref} cursor='pointer'>
-      <g transform={`translate(${CHART_MARGIN?.left || 0},${CHART_MARGIN?.top || 0})`} opacity={rect ? 1 : 0}>
-        <ChartArea data={data[0].items} xScale={axis.x.scale} yScale={axis.y.scale} />
-        <ChartLine data={data[0].items} xScale={axis.x.scale} yScale={axis.y.scale} stroke={lineColor} animation='left' strokeWidth={3} />
-        <ChartOverlay ref={overlayRef} width={innerWidth} height={innerHeight}>
+    <svg width="100%" height="100%" ref={ ref } cursor="pointer">
+      <g transform={ `translate(${ CHART_MARGIN?.left || 0 },${ CHART_MARGIN?.top || 0 })` } opacity={ rect ? 1 : 0 }>
+        <ChartArea data={ data[0].items } xScale={ axis.x.scale } yScale={ axis.y.scale }/>
+        <ChartLine data={ data[0].items } xScale={ axis.x.scale } yScale={ axis.y.scale } stroke={ lineColor } animation="left" strokeWidth={ 3 }/>
+        <ChartOverlay ref={ overlayRef } width={ innerWidth } height={ innerHeight }>
           <ChartTooltip
-            anchorEl={overlayRef.current}
-            width={innerWidth}
-            height={innerHeight}
-            xScale={axis.x.scale}
-            yScale={axis.y.scale}
-            data={data}
+            anchorEl={ overlayRef.current }
+            width={ innerWidth }
+            height={ innerHeight }
+            xScale={ axis.x.scale }
+            yScale={ axis.y.scale }
+            data={ data }
           />
         </ChartOverlay>
       </g>

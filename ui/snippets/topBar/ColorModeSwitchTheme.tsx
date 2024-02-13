@@ -21,34 +21,34 @@ const ColorModeSwitchTheme = ({ icon, name, colors, onClick, activeHex }: Props)
 
   return (
     <Flex
-      alignItems='center'
-      py='10px'
-      px='6px'
-      cursor='pointer'
-      color={isActive ? activeColor : inactiveColor}
-      bgColor={isActive ? activeBgColor : undefined}
+      alignItems="center"
+      py="10px"
+      px="6px"
+      cursor="pointer"
+      color={ isActive ? activeColor : inactiveColor }
+      bgColor={ isActive ? activeBgColor : undefined }
       _hover={{
         color: isActive ? undefined : 'link_hovered',
         '& [data-hex]':
-          !isActive && hasOneColor
-            ? {
-                _before: {
-                  borderColor: hoverBorderColor,
-                },
-              }
-            : undefined,
+          !isActive && hasOneColor ?
+            {
+              _before: {
+                borderColor: hoverBorderColor,
+              },
+            } :
+            undefined,
       }}
-      onClick={onClick}
-      data-hex={colors[0].hex}
-      fontWeight={500}
-      borderRadius='base'
+      onClick={ onClick }
+      data-hex={ colors[0].hex }
+      fontWeight={ 500 }
+      borderRadius="base"
     >
-      <IconSvg name={icon} boxSize={5} mr={2} />
-      <span>{name}</span>
-      <Flex columnGap={2} ml='auto' alignItems='center'>
-        {colors.map((sample) => (
-          <ColorModeSwitchSample key={sample.hex} {...sample} onClick={onClick} isActive={activeHex === sample.hex} />
-        ))}
+      <IconSvg name={ icon } boxSize={ 5 } mr={ 2 }/>
+      <span>{ name }</span>
+      <Flex columnGap={ 2 } ml="auto" alignItems="center">
+        { colors.map((sample) => (
+          <ColorModeSwitchSample key={ sample.hex } { ...sample } onClick={ onClick } isActive={ activeHex === sample.hex }/>
+        )) }
       </Flex>
     </Flex>
   );

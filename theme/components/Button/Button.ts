@@ -20,10 +20,10 @@ const variantSolid = defineStyle((props) => {
     };
   }
 
-  const bg = `${c}.600`;
+  const bg = `${ c }.600`;
   const color = 'white';
-  const hoverBg = `${c}.400`;
-  const activeBg = `${c}.700`;
+  const hoverBg = `${ c }.400`;
+  const activeBg = `${ c }.700`;
 
   return {
     bg,
@@ -46,9 +46,9 @@ const variantOutline = defineStyle((props) => {
   const { colorScheme: c } = props;
 
   const isGrayTheme = c === 'gray' || c === 'gray-dark';
-  const color = isGrayTheme ? mode('blackAlpha.800', 'whiteAlpha.800')(props) : mode(`${c}.600`, `${c}.300`)(props);
-  const borderColor = isGrayTheme ? mode('purple.200', 'purple.600')(props) : mode(`${c}.600`, `${c}.300`)(props);
-  const activeBg = isGrayTheme ? mode('purple.50', 'purple.600')(props) : mode(`${c}.50`, 'purple.600')(props);
+  const color = isGrayTheme ? mode('blackAlpha.800', 'whiteAlpha.800')(props) : mode(`${ c }.600`, `${ c }.300`)(props);
+  const borderColor = isGrayTheme ? mode('purple.200', 'purple.600')(props) : mode(`${ c }.600`, `${ c }.300`)(props);
+  const activeBg = isGrayTheme ? mode('purple.50', 'purple.600')(props) : mode(`${ c }.50`, 'purple.600')(props);
   const activeColor = (() => {
     if (c === 'gray') {
       return mode('purple.600', 'purple.50')(props);
@@ -120,20 +120,20 @@ const variantSimple = defineStyle((props) => {
 
 const variantGhost = defineStyle((props) => {
   const { colorScheme: c } = props;
-  const activeBg = mode(`${c}.50`, 'gray.800')(props);
+  const activeBg = mode(`${ c }.50`, 'gray.800')(props);
 
   return {
     bg: 'transparent',
-    color: mode(`${c}.700`, 'gray.400')(props),
+    color: mode(`${ c }.700`, 'gray.400')(props),
     _active: {
-      color: mode(`${c}.700`, 'gray.50')(props),
-      bg: mode(`${c}.50`, 'gray.800')(props),
+      color: mode(`${ c }.700`, 'gray.50')(props),
+      bg: mode(`${ c }.50`, 'gray.800')(props),
     },
     _hover: {
-      color: `${c}.400`,
+      color: `${ c }.400`,
       _active: {
         bg: props.isActive ? activeBg : 'transparent',
-        color: mode(`${c}.700`, 'gray.50')(props),
+        color: mode(`${ c }.700`, 'gray.50')(props),
       },
     },
   };
@@ -157,8 +157,8 @@ const variantSubtle = defineStyle((props) => {
   }
 
   return {
-    bg: `${c}.100`,
-    color: `${c}.600`,
+    bg: `${ c }.100`,
+    color: `${ c }.600`,
     _hover: {
       color: 'link_hovered',
     },

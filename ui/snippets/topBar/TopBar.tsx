@@ -8,9 +8,9 @@ const TopBar = () => {
   const bgColor = useColorModeValue('gray.100', 'whiteAlpha.100');
 
   return (
-    <Flex py={2} px={6} bgColor={bgColor} justifyContent='space-between'>
-      <TopBarStats />
-      <ColorModeSwitch />
+    <Flex py={ 2 } px={ 6 } bgColor={ bgColor } justifyContent="space-between">
+      <TopBarStats/>
+      <ColorModeSwitch/>
     </Flex>
   );
 };
