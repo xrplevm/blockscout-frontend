@@ -3,7 +3,8 @@ import {
   Center,
   chakra,
   Flex,
-  IconButton, Link,
+  IconButton,
+  Link,
   Menu,
   MenuButton,
   MenuItem,
@@ -35,7 +36,7 @@ export type Props = {
   isLoading: boolean;
   className?: string;
   isError: boolean;
-}
+};
 
 const DOWNLOAD_IMAGE_SCALE = 5;
 
@@ -67,8 +68,8 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
     // wait for context menu to close
     setTimeout(() => {
       if (ref.current) {
-        domToImage.toPng(ref.current,
-          {
+        domToImage
+          .toPng(ref.current, {
             quality: 100,
             bgcolor: pngBackgroundColor,
             width: ref.current.offsetWidth * DOWNLOAD_IMAGE_SCALE,
@@ -93,12 +94,8 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
 
   const handleSVGSavingClick = useCallback(() => {
     if (items) {
-      const headerRows = [
-        'Date', 'Value',
-      ];
-      const dataRows = items.map((item) => [
-        dayjs(item.date).format('YYYY-MM-DD'), String(item.value),
-      ]);
+      const headerRows = [ 'Date', 'Value' ];
+      const dataRows = items.map((item) => [ dayjs(item.date).format('YYYY-MM-DD'), String(item.value) ]);
 
       saveAsCSV(headerRows, dataRows, `${ title } (Blockscout stats)`);
     }
@@ -109,17 +106,8 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
   const content = (() => {
     if (isError) {
       return (
-        <Flex
-          alignItems="center"
-          justifyContent="center"
-          flexGrow={ 1 }
-          py={ 4 }
-        >
-          <Text
-            variant="secondary"
-            fontSize="sm"
-            textAlign="center"
-          >
+        <Flex alignItems="center" justifyContent="center" flexGrow={ 1 } py={ 4 }>
+          <Text variant="secondary" fontSize="sm" textAlign="center">
             { `The data didn${ apos }t load. Please, ` }
             <Link href={ window.document.location.href }>try to reload the page.</Link>
           </Text>
@@ -134,20 +122,16 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
     if (!hasItems) {
       return (
         <Center flexGrow={ 1 }>
-          <Text variant="secondary" fontSize="sm">No data</Text>
+          <Text variant="secondary" fontSize="sm">
+            No data
+          </Text>
         </Center>
       );
     }
 
     return (
       <Box flexGrow={ 1 } maxW="100%">
-        <ChartWidgetGraph
-          items={ items }
-          onZoom={ handleZoom }
-          isZoomResetInitial={ isZoomResetInitial }
-          title={ title }
-          units={ units }
-        />
+        <ChartWidgetGraph items={ items } onZoom={ handleZoom } isZoomResetInitial={ isZoomResetInitial } title={ title } units={ units }/>
       </Box>
     );
   })();
@@ -166,21 +150,12 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
       >
         <Flex columnGap={ 6 } mb={ 1 } alignItems="flex-start">
           <Flex flexGrow={ 1 } flexDir="column" alignItems="flex-start">
-            <Skeleton
-              isLoaded={ !isLoading }
-              fontWeight={ 600 }
-              size={{ base: 'xs', lg: 'sm' }}
-            >
+            <Skeleton isLoaded={ !isLoading } fontWeight={ 600 } size={{ base: 'xs', lg: 'sm' }}>
               { title }
             </Skeleton>
 
             { description && (
-              <Skeleton
-                isLoaded={ !isLoading }
-                color="text_secondary"
-                fontSize="xs"
-                mt={ 1 }
-              >
+              <Skeleton isLoaded={ !isLoading } color="text_secondary" fontSize="xs" mt={ 1 }>
                 <span>{ description }</span>
               </Skeleton>
             ) }
@@ -191,7 +166,7 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
               <IconButton
                 hidden={ isZoomResetInitial }
                 aria-label="Reset zoom"
-                colorScheme="blue"
+                colorScheme="purple"
                 w={ 9 }
                 h={ 8 }
                 size="sm"
@@ -212,37 +187,23 @@ const ChartWidget = ({ items, title, description, isLoading, className, isError,
                     variant="ghost"
                     as={ IconButton }
                   >
-                    <VisuallyHidden>
-                      Open chart options menu
-                    </VisuallyHidden>
+                    <VisuallyHidden>Open chart options menu</VisuallyHidden>
                   </MenuButton>
                 </Skeleton>
                 <MenuList>
-                  <MenuItem
-                    display="flex"
-                    alignItems="center"
-                    onClick={ showChartFullscreen }
-                  >
+                  <MenuItem display="flex" alignItems="center" onClick={ showChartFullscreen }>
                     <IconSvg name="scope" boxSize={ 5 } mr={ 3 }/>
-                  View fullscreen
+                    View fullscreen
                   </MenuItem>
 
-                  <MenuItem
-                    display="flex"
-                    alignItems="center"
-                    onClick={ handleFileSaveClick }
-                  >
+                  <MenuItem display="flex" alignItems="center" onClick={ handleFileSaveClick }>
                     <IconSvg name="files/image" boxSize={ 5 } mr={ 3 }/>
-                  Save as PNG
+                    Save as PNG
                   </MenuItem>
 
-                  <MenuItem
-                    display="flex"
-                    alignItems="center"
-                    onClick={ handleSVGSavingClick }
-                  >
+                  <MenuItem display="flex" alignItems="center" onClick={ handleSVGSavingClick }>
                     <IconSvg name="files/csv" boxSize={ 5 } mr={ 3 }/>
-                  Save as CSV
+                    Save as CSV
                   </MenuItem>
                 </MenuList>
               </Menu>

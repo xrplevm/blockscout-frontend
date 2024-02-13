@@ -20,13 +20,13 @@ const baseStyleList = defineStyle({
 
 const baseStyleItem = defineStyle({
   _focus: {
-    [$bg.variable]: 'colors.purple.500',
+    [$bg.variable]: 'colors.purple.300',
     _dark: {
       [$bg.variable]: 'colors.purple.800',
     },
   },
   _hover: {
-    [$bg.variable]: 'colors.purple.500',
+    [$bg.variable]: 'colors.purple.300',
     _dark: {
       [$bg.variable]: 'colors.purple.800',
     },
