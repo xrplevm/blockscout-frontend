@@ -1,23 +1,24 @@
 const semanticTokens = {
   colors: {
     divider: {
-      'default': 'blackAlpha.200',
+      'default': 'gray.200',
       _dark: 'whiteAlpha.200',
     },
     text: {
-      'default': 'blackAlpha.800',
-      _dark: 'whiteAlpha.800',
+      'default': 'black',
+      _dark: 'white',
     },
     text_secondary: {
-      'default': 'gray.500',
+      'default': 'gray.600',
       _dark: 'gray.400',
     },
     link: {
-      'default': 'blue.600',
-      _dark: 'blue.300',
+      'default': 'purple.500',
+      _dark: 'purple.300',
     },
     link_hovered: {
-      'default': 'blue.400',
+      'default': 'purple.500',
+      _dark: 'purple.300',
     },
     error: {
       'default': 'red.400',

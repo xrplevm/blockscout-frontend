@@ -1,15 +1,11 @@
 import { tagAnatomy as parts } from '@chakra-ui/anatomy';
-import {
-  createMultiStyleConfigHelpers,
-  defineStyle,
-} from '@chakra-ui/styled-system';
+import { createMultiStyleConfigHelpers, defineStyle } from '@chakra-ui/styled-system';
 
 import getDefaultTransitionProps from '../../utils/getDefaultTransitionProps';
 import Badge from '../Badge';
 const transitionProps = getDefaultTransitionProps();
 
-const { defineMultiStyleConfig, definePartsStyle } =
-  createMultiStyleConfigHelpers(parts.keys);
+const { defineMultiStyleConfig, definePartsStyle } = createMultiStyleConfigHelpers(parts.keys);
 
 const variants = {
   subtle: definePartsStyle((props) => ({

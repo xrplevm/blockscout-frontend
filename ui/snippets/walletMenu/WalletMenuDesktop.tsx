@@ -55,20 +55,13 @@ const WalletMenuDesktop = ({ isHomePage }: Props) => {
   }, [ setIsPopoverOpen ]);
 
   return (
-    <Popover
-      openDelay={ 300 }
-      placement="bottom-end"
-      gutter={ 10 }
-      isLazy
-      isOpen={ isPopoverOpen }
-      onClose={ setIsPopoverOpen.off }
-    >
+    <Popover openDelay={ 300 } placement="bottom-end" gutter={ 10 } isLazy isOpen={ isPopoverOpen } onClose={ setIsPopoverOpen.off }>
       <WalletTooltip isDisabled={ isWalletConnected || isMobile === undefined || isMobile }>
         <Box ml={ 2 }>
           <PopoverTrigger>
             <Button
               variant={ variant }
-              colorScheme="blue"
+              colorScheme="whiteAlpha"
               flexShrink={ 0 }
               isLoading={ isModalOpening || isModalOpen }
               loadingText="Connect wallet"
@@ -83,7 +76,9 @@ const WalletMenuDesktop = ({ isHomePage }: Props) => {
                   </Box>
                   <HashStringShorten hash={ address } isTooltipDisabled/>
                 </>
-              ) : 'Connect wallet' }
+              ) : (
+                'Connect wallet'
+              ) }
             </Button>
           </PopoverTrigger>
         </Box>

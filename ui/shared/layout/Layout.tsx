@@ -12,21 +12,30 @@ import * as Layout from './components';
 const LayoutDefault = ({ children }: Props) => {
   return (
     <Layout.Container>
-      <Layout.TopRow/>
-      <HeaderMobile/>
+      <Layout.TopRow />
+      <HeaderMobile />
       <Layout.MainArea>
-        <Layout.SideBar/>
+        <Layout.SideBar />
+
         <Layout.MainColumn>
-          <HeaderAlert/>
-          <HeaderDesktop/>
+          <HeaderAlert />
+          <img
+            src='/static/bg-top.png'
+            style={{
+              left: 0,
+              top: 0,
+              width: '25vw',
+              position: 'absolute',
+              zIndex: -1,
+            }}
+          />
+          <HeaderDesktop />
           <AppErrorBoundary>
-            <Layout.Content>
-              { children }
-            </Layout.Content>
+            <Layout.Content>{children}</Layout.Content>
           </AppErrorBoundary>
         </Layout.MainColumn>
       </Layout.MainArea>
-      <Layout.Footer/>
+      <Layout.Footer />
     </Layout.Container>
   );
 };

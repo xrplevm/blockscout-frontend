@@ -19,7 +19,10 @@ interface Props {
   value: string;
 }
 
-const SearchBarInput = ({ onChange, onSubmit, isHomepage, onFocus, onBlur, onHide, onClear, value }: Props, ref: React.ForwardedRef<HTMLFormElement>) => {
+const SearchBarInput = (
+  { onChange, onSubmit, isHomepage, onFocus, onBlur, onHide, onClear, value }: Props,
+  ref: React.ForwardedRef<HTMLFormElement>,
+) => {
   const innerRef = React.useRef<HTMLFormElement>(null);
   React.useImperativeHandle(ref, () => innerRef.current as HTMLFormElement, []);
   const [ isSticky, setIsSticky ] = React.useState(false);
@@ -41,9 +44,12 @@ const SearchBarInput = ({ onChange, onSubmit, isHomepage, onFocus, onBlur, onHid
     }
   }, [ isMobile, onHide, isHomepage ]);
 
-  const handleChange = React.useCallback((event: ChangeEvent<HTMLInputElement>) => {
-    onChange(event.target.value);
-  }, [ onChange ]);
+  const handleChange = React.useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      onChange(event.target.value);
+    },
+    [ onChange ],
+  );
 
   React.useEffect(() => {
     if (!isMobile) {
@@ -86,7 +92,11 @@ const SearchBarInput = ({ onChange, onSubmit, isHomepage, onFocus, onBlur, onHid
     >
       <InputGroup size={{ base: isHomepage ? 'md' : 'sm', lg: 'md' }}>
         <InputLeftElement w={{ base: isHomepage ? 6 : 4, lg: 6 }} ml={{ base: isHomepage ? 4 : 3, lg: 4 }} h="100%">
-          <IconSvg name="search" boxSize={{ base: isHomepage ? 6 : 4, lg: 6 }} color={ useColorModeValue('blackAlpha.600', 'whiteAlpha.600') }/>
+          <IconSvg
+            name="search"
+            boxSize={{ base: isHomepage ? 6 : 4, lg: 6 }}
+            color={ useColorModeValue('blackAlpha.600', 'whiteAlpha.600') }
+          />
         </InputLeftElement>
         <Input
           pl={{ base: isHomepage ? '50px' : '38px', lg: '50px' }}

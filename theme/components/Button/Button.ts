@@ -57,9 +57,9 @@ const variantOutline = defineStyle((props) => {
       return mode('blue.600', 'gray.50')(props);
     }
     if (c === 'blue') {
-      return mode('blue.600', 'gray.50')(props);
+      return mode('purple.500', 'purple.500')(props);
     }
-    return 'blue.600';
+    return 'purple.500';
   })();
 
   return {
@@ -216,7 +216,7 @@ const Button = defineStyleConfig({
   defaultProps: {
     variant: 'solid',
     size: 'md',
-    colorScheme: 'blue',
+    colorScheme: 'purple',
   },
 });
 

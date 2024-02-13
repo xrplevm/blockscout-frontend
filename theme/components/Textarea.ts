@@ -12,8 +12,7 @@ const variantFilledInactive = defineStyle((props) => {
     // and whiteAlpha.50 is replaced with #1a1b1b
 
     // bgColor: mode('blackAlpha.50', 'whiteAlpha.50')(props),
-    bgColor: mode('#f5f5f6', '#1a1b1b')(props),
-
+    bgColor: mode('#F5F5F7', '#1A1A1A')(props),
   };
 });
 

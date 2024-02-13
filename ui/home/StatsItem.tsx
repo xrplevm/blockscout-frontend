@@ -15,7 +15,7 @@ type Props = {
   tooltipLabel?: React.ReactNode;
   url?: string;
   isLoading?: boolean;
-}
+};
 
 const LARGEST_BREAKPOINT = '1240px';
 
@@ -36,7 +36,7 @@ const StatsItem = ({ icon, title, value, className, tooltipLabel, url, isLoading
     [`@media screen and (min-width: ${ breakpoints.lg }) and (max-width: ${ LARGEST_BREAKPOINT })`]: { alignItems: 'center' },
   };
 
-  const bgColor = useColorModeValue('blue.50', 'blue.800');
+  const bgColor = useColorModeValue('gray.200', 'gray.700');
   const loadingBgColor = useColorModeValue('blackAlpha.50', 'whiteAlpha.50');
   const infoColor = useColorModeValue('gray.600', 'gray.400');
 
@@ -53,17 +53,15 @@ const StatsItem = ({ icon, title, value, className, tooltipLabel, url, isLoading
       className={ className }
       color={ useColorModeValue('black', 'white') }
       position="relative"
-      { ...(url && !isLoading ? {
-        as: 'a',
-        href: url,
-      } : {}) }
+      { ...(url && !isLoading ?
+        {
+          as: 'a',
+          href: url,
+        } :
+        {}) }
     >
       <IconSvg name={ icon } boxSize={ 7 } isLoading={ isLoading } borderRadius="base"/>
-      <Flex
-        flexDirection="column"
-        alignItems="start"
-        sx={ sxText }
-      >
+      <Flex flexDirection="column" alignItems="start" sx={ sxText }>
         <Skeleton isLoaded={ !isLoading } color="text_secondary" fontSize="xs" lineHeight="16px" borderRadius="base">
           <span>{ title }</span>
         </Skeleton>
