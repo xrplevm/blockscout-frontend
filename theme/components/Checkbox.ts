@@ -1,14 +1,9 @@
 import { checkboxAnatomy as parts } from '@chakra-ui/anatomy';
-import {
-  createMultiStyleConfigHelpers,
-  defineStyle,
-  cssVar,
-} from '@chakra-ui/styled-system';
+import { createMultiStyleConfigHelpers, defineStyle, cssVar } from '@chakra-ui/styled-system';
 import { mode } from '@chakra-ui/theme-tools';
 import { runIfFn } from '@chakra-ui/utils';
 
-const { definePartsStyle, defineMultiStyleConfig } =
-  createMultiStyleConfigHelpers(parts.keys);
+const { definePartsStyle, defineMultiStyleConfig } = createMultiStyleConfigHelpers(parts.keys);
 
 const $size = cssVar('checkbox-size');
 
@@ -61,6 +56,9 @@ const baseStyle = definePartsStyle((props) => ({
 const Checkbox = defineMultiStyleConfig({
   baseStyle,
   sizes,
+  defaultProps: {
+    colorScheme: 'purple',
+  },
 });
 
 export default Checkbox;

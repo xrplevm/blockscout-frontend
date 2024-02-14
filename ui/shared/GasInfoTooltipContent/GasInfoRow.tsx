@@ -31,8 +31,10 @@ const GasInfoRow = ({ name, info }: Props) => {
 
   return (
     <>
-      <GridItem color="blue.100">{ name }</GridItem>
-      <GridItem color="text" textAlign="right">{ content }</GridItem>
+      <GridItem color="purple.100">{ name }</GridItem>
+      <GridItem color="text" textAlign="right">
+        { content }
+      </GridItem>
     </>
   );
 };

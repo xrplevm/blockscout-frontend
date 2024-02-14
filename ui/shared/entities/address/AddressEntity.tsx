@@ -19,10 +19,7 @@ const Link = chakra((props: LinkProps) => {
   const defaultHref = route({ pathname: '/address/[hash]', query: { ...props.query, hash: props.address.hash } });
 
   return (
-    <EntityBase.Link
-      { ...props }
-      href={ props.href ?? defaultHref }
-    >
+    <EntityBase.Link { ...props } href={ props.href ?? defaultHref }>
       { props.children }
     </EntityBase.Link>
   );
@@ -48,24 +45,14 @@ const Icon = (props: IconProps) => {
 
   if (props.address.is_contract) {
     if (props.isSafeAddress) {
-      return (
-        <EntityBase.Icon
-          { ...props }
-          name="brands/safe"
-        />
-      );
+      return <EntityBase.Icon { ...props } name="brands/safe"/>;
     }
 
     if (props.address.is_verified) {
       return (
         <Tooltip label="Verified contract">
           <span>
-            <EntityBase.Icon
-              { ...props }
-              name="contract_verified"
-              color="green.500"
-              borderRadius={ 0 }
-            />
+            <EntityBase.Icon { ...props } name="contract_verified" color="green.500" borderRadius={ 0 }/>
           </span>
         </Tooltip>
       );
@@ -74,11 +61,7 @@ const Icon = (props: IconProps) => {
     return (
       <Tooltip label="Contract">
         <span>
-          <EntityBase.Icon
-            { ...props }
-            name="contract"
-            borderRadius={ 0 }
-          />
+          <EntityBase.Icon { ...props } name="contract" borderRadius={ 0 }/>
         </span>
       </Tooltip>
     );
@@ -87,10 +70,7 @@ const Icon = (props: IconProps) => {
   return (
     <Tooltip label={ props.address.implementation_name }>
       <Flex marginRight={ styles.marginRight }>
-        <AddressIdenticon
-          size={ props.iconSize === 'lg' ? 30 : 20 }
-          hash={ props.address.hash }
-        />
+        <AddressIdenticon size={ props.iconSize === 'lg' ? 30 : 20 } hash={ props.address.hash }/>
       </Flex>
     </Tooltip>
   );
@@ -103,8 +83,12 @@ const Content = chakra((props: ContentProps) => {
     const text = props.address.ens_domain_name || props.address.name;
     const label = (
       <VStack gap={ 0 } py={ 1 } color="inherit">
-        <Box fontWeight={ 600 } whiteSpace="pre-wrap" wordBreak="break-word">{ text }</Box>
-        <Box whiteSpace="pre-wrap" wordBreak="break-word">{ props.address.hash }</Box>
+        <Box fontWeight={ 600 } whiteSpace="pre-wrap" wordBreak="break-word">
+          { text }
+        </Box>
+        <Box whiteSpace="pre-wrap" wordBreak="break-word">
+          { props.address.hash }
+        </Box>
       </VStack>
     );
 
@@ -117,23 +101,13 @@ const Content = chakra((props: ContentProps) => {
     );
   }
 
-  return (
-    <EntityBase.Content
-      { ...props }
-      text={ props.address.hash }
-    />
-  );
+  return <EntityBase.Content { ...props } text={ props.address.hash }/>;
 });
 
 type CopyProps = Omit<EntityBase.CopyBaseProps, 'text'> & Pick<EntityProps, 'address'>;
 
 const Copy = (props: CopyProps) => {
-  return (
-    <EntityBase.Copy
-      { ...props }
-      text={ props.address.hash }
-    />
-  );
+  return <EntityBase.Copy { ...props } text={ props.address.hash }/>;
 };
 
 const Container = EntityBase.Container;
@@ -148,8 +122,8 @@ const AddressEntry = (props: EntityProps) => {
   const partsProps = _omit(props, [ 'className', 'onClick' ]);
 
   const context = useAddressHighlightContext();
-  const highlightedBgColor = useColorModeValue('blue.50', 'blue.900');
-  const highlightedBorderColor = useColorModeValue('blue.200', 'blue.600');
+  const highlightedBgColor = useColorModeValue('purple.50', 'purple.900');
+  const highlightedBorderColor = useColorModeValue('purple.200', 'purple.600');
 
   return (
     <Container
@@ -158,23 +132,27 @@ const AddressEntry = (props: EntityProps) => {
       onMouseEnter={ context?.onMouseEnter }
       onMouseLeave={ context?.onMouseLeave }
       position="relative"
-      _before={ !props.isLoading && context?.highlightedAddress === props.address.hash ? {
-        content: `" "`,
-        position: 'absolute',
-        py: 1,
-        pl: 1,
-        pr: props.noCopy ? 2 : 0,
-        top: '-5px',
-        left: '-5px',
-        width: `100%`,
-        height: '100%',
-        borderRadius: 'base',
-        borderColor: highlightedBorderColor,
-        borderWidth: '1px',
-        borderStyle: 'dashed',
-        bgColor: highlightedBgColor,
-        zIndex: -1,
-      } : undefined }
+      _before={
+        !props.isLoading && context?.highlightedAddress === props.address.hash ?
+          {
+            content: `" "`,
+            position: 'absolute',
+            py: 1,
+            pl: 1,
+            pr: props.noCopy ? 2 : 0,
+            top: '-5px',
+            left: '-5px',
+            width: `100%`,
+            height: '100%',
+            borderRadius: 'base',
+            borderColor: highlightedBorderColor,
+            borderWidth: '1px',
+            borderStyle: 'dashed',
+            bgColor: highlightedBgColor,
+            zIndex: -1,
+          } :
+          undefined
+      }
     >
       <Icon { ...partsProps }/>
       <Link { ...linkProps }>
@@ -187,10 +165,4 @@ const AddressEntry = (props: EntityProps) => {
 
 export default React.memo(chakra(AddressEntry));
 
-export {
-  Container,
-  Link,
-  Icon,
-  Content,
-  Copy,
-};
+export { Container, Link, Icon, Content, Copy };

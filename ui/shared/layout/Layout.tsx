@@ -26,7 +26,7 @@ const LayoutDefault = ({ children }: Props) => {
               bottom: 0,
               width: '15vw',
               position: 'absolute',
-              zIndex: -1,
+              zIndex: -999,
             }}
           /> */ }
 
