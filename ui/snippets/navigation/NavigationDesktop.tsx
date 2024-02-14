@@ -46,7 +46,7 @@ const NavigationDesktop = () => {
 
   const isExpanded = isCollapsed === false;
 
-  const sidebarBackgroundColor = useColorModeValue('white', 'black');
+  const sidebarBackgroundColor = useColorModeValue('gray.100', 'black');
 
   return (
     <Flex

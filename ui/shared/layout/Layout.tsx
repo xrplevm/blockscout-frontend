@@ -30,7 +30,7 @@ const LayoutDefault = ({ children }: Props) => {
                 style={{
                   top: 0,
                   left: 0,
-                  width: '25vw',
+                  width: '20vw',
                   position: 'absolute',
                   zIndex: -1,
                 }}

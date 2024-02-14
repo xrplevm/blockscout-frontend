@@ -8,7 +8,7 @@ type Props = {
   children: React.ReactNode;
   className?: string;
   showShadow?: boolean;
-}
+};
 
 const TOP_UP = 106;
 const TOP_DOWN = 0;
@@ -17,7 +17,7 @@ const ActionBar = ({ children, className, showShadow }: Props) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const scrollDirection = useScrollDirection();
   const isSticky = useIsSticky(ref, TOP_UP + 5);
-  const bgColor = useColorModeValue('white', 'black');
+  const bgColor = useColorModeValue('gray.100', 'black');
 
   if (!React.Children.toArray(children).filter(Boolean).length) {
     return null;
