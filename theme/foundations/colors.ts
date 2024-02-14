@@ -40,7 +40,7 @@ const colors = {
     '900': '#1A1A1A',
   },
   black: '#000000',
-  white: '#ffffff',
+  white: '#F5F5F7',
   blackAlpha: {
     '50': 'RGBA(16, 17, 18, 0.04)',
     '100': 'RGBA(16, 17, 18, 0.06)',

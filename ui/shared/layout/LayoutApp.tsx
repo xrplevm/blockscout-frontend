@@ -14,15 +14,10 @@ const LayoutDefault = ({ children }: Props) => {
       <Layout.TopRow/>
       <HeaderMobile/>
       <Layout.MainArea>
-        <Layout.MainColumn
-          paddingTop={{ base: 16, lg: 6 }}
-          paddingX={{ base: 4, lg: 6 }}
-        >
+        <Layout.MainColumn paddingTop={{ base: 16, lg: 6 }} paddingX={{ base: 4, lg: 6 }}>
           <HeaderDesktop isMarketplaceAppPage/>
           <AppErrorBoundary>
-            <Layout.Content pt={{ base: 0, lg: 6 }}>
-              { children }
-            </Layout.Content>
+            <Layout.Content pt={{ base: 0, lg: 6 }}>{ children }</Layout.Content>
           </AppErrorBoundary>
         </Layout.MainColumn>
       </Layout.MainArea>
