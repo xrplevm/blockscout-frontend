@@ -8,7 +8,7 @@ const $arrowBg = cssVar('popper-arrow-bg');
 
 const variantNav = defineStyle((props) => {
   return {
-    bg: mode('blue.50', 'gray.800')(props),
+    bg: mode('purple.500', 'gray.700')(props),
     color: 'blue.400',
     padding: '15px 12px',
     minWidth: '120px',

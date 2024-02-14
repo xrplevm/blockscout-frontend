@@ -1,11 +1,6 @@
 import type { LazyMode } from '@chakra-ui/lazy-utils';
 import type { ChakraProps, ThemingProps } from '@chakra-ui/react';
-import {
-  Tabs,
-  TabPanel,
-  TabPanels,
-  chakra,
-} from '@chakra-ui/react';
+import { Tabs, TabPanel, TabPanels, chakra } from '@chakra-ui/react';
 import _debounce from 'lodash/debounce';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -49,9 +44,12 @@ const TabsWithScroll = ({
     return [ ...tabs, menuButton ];
   }, [ tabs ]);
 
-  const handleTabChange = React.useCallback((index: number) => {
-    onTabChange ? onTabChange(index) : setActiveTabIndex(index);
-  }, [ onTabChange ]);
+  const handleTabChange = React.useCallback(
+    (index: number) => {
+      onTabChange ? onTabChange(index) : setActiveTabIndex(index);
+    },
+    [ onTabChange ],
+  );
 
   useEffect(() => {
     if (defaultTabIndex !== undefined) {
@@ -79,7 +77,7 @@ const TabsWithScroll = ({
     <Tabs
       className={ className }
       variant={ themeProps.variant || 'soft-rounded' }
-      colorScheme={ themeProps.colorScheme || 'blue' }
+      colorScheme={ themeProps.colorScheme || 'purple' }
       isLazy
       onChange={ handleTabChange }
       index={ activeTabIndex }
@@ -103,7 +101,11 @@ const TabsWithScroll = ({
         themeProps={ themeProps }
       />
       <TabPanels>
-        { tabsList.map((tab) => <TabPanel padding={ 0 } key={ tab.id }>{ tab.component }</TabPanel>) }
+        { tabsList.map((tab) => (
+          <TabPanel padding={ 0 } key={ tab.id }>
+            { tab.component }
+          </TabPanel>
+        )) }
       </TabPanels>
     </Tabs>
   );

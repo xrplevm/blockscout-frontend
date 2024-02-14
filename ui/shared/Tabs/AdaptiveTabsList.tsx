@@ -27,9 +27,8 @@ interface Props extends TabsProps {
 }
 
 const AdaptiveTabsList = (props: Props) => {
-
   const scrollDirection = useScrollDirection();
-  const listBgColor = useColorModeValue('white', 'black');
+  const listBgColor = useColorModeValue('gray.100', 'black');
   const isMobile = useIsMobile();
 
   const tabsList = React.useMemo(() => {
@@ -53,29 +52,27 @@ const AdaptiveTabsList = (props: Props) => {
       css={{
         'scroll-snap-type': 'x mandatory',
         // hide scrollbar
-        '&::-webkit-scrollbar': { /* Chromiums */
-          display: 'none',
+        '&::-webkit-scrollbar': {
+          /* Chromiums */ display: 'none',
         },
-        '-ms-overflow-style': 'none', /* IE and Edge */
-        'scrollbar-width': 'none', /* Firefox */
+        '-ms-overflow-style': 'none' /* IE and Edge */,
+        'scrollbar-width': 'none' /* Firefox */,
       }}
       bgColor={ listBgColor }
       transitionProperty="top,box-shadow,background-color,color"
       transitionDuration="normal"
       transitionTimingFunction="ease"
-      {
-        ...(props.stickyEnabled ? {
+      { ...(props.stickyEnabled ?
+        {
           position: 'sticky',
           boxShadow: { base: isSticky ? 'md' : 'none', lg: 'none' },
           top: { base: scrollDirection === 'down' ? `0px` : `106px`, lg: 0 },
           zIndex: { base: 'sticky2', lg: 'docked' },
-        } : { })
-      }
-      {
-        ...(typeof props.tabListProps === 'function' ?
-          props.tabListProps({ isSticky, activeTabIndex: props.activeTabIndex }) :
-          props.tabListProps)
-      }
+        } :
+        {}) }
+      { ...(typeof props.tabListProps === 'function' ?
+        props.tabListProps({ isSticky, activeTabIndex: props.activeTabIndex }) :
+        props.tabListProps) }
     >
       { tabsList.map((tab, index) => {
         if (!tab.id) {
@@ -86,12 +83,12 @@ const AdaptiveTabsList = (props: Props) => {
               activeTab={ props.tabs[props.activeTabIndex] }
               tabsCut={ tabsCut }
               isActive={ props.activeTabIndex >= tabsCut }
-              styles={ tabsCut < props.tabs.length ?
-              // initially our cut is 0 and we don't want to show the menu button too
-              // but we want to keep it in the tabs row so it won't collapse
-              // that's why we only change opacity but not the position itself
-                { opacity: tabsCut === 0 ? 0 : 1 } :
-                hiddenItemStyles
+              styles={
+                tabsCut < props.tabs.length ? // initially our cut is 0 and we don't want to show the menu button too
+                // but we want to keep it in the tabs row so it won't collapse
+                // that's why we only change opacity but not the position itself
+                  { opacity: tabsCut === 0 ? 0 : 1 } :
+                  hiddenItemStyles
               }
               onItemClick={ props.onItemClick }
               buttonRef={ tabsRefs[index] }
@@ -118,11 +115,12 @@ const AdaptiveTabsList = (props: Props) => {
           </Tab>
         );
       }) }
-      {
-        props.rightSlot && tabsCut > 0 ?
-          <Box ref={ rightSlotRef } ml="auto" { ...props.rightSlotProps }> { props.rightSlot } </Box> :
-          null
-      }
+      { props.rightSlot && tabsCut > 0 ? (
+        <Box ref={ rightSlotRef } ml="auto" { ...props.rightSlotProps }>
+          { ' ' }
+          { props.rightSlot }{ ' ' }
+        </Box>
+      ) : null }
     </TabList>
   );
 };

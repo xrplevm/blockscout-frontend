@@ -6,11 +6,7 @@ interface Props {
 }
 
 const Container = ({ children }: Props) => {
-  return (
-    <Box minWidth={{ base: '100vw', lg: 'fit-content' }}>
-      { children }
-    </Box>
-  );
+  return <Box minWidth={{ base: '100vw', lg: 'fit-content' }}>{ children }</Box>;
 };
 
 export default React.memo(Container);

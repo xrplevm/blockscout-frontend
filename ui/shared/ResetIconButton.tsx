@@ -5,11 +5,11 @@ import IconSvg from 'ui/shared/IconSvg';
 
 type Props = {
   onClick: () => void;
-}
+};
 
 const ResetIconButton = ({ onClick }: Props) => {
-  const resetTokenIconColor = useColorModeValue('blue.600', 'blue.300');
-  const resetTokenIconHoverColor = useColorModeValue('blue.400', 'blue.200');
+  const resetTokenIconColor = useColorModeValue('purple.600', 'purple.300');
+  const resetTokenIconHoverColor = useColorModeValue('purple.400', 'purple.200');
 
   return (
     <Tooltip label="Reset filter">

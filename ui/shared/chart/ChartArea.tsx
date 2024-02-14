@@ -21,8 +21,8 @@ const ChartArea = ({ id, xScale, yScale, color, data, disableAnimation, ...props
   const gradientColorId = `${ id || 'gradient' }-${ color }-color`;
   const gradientStopColor = useToken('colors', useColorModeValue('whiteAlpha.200', 'blackAlpha.100'));
   const defaultGradient = {
-    startColor: useToken('colors', useColorModeValue('blue.100', 'blue.400')),
-    stopColor: useToken('colors', transparentize(useColorModeValue('blue.100', 'blue.400'), 0)(theme)),
+    startColor: useToken('colors', useColorModeValue('purple.100', 'purple.400')),
+    stopColor: useToken('colors', transparentize(useColorModeValue('purple.100', 'purple.400'), 0)(theme)),
   };
 
   React.useEffect(() => {
@@ -30,14 +30,12 @@ const ChartArea = ({ id, xScale, yScale, color, data, disableAnimation, ...props
       d3.select(ref.current).attr('opacity', 1);
       return;
     }
-    d3.select(ref.current).transition()
-      .duration(750)
-      .ease(d3.easeBackIn)
-      .attr('opacity', 1);
+    d3.select(ref.current).transition().duration(750).ease(d3.easeBackIn).attr('opacity', 1);
   }, [ disableAnimation ]);
 
   const d = React.useMemo(() => {
-    const area = d3.area<TimeChartItem>()
+    const area = d3
+      .area<TimeChartItem>()
       .x(({ date }) => xScale(date))
       .y1(({ value }) => yScale(value))
       .y0(() => yScale(yScale.domain()[0]))

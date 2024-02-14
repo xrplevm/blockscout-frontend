@@ -31,16 +31,14 @@ const DEFAULT_CHART_MARGIN = { bottom: 20, left: 40, right: 20, top: 10 };
 
 const ChartWidgetGraph = ({ isEnlarged, items, onZoom, isZoomResetInitial, title, margin: marginProps, units }: Props) => {
   const isMobile = useIsMobile();
-  const color = useToken('colors', 'blue.200');
+  const color = useToken('colors', 'purple.200');
   const chartId = `chart-${ title.split(' ').join('') }-${ isEnlarged ? 'fullscreen' : 'small' }`;
 
   const overlayRef = React.useRef<SVGRectElement>(null);
 
-  const [ range, setRange ] = React.useState<[ Date, Date ]>([ items[0].date, items[items.length - 1].date ]);
+  const [ range, setRange ] = React.useState<[Date, Date]>([ items[0].date, items[items.length - 1].date ]);
 
-  const rangedItems = React.useMemo(() =>
-    items.filter((item) => item.date >= range[0] && item.date <= range[1]),
-  [ items, range ]);
+  const rangedItems = React.useMemo(() => items.filter((item) => item.date >= range[0] && item.date <= range[1]), [ items, range ]);
   const isGroupedValues = rangedItems.length > MAX_SHOW_ITEMS;
 
   const displayedData = React.useMemo(() => {
@@ -51,7 +49,7 @@ const ChartWidgetGraph = ({ isEnlarged, items, onZoom, isZoomResetInitial, title
     }
   }, [ isGroupedValues, rangedItems ]);
 
-  const chartData = React.useMemo(() => ([ { items: displayedData, name: 'Value', color, units } ]), [ color, displayedData, units ]);
+  const chartData = React.useMemo(() => [ { items: displayedData, name: 'Value', color, units } ], [ color, displayedData, units ]);
 
   const margin: ChartMargin = React.useMemo(() => ({ ...DEFAULT_CHART_MARGIN, ...marginProps }), [ marginProps ]);
   const axesConfig = React.useMemo(() => {
@@ -66,23 +64,19 @@ const ChartWidgetGraph = ({ isEnlarged, items, onZoom, isZoomResetInitial, title
     };
   }, [ isEnlarged ]);
 
-  const {
-    ref,
-    rect,
-    innerWidth,
-    innerHeight,
-    chartMargin,
-    axis,
-  } = useTimeChartController({
+  const { ref, rect, innerWidth, innerHeight, chartMargin, axis } = useTimeChartController({
     data: chartData,
     margin,
     axesConfig,
   });
 
-  const handleRangeSelect = React.useCallback((nextRange: [ Date, Date ]) => {
-    setRange([ nextRange[0], nextRange[1] ]);
-    onZoom();
-  }, [ onZoom ]);
+  const handleRangeSelect = React.useCallback(
+    (nextRange: [Date, Date]) => {
+      setRange([ nextRange[0], nextRange[1] ]);
+      onZoom();
+    },
+    [ onZoom ],
+  );
 
   React.useEffect(() => {
     if (isZoomResetInitial) {
@@ -92,23 +86,10 @@ const ChartWidgetGraph = ({ isEnlarged, items, onZoom, isZoomResetInitial, title
 
   return (
     <svg width="100%" height="100%" ref={ ref } cursor="pointer" id={ chartId } opacity={ rect ? 1 : 0 }>
-
       <g transform={ `translate(${ chartMargin?.left || 0 },${ chartMargin?.top || 0 })` }>
-        <ChartGridLine
-          type="horizontal"
-          scale={ axis.y.scale }
-          ticks={ axesConfig.y.ticks }
-          size={ innerWidth }
-          disableAnimation
-        />
+        <ChartGridLine type="horizontal" scale={ axis.y.scale } ticks={ axesConfig.y.ticks } size={ innerWidth } disableAnimation/>
 
-        <ChartArea
-          id={ chartId }
-          data={ displayedData }
-          color={ color }
-          xScale={ axis.x.scale }
-          yScale={ axis.y.scale }
-        />
+        <ChartArea id={ chartId } data={ displayedData } color={ color } xScale={ axis.x.scale } yScale={ axis.y.scale }/>
 
         <ChartLine
           data={ displayedData }
@@ -164,12 +145,15 @@ const ChartWidgetGraph = ({ isEnlarged, items, onZoom, isZoomResetInitial, title
 export default React.memo(ChartWidgetGraph);
 
 function groupChartItemsByWeekNumber(items: Array<TimeChartItem>): Array<TimeChartItem> {
-  return d3.rollups(items,
-    (group) => ({
-      date: group[0].date,
-      value: d3.sum(group, (d) => d.value),
-      dateLabel: `${ d3.timeFormat('%e %b %Y')(group[0].date) } – ${ d3.timeFormat('%e %b %Y')(group[group.length - 1].date) }`,
-    }),
-    (t) => `${ dayjs(t.date).week() } / ${ dayjs(t.date).year() }`,
-  ).map(([ , v ]) => v);
+  return d3
+    .rollups(
+      items,
+      (group) => ({
+        date: group[0].date,
+        value: d3.sum(group, (d) => d.value),
+        dateLabel: `${ d3.timeFormat('%e %b %Y')(group[0].date) } – ${ d3.timeFormat('%e %b %Y')(group[group.length - 1].date) }`,
+      }),
+      (t) => `${ dayjs(t.date).week() } / ${ dayjs(t.date).year() }`,
+    )
+    .map(([ , v ]) => v);
 }

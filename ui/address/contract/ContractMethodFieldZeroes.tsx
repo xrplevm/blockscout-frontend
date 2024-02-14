@@ -26,14 +26,17 @@ const ContractMethodFieldZeroes = ({ onClick, isDisabled }: Props) => {
   const [ customValue, setCustomValue ] = React.useState<number>();
   const { isOpen, onToggle, onClose } = useDisclosure();
 
-  const handleOptionClick = React.useCallback((event: React.MouseEvent) => {
-    const id = Number((event.currentTarget as HTMLDivElement).getAttribute('data-id'));
-    if (!Object.is(id, NaN)) {
-      setSelectedOption((prev) => prev === id ? undefined : id);
-      setCustomValue(undefined);
-      onClose();
-    }
-  }, [ onClose ]);
+  const handleOptionClick = React.useCallback(
+    (event: React.MouseEvent) => {
+      const id = Number((event.currentTarget as HTMLDivElement).getAttribute('data-id'));
+      if (!Object.is(id, NaN)) {
+        setSelectedOption((prev) => (prev === id ? undefined : id));
+        setCustomValue(undefined);
+        onClose();
+      }
+    },
+    [ onClose ],
+  );
 
   const handleInputChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setCustomValue(Number(event.target.value));
@@ -63,21 +66,14 @@ const ContractMethodFieldZeroes = ({ onClick, isDisabled }: Props) => {
         >
           { times }
           <chakra.span>10</chakra.span>
-          <chakra.span fontSize="xs" lineHeight={ 4 } verticalAlign="super">{ value }</chakra.span>
+          <chakra.span fontSize="xs" lineHeight={ 4 } verticalAlign="super">
+            { value }
+          </chakra.span>
         </Button>
       ) }
       <Popover placement="bottom-end" isLazy isOpen={ isOpen } onClose={ onClose }>
         <PopoverTrigger>
-          <Button
-            variant="subtle"
-            colorScheme="gray"
-            size="xs"
-            cursor="pointer"
-            ml={ 1 }
-            p={ 0 }
-            onClick={ onToggle }
-            isDisabled={ isDisabled }
-          >
+          <Button variant="subtle" colorScheme="gray" size="xs" cursor="pointer" ml={ 1 } p={ 0 } onClick={ onToggle } isDisabled={ isDisabled }>
             <IconSvg name="arrows/east-mini" transform={ isOpen ? 'rotate(90deg)' : 'rotate(-90deg)' } boxSize={ 6 }/>
           </Button>
         </PopoverTrigger>
@@ -97,25 +93,12 @@ const ContractMethodFieldZeroes = ({ onClick, isDisabled }: Props) => {
                     cursor="pointer"
                   >
                     <span>10*{ id }</span>
-                    { selectedOption === id && <IconSvg name="check" boxSize={ 6 } color="blue.600"/> }
+                    { selectedOption === id && <IconSvg name="check" boxSize={ 6 } color="purple.600"/> }
                   </ListItem>
                 )) }
-                <ListItem
-                  py={ 2 }
-                  display="flex"
-                  justifyContent="space-between"
-                  alignItems="center"
-                >
+                <ListItem py={ 2 } display="flex" justifyContent="space-between" alignItems="center">
                   <span>10*</span>
-                  <Input
-                    type="number"
-                    min={ 0 }
-                    max={ 100 }
-                    ml={ 3 }
-                    size="xs"
-                    onChange={ handleInputChange }
-                    value={ customValue || '' }
-                  />
+                  <Input type="number" min={ 0 } max={ 100 } ml={ 3 } size="xs" onChange={ handleInputChange } value={ customValue || '' }/>
                 </ListItem>
               </List>
             </PopoverBody>

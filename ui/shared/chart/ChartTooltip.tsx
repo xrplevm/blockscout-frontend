@@ -26,7 +26,7 @@ const LABEL_WIDTH = 80;
 
 const ChartTooltip = ({ xScale, yScale, width, tooltipWidth = 200, height, data, anchorEl, ...props }: Props) => {
   const lineColor = useToken('colors', 'gray.400');
-  const titleColor = useToken('colors', 'blue.100');
+  const titleColor = useToken('colors', 'purple.100');
   const textColor = useToken('colors', 'white');
   const markerBgColor = useToken('colors', useColorModeValue('black', 'white'));
   const markerBorderColor = useToken('colors', useColorModeValue('white', 'black'));
@@ -70,89 +70,91 @@ const ChartTooltip = ({ xScale, yScale, width, tooltipWidth = 200, height, data,
       const date = xScale.invert(x);
       const dateLabel = data[0].items.find((item) => item.date.getTime() === date.getTime())?.dateLabel;
 
-      tooltipContent
-        .select('.ChartTooltip__contentDate')
-        .text(dateLabel || d3.timeFormat('%e %b %Y')(xScale.invert(x)));
+      tooltipContent.select('.ChartTooltip__contentDate').text(dateLabel || d3.timeFormat('%e %b %Y')(xScale.invert(x)));
     },
     [ xScale, data, width, height ],
   );
 
-  const updateDisplayedValue = React.useCallback((d: TimeChartItem, i: number) => {
-    const nodes = d3.select(ref.current)
-      .selectAll<Element, TimeChartData>('.ChartTooltip__value')
-      .filter((td, tIndex) => tIndex === i)
-      .text(
-        (data[i].valueFormatter?.(d.value) || d.value.toLocaleString()) +
-        (data[i].units ? ` ${ data[i].units }` : ''),
-      )
-      .nodes();
+  const updateDisplayedValue = React.useCallback(
+    (d: TimeChartItem, i: number) => {
+      const nodes = d3
+        .select(ref.current)
+        .selectAll<Element, TimeChartData>('.ChartTooltip__value')
+        .filter((td, tIndex) => tIndex === i)
+        .text((data[i].valueFormatter?.(d.value) || d.value.toLocaleString()) + (data[i].units ? ` ${ data[i].units }` : ''))
+        .nodes();
 
-    const widthLimit = tooltipWidth - 2 * PADDING - LABEL_WIDTH;
-    const width = nodes.map((node) => node?.getBoundingClientRect?.().width);
-    const maxNodeWidth = Math.max(...width);
-    d3.select(ref.current)
-      .select('.ChartTooltip__contentBg')
-      .attr('width', tooltipWidth + Math.max(0, (maxNodeWidth - widthLimit)));
+      const widthLimit = tooltipWidth - 2 * PADDING - LABEL_WIDTH;
+      const width = nodes.map((node) => node?.getBoundingClientRect?.().width);
+      const maxNodeWidth = Math.max(...width);
+      d3.select(ref.current)
+        .select('.ChartTooltip__contentBg')
+        .attr('width', tooltipWidth + Math.max(0, maxNodeWidth - widthLimit));
+    },
+    [ data, tooltipWidth ],
+  );
 
-  }, [ data, tooltipWidth ]);
+  const drawPoints = React.useCallback(
+    (x: number) => {
+      const xDate = xScale.invert(x);
+      const bisectDate = d3.bisector<TimeChartItem, unknown>((d) => d.date).left;
+      let baseXPos = 0;
+      let baseYPos = 0;
 
-  const drawPoints = React.useCallback((x: number) => {
-    const xDate = xScale.invert(x);
-    const bisectDate = d3.bisector<TimeChartItem, unknown>((d) => d.date).left;
-    let baseXPos = 0;
-    let baseYPos = 0;
+      d3.select(ref.current)
+        .selectAll('.ChartTooltip__point')
+        .attr('transform', (cur, i) => {
+          const index = bisectDate(data[i].items, xDate, 1);
+          const d0 = data[i].items[index - 1] as TimeChartItem | undefined;
+          const d1 = data[i].items[index] as TimeChartItem | undefined;
+          const d = (() => {
+            if (!d0) {
+              return d1;
+            }
+            if (!d1) {
+              return d0;
+            }
+            return xDate.getTime() - d0.date.getTime() > d1.date.getTime() - xDate.getTime() ? d1 : d0;
+          })();
 
-    d3.select(ref.current)
-      .selectAll('.ChartTooltip__point')
-      .attr('transform', (cur, i) => {
-        const index = bisectDate(data[i].items, xDate, 1);
-        const d0 = data[i].items[index - 1] as TimeChartItem | undefined;
-        const d1 = data[i].items[index] as TimeChartItem | undefined;
-        const d = (() => {
-          if (!d0) {
-            return d1;
+          if (d?.date === undefined && d?.value === undefined) {
+            // move point out of container
+            return 'translate(-100,-100)';
           }
-          if (!d1) {
-            return d0;
+
+          const xPos = xScale(d.date);
+          const yPos = yScale(d.value);
+
+          if (i === 0) {
+            baseXPos = xPos;
+            baseYPos = yPos;
           }
-          return xDate.getTime() - d0.date.getTime() > d1.date.getTime() - xDate.getTime() ? d1 : d0;
-        })();
 
-        if (d?.date === undefined && d?.value === undefined) {
-          // move point out of container
-          return 'translate(-100,-100)';
-        }
+          updateDisplayedValue(d, i);
 
-        const xPos = xScale(d.date);
-        const yPos = yScale(d.value);
+          return `translate(${ xPos }, ${ yPos })`;
+        });
 
-        if (i === 0) {
-          baseXPos = xPos;
-          baseYPos = yPos;
-        }
+      return [ baseXPos, baseYPos ];
+    },
+    [ data, updateDisplayedValue, xScale, yScale ],
+  );
 
-        updateDisplayedValue(d, i);
-
-        return `translate(${ xPos }, ${ yPos })`;
-      });
-
-    return [ baseXPos, baseYPos ];
-  }, [ data, updateDisplayedValue, xScale, yScale ]);
-
-  const draw = React.useCallback((pointer: Pointer) => {
-    if (pointer.point) {
-      const [ baseXPos, baseYPos ] = drawPoints(pointer.point[0]);
-      drawLine(baseXPos);
-      drawContent(baseXPos, baseYPos);
-    }
-  }, [ drawPoints, drawLine, drawContent ]);
+  const draw = React.useCallback(
+    (pointer: Pointer) => {
+      if (pointer.point) {
+        const [ baseXPos, baseYPos ] = drawPoints(pointer.point[0]);
+        drawLine(baseXPos);
+        drawContent(baseXPos, baseYPos);
+      }
+    },
+    [ drawPoints, drawLine, drawContent ],
+  );
 
   const showContent = React.useCallback(() => {
     if (!isVisible.current) {
       d3.select(ref.current).attr('opacity', 1);
-      d3.select(ref.current)
-        .selectAll('.ChartTooltip__point')
-        .attr('opacity', 1);
+      d3.select(ref.current).selectAll('.ChartTooltip__point').attr('opacity', 1);
       isVisible.current = true;
     }
   }, []);
@@ -162,32 +164,35 @@ const ChartTooltip = ({ xScale, yScale, width, tooltipWidth = 200, height, data,
     isVisible.current = false;
   }, []);
 
-  const createPointerTracker = React.useCallback((event: PointerEvent, isSubsequentCall?: boolean) => {
-    let isPressed = event.pointerType === 'mouse' && event.type === 'pointerdown' && !isSubsequentCall;
+  const createPointerTracker = React.useCallback(
+    (event: PointerEvent, isSubsequentCall?: boolean) => {
+      let isPressed = event.pointerType === 'mouse' && event.type === 'pointerdown' && !isSubsequentCall;
 
-    if (isPressed) {
-      hideContent();
-    }
+      if (isPressed) {
+        hideContent();
+      }
 
-    return trackPointer(event, {
-      move: (pointer) => {
-        if (!pointer.point || isPressed) {
-          return;
-        }
-        draw(pointer);
-        showContent();
-      },
-      out: () => {
-        hideContent();
-        trackerId.current = undefined;
-      },
-      end: () => {
-        hideContent();
-        trackerId.current = undefined;
-        isPressed = false;
-      },
-    });
-  }, [ draw, hideContent, showContent ]);
+      return trackPointer(event, {
+        move: (pointer) => {
+          if (!pointer.point || isPressed) {
+            return;
+          }
+          draw(pointer);
+          showContent();
+        },
+        out: () => {
+          hideContent();
+          trackerId.current = undefined;
+        },
+        end: () => {
+          hideContent();
+          trackerId.current = undefined;
+          isPressed = false;
+        },
+      });
+    },
+    [ draw, hideContent, showContent ],
+  );
 
   React.useEffect(() => {
     const anchorD3 = d3.select(anchorEl);
@@ -216,10 +221,13 @@ const ChartTooltip = ({ xScale, yScale, width, tooltipWidth = 200, height, data,
 
     return () => {
       anchorD3.on('touchmove.tooltip pointerenter.tooltip pointerdown.tooltip', null);
-      trackerId.current && anchorD3.on(
-        [ 'pointerup', 'pointercancel', 'lostpointercapture', 'pointermove', 'pointerout' ].map((event) => `${ event }.${ trackerId.current }`).join(' '),
-        null,
-      );
+      trackerId.current &&
+        anchorD3.on(
+          [ 'pointerup', 'pointercancel', 'lostpointercapture', 'pointermove', 'pointerout' ]
+            .map((event) => `${ event }.${ trackerId.current }`)
+            .join(' '),
+          null,
+        );
     };
   }, [ anchorEl, createPointerTracker, draw, hideContent, showContent ]);
 
@@ -267,10 +275,7 @@ const ChartTooltip = ({ xScale, yScale, width, tooltipWidth = 200, height, data,
           />
         </g>
         { data.map(({ name }, index) => (
-          <g
-            key={ name }
-            transform={ `translate(${ PADDING },${ PADDING + (index + 1) * (LINE_SPACE + TEXT_LINE_HEIGHT) })` }
-          >
+          <g key={ name } transform={ `translate(${ PADDING },${ PADDING + (index + 1) * (LINE_SPACE + TEXT_LINE_HEIGHT) })` }>
             <text
               className="ChartTooltip__contentTitle"
               transform="translate(0,0)"

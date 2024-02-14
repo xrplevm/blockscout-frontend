@@ -46,7 +46,9 @@ const Tokens = () => {
   const q = getQueryParamString(router.query.q);
 
   const [ searchTerm, setSearchTerm ] = React.useState<string>(q ?? '');
-  const [ sort, setSort ] = React.useState<TokensSortingValue | undefined>(getSortValueFromQuery<TokensSortingValue>(router.query, SORT_OPTIONS));
+  const [ sort, setSort ] = React.useState<TokensSortingValue | undefined>(
+    getSortValueFromQuery<TokensSortingValue>(router.query, SORT_OPTIONS),
+  );
   const [ tokenTypes, setTokenTypes ] = React.useState<Array<TokenType> | undefined>(getTokenFilterValue(router.query.type));
   const [ bridgeChains, setBridgeChains ] = React.useState<Array<string> | undefined>(getBridgedChainsFilterValue(router.query.chain_ids));
 
@@ -57,42 +59,50 @@ const Tokens = () => {
     filters: tab === 'bridged' ? { q: debouncedSearchTerm, chain_ids: bridgeChains } : { q: debouncedSearchTerm, type: tokenTypes },
     sorting: getSortParamsFromValue<TokensSortingValue, TokensSortingField, TokensSorting['order']>(sort),
     options: {
-      placeholderData: generateListStub<'tokens'>(
-        TOKEN_INFO_ERC_20,
-        50,
-        {
-          next_page_params: {
-            holder_count: 81528,
-            items_count: 50,
-            name: '',
-            market_cap: null,
-          },
+      placeholderData: generateListStub<'tokens'>(TOKEN_INFO_ERC_20, 50, {
+        next_page_params: {
+          holder_count: 81528,
+          items_count: 50,
+          name: '',
+          market_cap: null,
         },
-      ),
+      }),
     },
   });
 
-  const handleSearchTermChange = React.useCallback((value: string) => {
-    tab === 'bridged' ?
-      tokensQuery.onFilterChange({ q: value, chain_ids: bridgeChains }) :
-      tokensQuery.onFilterChange({ q: value, type: tokenTypes });
-    setSearchTerm(value);
-  }, [ bridgeChains, tab, tokenTypes, tokensQuery ]);
+  const handleSearchTermChange = React.useCallback(
+    (value: string) => {
+      tab === 'bridged' ?
+        tokensQuery.onFilterChange({ q: value, chain_ids: bridgeChains }) :
+        tokensQuery.onFilterChange({ q: value, type: tokenTypes });
+      setSearchTerm(value);
+    },
+    [ bridgeChains, tab, tokenTypes, tokensQuery ],
+  );
 
-  const handleTokenTypesChange = React.useCallback((value: Array<TokenType>) => {
-    tokensQuery.onFilterChange({ q: debouncedSearchTerm, type: value });
-    setTokenTypes(value);
-  }, [ debouncedSearchTerm, tokensQuery ]);
+  const handleTokenTypesChange = React.useCallback(
+    (value: Array<TokenType>) => {
+      tokensQuery.onFilterChange({ q: debouncedSearchTerm, type: value });
+      setTokenTypes(value);
+    },
+    [ debouncedSearchTerm, tokensQuery ],
+  );
 
-  const handleBridgeChainsChange = React.useCallback((value: Array<string>) => {
-    tokensQuery.onFilterChange({ q: debouncedSearchTerm, chain_ids: value });
-    setBridgeChains(value);
-  }, [ debouncedSearchTerm, tokensQuery ]);
+  const handleBridgeChainsChange = React.useCallback(
+    (value: Array<string>) => {
+      tokensQuery.onFilterChange({ q: debouncedSearchTerm, chain_ids: value });
+      setBridgeChains(value);
+    },
+    [ debouncedSearchTerm, tokensQuery ],
+  );
 
-  const handleSortChange = React.useCallback((value?: TokensSortingValue) => {
-    setSort(value);
-    tokensQuery.onSortingChange(getSortParamsFromValue(value));
-  }, [ tokensQuery ]);
+  const handleSortChange = React.useCallback(
+    (value?: TokensSortingValue) => {
+      setSort(value);
+      tokensQuery.onSortingChange(getSortParamsFromValue(value));
+    },
+    [ tokensQuery ],
+  );
 
   const handleTabChange = React.useCallback(() => {
     setSearchTerm('');
@@ -101,15 +111,20 @@ const Tokens = () => {
     setBridgeChains(undefined);
   }, []);
 
-  const filter = tab === 'bridged' ? (
-    <PopoverFilter isActive={ bridgeChains && bridgeChains.length > 0 } contentProps={{ maxW: '350px' }} appliedFiltersNum={ bridgeChains?.length }>
-      <TokensBridgedChainsFilter onChange={ handleBridgeChainsChange } defaultValue={ bridgeChains }/>
-    </PopoverFilter>
-  ) : (
-    <PopoverFilter isActive={ tokenTypes && tokenTypes.length > 0 } contentProps={{ w: '200px' }} appliedFiltersNum={ tokenTypes?.length }>
-      <TokenTypeFilter<TokenType> onChange={ handleTokenTypesChange } defaultValue={ tokenTypes } nftOnly={ false }/>
-    </PopoverFilter>
-  );
+  const filter =
+    tab === 'bridged' ? (
+      <PopoverFilter
+        isActive={ bridgeChains && bridgeChains.length > 0 }
+        contentProps={{ maxW: '350px' }}
+        appliedFiltersNum={ bridgeChains?.length }
+      >
+        <TokensBridgedChainsFilter onChange={ handleBridgeChainsChange } defaultValue={ bridgeChains }/>
+      </PopoverFilter>
+    ) : (
+      <PopoverFilter isActive={ tokenTypes && tokenTypes.length > 0 } contentProps={{ w: '200px' }} appliedFiltersNum={ tokenTypes?.length }>
+        <TokenTypeFilter<TokenType> onChange={ handleTokenTypesChange } defaultValue={ tokenTypes } nftOnly={ false }/>
+      </PopoverFilter>
+    );
 
   const actionBar = (
     <TokensActionBar
@@ -154,20 +169,22 @@ const Tokens = () => {
         />
       ),
     },
-    bridgedTokensFeature.isEnabled ? {
-      id: 'bridged',
-      title: 'Bridged',
-      component: (
-        <TokensList
-          query={ tokensQuery }
-          sort={ sort }
-          onSortChange={ handleSortChange }
-          actionBar={ isMobile ? actionBar : null }
-          hasActiveFilters={ Boolean(searchTerm || bridgeChains) }
-          description={ description }
-        />
-      ),
-    } : undefined,
+    bridgedTokensFeature.isEnabled ?
+      {
+        id: 'bridged',
+        title: 'Bridged',
+        component: (
+          <TokensList
+            query={ tokensQuery }
+            sort={ sort }
+            onSortChange={ handleSortChange }
+            actionBar={ isMobile ? actionBar : null }
+            hasActiveFilters={ Boolean(searchTerm || bridgeChains) }
+            description={ description }
+          />
+        ),
+      } :
+      undefined,
   ].filter(Boolean);
 
   return (

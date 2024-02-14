@@ -48,18 +48,20 @@ const LatestBlocks = () => {
     },
   });
 
-  const handleNewBlockMessage: SocketMessage.NewBlock['handler'] = React.useCallback((payload) => {
-    queryClient.setQueryData(getResourceKey('homepage_blocks'), (prevData: Array<Block> | undefined) => {
+  const handleNewBlockMessage: SocketMessage.NewBlock['handler'] = React.useCallback(
+    (payload) => {
+      queryClient.setQueryData(getResourceKey('homepage_blocks'), (prevData: Array<Block> | undefined) => {
+        const newData = prevData ? [ ...prevData ] : [];
 
-      const newData = prevData ? [ ...prevData ] : [];
+        if (newData.some((block) => block.height === payload.block.height)) {
+          return newData;
+        }
 
-      if (newData.some((block => block.height === payload.block.height))) {
-        return newData;
-      }
-
-      return [ payload.block, ...newData ].sort((b1, b2) => b2.height - b1.height).slice(0, blocksMaxCount);
-    });
-  }, [ queryClient, blocksMaxCount ]);
+        return [ payload.block, ...newData ].sort((b1, b2) => b2.height - b1.height).slice(0, blocksMaxCount);
+      });
+    },
+    [ queryClient, blocksMaxCount ],
+  );
 
   const channel = useSocketChannel({
     topic: 'blocks:new_block',
@@ -87,24 +89,22 @@ const LatestBlocks = () => {
             <Text as="span" fontSize="sm">
               Network utilization:{ nbsp }
             </Text>
-            <Text as="span" fontSize="sm" color="blue.400" fontWeight={ 700 }>
+            <Text as="span" fontSize="sm" color="purple.500" fontWeight={ 700 }>
               { statsQueryResult.data?.network_utilization_percentage.toFixed(2) }%
             </Text>
           </Skeleton>
         ) }
         <VStack spacing={ 3 } mb={ 4 } overflow="hidden" alignItems="stretch">
-          <AnimatePresence initial={ false } >
-            { dataToShow.map(((block, index) => (
-              <LatestBlocksItem
-                key={ block.height + (isPlaceholderData ? String(index) : '') }
-                block={ block }
-                isLoading={ isPlaceholderData }
-              />
-            ))) }
+          <AnimatePresence initial={ false }>
+            { dataToShow.map((block, index) => (
+              <LatestBlocksItem key={ block.height + (isPlaceholderData ? String(index) : '') } block={ block } isLoading={ isPlaceholderData }/>
+            )) }
           </AnimatePresence>
         </VStack>
         <Flex justifyContent="center">
-          <LinkInternal fontSize="sm" href={ route({ pathname: '/blocks' }) }>View all blocks</LinkInternal>
+          <LinkInternal fontSize="sm" href={ route({ pathname: '/blocks' }) }>
+            View all blocks
+          </LinkInternal>
         </Flex>
       </>
     );
@@ -112,7 +112,9 @@ const LatestBlocks = () => {
 
   return (
     <Box width={{ base: '100%', lg: '280px' }} flexShrink={ 0 }>
-      <Heading as="h4" size="sm" mb={ 4 }>Latest blocks</Heading>
+      <Heading as="h4" size="sm" mb={ 4 }>
+        Latest blocks
+      </Heading>
       { content }
     </Box>
   );

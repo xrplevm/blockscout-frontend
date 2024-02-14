@@ -27,11 +27,7 @@ const ProfileMenuDesktop = ({ isHomePage }: Props) => {
   }, [ data, error?.status, isPending ]);
 
   const handleSignInClick = React.useCallback(() => {
-    mixpanel.logEvent(
-      mixpanel.EventTypes.ACCOUNT_ACCESS,
-      { Action: 'Auth0 init' },
-      { send_immediately: true },
-    );
+    mixpanel.logEvent(mixpanel.EventTypes.ACCOUNT_ACCESS, { Action: 'Auth0 init' }, { send_immediately: true });
   }, []);
 
   const iconButtonProps: Partial<IconButtonProps> = (() => {
@@ -72,7 +68,13 @@ const ProfileMenuDesktop = ({ isHomePage }: Props) => {
   return (
     <Popover openDelay={ 300 } placement="bottom-end" gutter={ 10 } isLazy>
       <Tooltip
-        label={ <span>Sign in to My Account to add tags,<br/>create watchlists, access API keys and more</span> }
+        label={ (
+          <span>
+            Sign in to My Account to add tags,
+            <br/>
+            create watchlists, access API keys and more
+          </span>
+        ) }
         textAlign="center"
         padding={ 2 }
         isDisabled={ hasMenu }
@@ -84,7 +86,7 @@ const ProfileMenuDesktop = ({ isHomePage }: Props) => {
               aria-label="profile menu"
               icon={ <UserAvatar size={ 20 }/> }
               variant={ variant }
-              colorScheme="blue"
+              colorScheme="whiteAlpha"
               boxSize="40px"
               flexShrink={ 0 }
               { ...iconButtonProps }
