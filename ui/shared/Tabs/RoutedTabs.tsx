@@ -1,5 +1,5 @@
 import type { ChakraProps, ThemingProps } from '@chakra-ui/react';
-import { chakra } from '@chakra-ui/react';
+import { chakra, useColorModeValue } from '@chakra-ui/react';
 import _pickBy from 'lodash/pickBy';
 import { useRouter } from 'next/router';
 import React, { useEffect, useRef } from 'react';
@@ -23,6 +23,7 @@ const RoutedTabs = ({ tabs, tabListProps, rightSlot, rightSlotProps, stickyEnabl
   const router = useRouter();
   const tabIndex = useTabIndexFromQuery(tabs);
   const tabsRef = useRef<HTMLDivElement>(null);
+  const bgColor = useColorModeValue('gray.100', 'black');
 
   const handleTabChange = React.useCallback(
     (index: number) => {
@@ -62,6 +63,7 @@ const RoutedTabs = ({ tabs, tabListProps, rightSlot, rightSlotProps, stickyEnabl
       stickyEnabled={ stickyEnabled }
       onTabChange={ handleTabChange }
       defaultTabIndex={ tabIndex }
+      backgroundColor={ bgColor }
       { ...themeProps }
     />
   );
