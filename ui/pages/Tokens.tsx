@@ -12,6 +12,7 @@ import useIsMobile from 'lib/hooks/useIsMobile';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { TOKEN_INFO_ERC_20 } from 'stubs/token';
 import { generateListStub } from 'stubs/utils';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import PopoverFilter from 'ui/shared/filters/PopoverFilter';
 import TokenTypeFilter from 'ui/shared/filters/TokenTypeFilter';
 import PageTitle from 'ui/shared/Page/PageTitle';
@@ -188,7 +189,7 @@ const Tokens = () => {
   ].filter(Boolean);
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Tokens" withTextAd/>
       { tabs.length === 1 && !isMobile && actionBar }
       <RoutedTabs
@@ -199,7 +200,7 @@ const Tokens = () => {
         stickyEnabled={ !isMobile }
         onTabChange={ handleTabChange }
       />
-    </>
+    </PeersystPageWrapper>
   );
 };
 

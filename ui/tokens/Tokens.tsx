@@ -21,7 +21,6 @@ interface Props {
 }
 
 const Tokens = ({ query, onSortChange, sort, actionBar, description, hasActiveFilters }: Props) => {
-
   const { isError, isPlaceholderData, data, pagination } = query;
 
   if (isError) {
@@ -44,13 +43,7 @@ const Tokens = ({ query, onSortChange, sort, actionBar, description, hasActiveFi
       </Show>
       <Hide below="lg" ssr={ false }>
         { description }
-        <TokensTable
-          items={ data.items }
-          page={ pagination.page }
-          isLoading={ isPlaceholderData }
-          setSorting={ onSortChange }
-          sorting={ sort }
-        />
+        <TokensTable items={ data.items } page={ pagination.page } isLoading={ isPlaceholderData } setSorting={ onSortChange } sorting={ sort }/>
       </Hide>
     </>
   ) : null;

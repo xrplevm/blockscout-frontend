@@ -1,3 +1,4 @@
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -17,6 +18,7 @@ import PageTitle from 'ui/shared/Page/PageTitle';
 const ContractVerificationForAddress = () => {
   const appProps = useAppContext();
   const router = useRouter();
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   const hash = getQueryParamString(router.query.hash);
   const method = getQueryParamString(router.query.method) as SmartContractVerificationMethod;
@@ -36,9 +38,9 @@ const ContractVerificationForAddress = () => {
     if (method && hash) {
       router.replace({ pathname: '/address/[hash]/contract-verification', query: { hash } }, undefined, { scroll: false, shallow: true });
     }
-  // onMount only
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ ]);
+    // onMount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const isVerifiedContract = contractQuery.data?.is_verified && !contractQuery.data.is_partially_verified;
 
@@ -80,11 +82,8 @@ const ContractVerificationForAddress = () => {
   }, [ appProps.referrer ]);
 
   return (
-    <>
-      <PageTitle
-        title="New smart contract verification"
-        backLink={ backLink }
-      />
+    <Box backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
+      <PageTitle title="New smart contract verification" backLink={ backLink }/>
       <AddressEntity
         address={{ hash, is_contract: true, implementation_name: null }}
         noLink
@@ -94,7 +93,7 @@ const ContractVerificationForAddress = () => {
         mb={ 12 }
       />
       { content }
-    </>
+    </Box>
   );
 };
 

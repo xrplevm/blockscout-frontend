@@ -26,7 +26,7 @@ type Props = {
   currentAddress?: string;
   enableTimeIncrement?: boolean;
   isLoading?: boolean;
-}
+};
 
 const TxsTable = ({
   txs,
@@ -76,12 +76,7 @@ const TxsTable = ({
         </TheadSticky>
         <Tbody>
           { showSocketInfo && (
-            <SocketNewItemsNotice.Desktop
-              url={ window.location.href }
-              alert={ socketInfoAlert }
-              num={ socketInfoNum }
-              isLoading={ isLoading }
-            />
+            <SocketNewItemsNotice.Desktop url={ window.location.href } alert={ socketInfoAlert } num={ socketInfoNum } isLoading={ isLoading }/>
           ) }
           <AnimatePresence initial={ false }>
             { txs.slice(0, renderedItemsNum).map((item, index) => (

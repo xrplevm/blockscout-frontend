@@ -2,6 +2,7 @@ import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import PageTitle from 'ui/shared/Page/PageTitle';
 
 import ChartsWidgetsList from '../stats/ChartsWidgetsList';
@@ -24,7 +25,7 @@ const Stats = () => {
   } = useStats();
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title={ `${ config.chain.name } stats` }/>
 
       <Box mb={{ base: 6, sm: 8 }}>
@@ -49,7 +50,7 @@ const Stats = () => {
         charts={ displayedCharts }
         interval={ interval }
       />
-    </>
+    </PeersystPageWrapper>
   );
 };
 

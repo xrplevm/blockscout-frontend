@@ -28,7 +28,7 @@ interface Props extends TabsProps {
 
 const AdaptiveTabsList = (props: Props) => {
   const scrollDirection = useScrollDirection();
-  const listBgColor = useColorModeValue('gray.100', 'black');
+  const listBgColor = useColorModeValue('white', 'gray.700');
   const isMobile = useIsMobile();
 
   const tabsList = React.useMemo(() => {
@@ -83,13 +83,7 @@ const AdaptiveTabsList = (props: Props) => {
               activeTab={ props.tabs[props.activeTabIndex] }
               tabsCut={ tabsCut }
               isActive={ props.activeTabIndex >= tabsCut }
-              styles={
-                tabsCut < props.tabs.length ? // initially our cut is 0 and we don't want to show the menu button too
-                // but we want to keep it in the tabs row so it won't collapse
-                // that's why we only change opacity but not the position itself
-                  { opacity: tabsCut === 0 ? 0 : 1 } :
-                  hiddenItemStyles
-              }
+              styles={ tabsCut < props.tabs.length ? { opacity: tabsCut === 0 ? 0 : 1 } : hiddenItemStyles }
               onItemClick={ props.onItemClick }
               buttonRef={ tabsRefs[index] }
               size={ props.themeProps.size || 'md' }

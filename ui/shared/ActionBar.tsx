@@ -17,7 +17,7 @@ const ActionBar = ({ children, className, showShadow }: Props) => {
   const ref = React.useRef<HTMLDivElement>(null);
   const scrollDirection = useScrollDirection();
   const isSticky = useIsSticky(ref, TOP_UP + 5);
-  const bgColor = useColorModeValue('gray.100', 'black');
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   if (!React.Children.toArray(children).filter(Boolean).length) {
     return null;

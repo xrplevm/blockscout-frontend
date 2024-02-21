@@ -47,14 +47,17 @@ const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, typ
 
     return (
       <>
-        <Link href={ url }>{ num.toLocaleString() } more { name }{ num > 1 ? 's' : '' }</Link>
+        <Link href={ url }>
+          { num.toLocaleString() } more { name }
+          { num > 1 ? 's' : '' }
+        </Link>
         <Text whiteSpace="pre"> ha{ num > 1 ? 've' : 's' } come in</Text>
       </>
     );
   })();
 
   const color = useColorModeValue('blackAlpha.800', 'whiteAlpha.800');
-  const bgColor = useColorModeValue('orange.50', transparentize('orange.200', 0.16)(theme));
+  const bgColor = useColorModeValue('gray.100', transparentize('purple.100', 0.16)(theme));
 
   const content = !isLoading ? (
     <Alert
@@ -70,7 +73,9 @@ const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, typ
     >
       { alertContent }
     </Alert>
-  ) : <Skeleton className={ className } h="33px"/>;
+  ) : (
+    <Skeleton className={ className } h="33px"/>
+  );
 
   return children ? children({ content }) : content;
 });
@@ -88,16 +93,17 @@ export const Desktop = ({ ...props }: Props) => {
       my={ props.isLoading ? '6px' : 0 }
       { ...props }
     >
-      { ({ content }) => <Tr><Td colSpan={ 100 } p={ 0 }>{ content }</Td></Tr> }
+      { ({ content }) => (
+        <Tr>
+          <Td colSpan={ 100 } p={ 0 }>
+            { content }
+          </Td>
+        </Tr>
+      ) }
     </SocketNewItemsNotice>
   );
 };
 
 export const Mobile = ({ ...props }: Props) => {
-  return (
-    <SocketNewItemsNotice
-      borderBottomRadius={ 0 }
-      { ...props }
-    />
-  );
+  return <SocketNewItemsNotice borderBottomRadius={ 0 } { ...props }/>;
 };

@@ -7,6 +7,7 @@ import type { PublicTag } from 'types/api/account';
 import useRedirectForInvalidAuthToken from 'lib/hooks/useRedirectForInvalidAuthToken';
 import useToast from 'lib/hooks/useToast';
 import getQueryParamString from 'lib/router/getQueryParamString';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import PublicTagsData from 'ui/publicTags/PublicTagsData';
 import PublicTagsForm from 'ui/publicTags/PublicTagsForm/PublicTagsForm';
 import PageTitle from 'ui/shared/Page/PageTitle';
@@ -32,22 +33,25 @@ const PublicTagsComponent: React.FC = () => {
 
   React.useEffect(() => {
     addressHash && router.replace({ pathname: '/account/public-tags-request' });
-  // componentDidMount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ ]);
+    // componentDidMount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const showToast = useCallback((action: TToastAction) => {
-    toast({
-      position: 'top-right',
-      title: 'Success',
-      description: toastDescriptions[action],
-      colorScheme: 'green',
-      status: 'success',
-      variant: 'subtle',
-      isClosable: true,
-      icon: null,
-    });
-  }, [ toast ]);
+  const showToast = useCallback(
+    (action: TToastAction) => {
+      toast({
+        position: 'top-right',
+        title: 'Success',
+        description: toastDescriptions[action],
+        colorScheme: 'green',
+        status: 'success',
+        variant: 'subtle',
+        isClosable: true,
+        icon: null,
+      });
+    },
+    [ toast ],
+  );
 
   const changeToFormScreen = useCallback((data?: PublicTag) => {
     setFormData(data);
@@ -58,19 +62,22 @@ const PublicTagsComponent: React.FC = () => {
     });
   }, []);
 
-  const changeToDataScreen = useCallback((success?: boolean) => {
-    if (success) {
-      showToast('added');
-    }
-    setScreen('data');
-    animateScroll.scrollToTop({
-      duration: 500,
-      delay: 100,
-    });
-  }, [ showToast ]);
+  const changeToDataScreen = useCallback(
+    (success?: boolean) => {
+      if (success) {
+        showToast('added');
+      }
+      setScreen('data');
+      animateScroll.scrollToTop({
+        duration: 500,
+        delay: 100,
+      });
+    },
+    [ showToast ],
+  );
 
   const onTagDelete = useCallback(() => showToast('removed'), [ showToast ]);
-  const onGoBack = useCallback(() => setScreen('data'), [ ]);
+  const onGoBack = useCallback(() => setScreen('data'), []);
 
   let content;
   let header;
@@ -89,14 +96,10 @@ const PublicTagsComponent: React.FC = () => {
   };
 
   return (
-    <>
-      <PageTitle
-        title={ header }
-        backLink={ screen === 'form' ? backLink : undefined }
-        display={{ base: 'block', lg: 'inline-flex' }}
-      />
+    <PeersystPageWrapper>
+      <PageTitle title={ header } backLink={ screen === 'form' ? backLink : undefined } display={{ base: 'block', lg: 'inline-flex' }}/>
       { content }
-    </>
+    </PeersystPageWrapper>
   );
 };
 

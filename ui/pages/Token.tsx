@@ -20,6 +20,7 @@ import useSocketMessage from 'lib/socket/useSocketMessage';
 import * as addressStubs from 'stubs/address';
 import * as tokenStubs from 'stubs/token';
 import { generateListStub } from 'stubs/utils';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AddressContract from 'ui/address/AddressContract';
 import AddressQrCode from 'ui/address/details/AddressQrCode';
 import AccountActionsMenu from 'ui/shared/AccountActionsMenu/AccountActionsMenu';
@@ -85,17 +86,20 @@ const TokenPageContent = () => {
     }
   }, [ tokenQuery.data, totalSupplySocket, hashString, queryClient ]);
 
-  const handleTotalSupplyMessage: SocketMessage.TokenTotalSupply['handler'] = React.useCallback((payload) => {
-    const prevData = queryClient.getQueryData(getResourceKey('token', { pathParams: { hash: hashString } }));
-    if (!prevData) {
-      setTotalSupplySocket(payload.total_supply);
-    }
-    queryClient.setQueryData(getResourceKey('token', { pathParams: { hash: hashString } }), (prevData: TokenInfo | undefined) => {
-      if (prevData) {
-        return { ...prevData, total_supply: payload.total_supply.toString() };
+  const handleTotalSupplyMessage: SocketMessage.TokenTotalSupply['handler'] = React.useCallback(
+    (payload) => {
+      const prevData = queryClient.getQueryData(getResourceKey('token', { pathParams: { hash: hashString } }));
+      if (!prevData) {
+        setTotalSupplySocket(payload.total_supply);
       }
-    });
-  }, [ queryClient, hashString ]);
+      queryClient.setQueryData(getResourceKey('token', { pathParams: { hash: hashString } }), (prevData: TokenInfo | undefined) => {
+        if (prevData) {
+          return { ...prevData, total_supply: payload.total_supply.toString() };
+        }
+      });
+    },
+    [ queryClient, hashString ],
+  );
 
   const enableQuery = React.useCallback(() => setIsQueryEnabled(true), []);
 
@@ -117,7 +121,7 @@ const TokenPageContent = () => {
     }
   }, [ tokenQuery.data, tokenQuery.isPlaceholderData ]);
 
-  const hasData = (tokenQuery.data && !tokenQuery.isPlaceholderData) && (contractQuery.data && !contractQuery.isPlaceholderData);
+  const hasData = tokenQuery.data && !tokenQuery.isPlaceholderData && contractQuery.data && !contractQuery.isPlaceholderData;
   const hasInventoryTab = tokenQuery.data?.type === 'ERC-1155' || tokenQuery.data?.type === 'ERC-721';
 
   const transfersQuery = useQueryWithPages({
@@ -125,14 +129,7 @@ const TokenPageContent = () => {
     pathParams: { hash: hashString },
     scrollRef,
     options: {
-      enabled: Boolean(
-        hasData &&
-        hashString &&
-        (
-          (!hasInventoryTab && !tab) ||
-          tab === 'token_transfers'
-        ),
-      ),
+      enabled: Boolean(hasData && hashString && ((!hasInventoryTab && !tab) || tab === 'token_transfers')),
       placeholderData: tokenStubs.getTokenTransfersStub(tokenQuery.data?.type),
     },
   });
@@ -143,14 +140,7 @@ const TokenPageContent = () => {
     filters: ownerFilter ? { holder_address_hash: ownerFilter } : {},
     scrollRef,
     options: {
-      enabled: Boolean(
-        hasData &&
-        hashString &&
-        (
-          (hasInventoryTab && !tab) ||
-          tab === 'inventory'
-        ),
-      ),
+      enabled: Boolean(hasData && hashString && ((hasInventoryTab && !tab) || tab === 'inventory')),
       placeholderData: generateListStub<'token_inventory'>(tokenStubs.TOKEN_INSTANCE, 50, { next_page_params: { unique_token: 1 } }),
     },
   });
@@ -162,7 +152,10 @@ const TokenPageContent = () => {
     options: {
       enabled: Boolean(hashString && tab === 'holders' && hasData),
       placeholderData: generateListStub<'token_holders'>(
-        tokenQuery.data?.type === 'ERC-1155' ? tokenStubs.TOKEN_HOLDER_ERC_1155 : tokenStubs.TOKEN_HOLDER_ERC_20, 50, { next_page_params: null }),
+        tokenQuery.data?.type === 'ERC-1155' ? tokenStubs.TOKEN_HOLDER_ERC_1155 : tokenStubs.TOKEN_HOLDER_ERC_20,
+        50,
+        { next_page_params: null },
+      ),
     },
   });
 
@@ -174,30 +167,38 @@ const TokenPageContent = () => {
   const contractTabs = useContractTabs(contractQuery.data);
 
   const tabs: Array<RoutedTab> = [
-    (tokenQuery.data?.type === 'ERC-1155' || tokenQuery.data?.type === 'ERC-721') ? {
-      id: 'inventory',
-      title: 'Inventory',
-      component: <TokenInventory inventoryQuery={ inventoryQuery } tokenQuery={ tokenQuery } ownerFilter={ ownerFilter }/>,
-    } : undefined,
-    { id: 'token_transfers', title: 'Token transfers', component: <TokenTransfer transfersQuery={ transfersQuery } token={ tokenQuery.data }/> },
+    tokenQuery.data?.type === 'ERC-1155' || tokenQuery.data?.type === 'ERC-721' ?
+      {
+        id: 'inventory',
+        title: 'Inventory',
+        component: <TokenInventory inventoryQuery={ inventoryQuery } tokenQuery={ tokenQuery } ownerFilter={ ownerFilter }/>,
+      } :
+      undefined,
+    {
+      id: 'token_transfers',
+      title: 'Token transfers',
+      component: <TokenTransfer transfersQuery={ transfersQuery } token={ tokenQuery.data }/>,
+    },
     { id: 'holders', title: 'Holders', component: <TokenHolders token={ tokenQuery.data } holdersQuery={ holdersQuery }/> },
-    contractQuery.data?.is_contract ? {
-      id: 'contract',
-      title: () => {
-        if (contractQuery.data?.is_verified) {
-          return (
-            <>
-              <span>Contract</span>
-              <IconSvg name="status/success" boxSize="14px" color="green.500" ml={ 1 }/>
-            </>
-          );
-        }
+    contractQuery.data?.is_contract ?
+      {
+        id: 'contract',
+        title: () => {
+          if (contractQuery.data?.is_verified) {
+            return (
+              <>
+                <span>Contract</span>
+                <IconSvg name="status/success" boxSize="14px" color="green.500" ml={ 1 }/>
+              </>
+            );
+          }
 
-        return 'Contract';
-      },
-      component: <AddressContract tabs={ contractTabs }/>,
-      subTabs: contractTabs.map(tab => tab.id),
-    } : undefined,
+          return 'Contract';
+        },
+        component: <AddressContract tabs={ contractTabs }/>,
+        subTabs: contractTabs.map((tab) => tab.id),
+      } :
+      undefined,
   ].filter(Boolean);
 
   let pagination: PaginationParams | undefined;
@@ -218,18 +219,21 @@ const TokenPageContent = () => {
 
   const tokenSymbolText = tokenQuery.data?.symbol ? ` (${ tokenQuery.data.symbol })` : '';
 
-  const tabListProps = React.useCallback(({ isSticky, activeTabIndex }: { isSticky: boolean; activeTabIndex: number }) => {
-    if (isMobile) {
-      return { mt: 8 };
-    }
+  const tabListProps = React.useCallback(
+    ({ isSticky, activeTabIndex }: { isSticky: boolean; activeTabIndex: number }) => {
+      if (isMobile) {
+        return { mt: 8 };
+      }
 
-    return {
-      mt: 3,
-      py: 5,
-      marginBottom: 0,
-      boxShadow: activeTabIndex === 2 && isSticky ? 'action_bar' : 'none',
-    };
-  }, [ isMobile ]);
+      return {
+        mt: 3,
+        py: 5,
+        marginBottom: 0,
+        boxShadow: activeTabIndex === 2 && isSticky ? 'action_bar' : 'none',
+      };
+    },
+    [ isMobile ],
+  );
 
   const backLink = React.useMemo(() => {
     const hasGoBackLink = appProps.referrer && appProps.referrer.includes('/tokens');
@@ -294,19 +298,13 @@ const TokenPageContent = () => {
   );
 
   return (
-    <>
+    <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
       <PageTitle
         title={ `${ tokenQuery.data?.name || 'Unnamed token' }${ tokenSymbolText }` }
         isLoading={ isLoading }
         backLink={ backLink }
-        beforeTitle={ tokenQuery.data ? (
-          <TokenEntity.Icon
-            token={ tokenQuery.data }
-            isLoading={ isLoading }
-            iconSize="lg"
-          />
-        ) : null }
+        beforeTitle={ tokenQuery.data ? <TokenEntity.Icon token={ tokenQuery.data } isLoading={ isLoading } iconSize="lg"/> : null }
         contentAfter={ titleContentAfter }
         secondRow={ titleSecondRow }
       />
@@ -316,17 +314,17 @@ const TokenPageContent = () => {
       { /* should stay before tabs to scroll up with pagination */ }
       <Box ref={ scrollRef }></Box>
 
-      { isLoading ?
-        <TabsSkeleton tabs={ tabs }/> :
-        (
-          <RoutedTabs
-            tabs={ tabs }
-            tabListProps={ tabListProps }
-            rightSlot={ !isMobile && pagination?.isVisible ? <Pagination { ...pagination }/> : null }
-            stickyEnabled={ !isMobile }
-          />
-        ) }
-    </>
+      { isLoading ? (
+        <TabsSkeleton tabs={ tabs }/>
+      ) : (
+        <RoutedTabs
+          tabs={ tabs }
+          tabListProps={ tabListProps }
+          rightSlot={ !isMobile && pagination?.isVisible ? <Pagination { ...pagination }/> : null }
+          stickyEnabled={ !isMobile }
+        />
+      ) }
+    </PeersystPageWrapper>
   );
 };
 

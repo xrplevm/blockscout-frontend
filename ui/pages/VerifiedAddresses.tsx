@@ -11,6 +11,7 @@ import useRedirectForInvalidAuthToken from 'lib/hooks/useRedirectForInvalidAuthT
 import { PAGE_TYPE_DICT } from 'lib/mixpanel/getPageType';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { TOKEN_INFO_APPLICATION, VERIFIED_ADDRESS } from 'stubs/account';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AddressVerificationModal from 'ui/addressVerification/AddressVerificationModal';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';
 import DataListDisplay from 'ui/shared/DataListDisplay';
@@ -30,9 +31,9 @@ const VerifiedAddresses = () => {
 
   React.useEffect(() => {
     addressHash && router.replace({ pathname: '/account/verified-addresses' });
-  // componentDidMount
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ ]);
+    // componentDidMount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const modalProps = useDisclosure();
   const queryClient = useQueryClient();
@@ -69,41 +70,49 @@ const VerifiedAddresses = () => {
     setSelectedAddress(address);
   }, []);
 
-  const handleAddressSubmit = React.useCallback((newItem: VerifiedAddress) => {
-    queryClient.setQueryData(
-      getResourceKey('verified_addresses', { pathParams: { chainId: config.chain.id } }),
-      (prevData: VerifiedAddressResponse | undefined) => {
-        if (!prevData) {
-          return { verifiedAddresses: [ newItem ] };
-        }
+  const handleAddressSubmit = React.useCallback(
+    (newItem: VerifiedAddress) => {
+      queryClient.setQueryData(
+        getResourceKey('verified_addresses', { pathParams: { chainId: config.chain.id } }),
+        (prevData: VerifiedAddressResponse | undefined) => {
+          if (!prevData) {
+            return { verifiedAddresses: [ newItem ] };
+          }
 
-        return {
-          verifiedAddresses: [ newItem, ...prevData.verifiedAddresses ],
-        };
-      });
-  }, [ queryClient ]);
+          return {
+            verifiedAddresses: [ newItem, ...prevData.verifiedAddresses ],
+          };
+        },
+      );
+    },
+    [ queryClient ],
+  );
 
-  const handleApplicationSubmit = React.useCallback((newItem: TokenInfoApplication) => {
-    setSelectedAddress(undefined);
-    queryClient.setQueryData(
-      getResourceKey('token_info_applications', { pathParams: { chainId: config.chain.id, id: undefined } }),
-      (prevData: TokenInfoApplications | undefined) => {
-        if (!prevData) {
-          return { submissions: [ newItem ] };
-        }
+  const handleApplicationSubmit = React.useCallback(
+    (newItem: TokenInfoApplication) => {
+      setSelectedAddress(undefined);
+      queryClient.setQueryData(
+        getResourceKey('token_info_applications', { pathParams: { chainId: config.chain.id, id: undefined } }),
+        (prevData: TokenInfoApplications | undefined) => {
+          if (!prevData) {
+            return { submissions: [ newItem ] };
+          }
 
-        const isExisting = prevData.submissions.some((item) => item.id.toLowerCase() === newItem.id.toLowerCase());
-        const submissions = isExisting ?
-          prevData.submissions.map((item) => item.id.toLowerCase() === newItem.id.toLowerCase() ? newItem : item) :
-          [ newItem, ...prevData.submissions ];
-        return { submissions };
-      });
-  }, [ queryClient ]);
+          const isExisting = prevData.submissions.some((item) => item.id.toLowerCase() === newItem.id.toLowerCase());
+          const submissions = isExisting ?
+            prevData.submissions.map((item) => (item.id.toLowerCase() === newItem.id.toLowerCase() ? newItem : item)) :
+            [ newItem, ...prevData.submissions ];
+          return { submissions };
+        },
+      );
+    },
+    [ queryClient ],
+  );
 
   const addButton = (
     <Skeleton mt={ 8 } isLoaded={ !isLoading } display="inline-block">
       <Button size="lg" onClick={ modalProps.onOpen }>
-          Add address
+        Add address
       </Button>
     </Skeleton>
   );
@@ -120,18 +129,22 @@ const VerifiedAddresses = () => {
   }, [ handleGoBack, selectedAddress ]);
 
   if (selectedAddress) {
-    const addressInfo = addressesQuery.data?.verifiedAddresses.find(({ contractAddress }) => contractAddress.toLowerCase() === selectedAddress.toLowerCase());
+    const addressInfo = addressesQuery.data?.verifiedAddresses.find(
+      ({ contractAddress }) => contractAddress.toLowerCase() === selectedAddress.toLowerCase(),
+    );
     const tokenName = addressInfo ? `${ addressInfo.metadata.tokenName } (${ addressInfo.metadata.tokenSymbol })` : '';
     return (
-      <>
+      <PeersystPageWrapper>
         <PageTitle title="Token info application form" backLink={ backLink }/>
         <TokenInfoForm
           address={ selectedAddress }
           tokenName={ tokenName }
-          application={ applicationsQuery.data?.submissions.find(({ tokenAddress }) => tokenAddress.toLowerCase() === selectedAddress.toLowerCase()) }
+          application={ applicationsQuery.data?.submissions.find(
+            ({ tokenAddress }) => tokenAddress.toLowerCase() === selectedAddress.toLowerCase(),
+          ) }
           onSubmit={ handleApplicationSubmit }
         />
-      </>
+      </PeersystPageWrapper>
     );
   }
 
@@ -142,7 +155,9 @@ const VerifiedAddresses = () => {
           <VerifiedAddressesListItem
             key={ item.contractAddress + (isLoading ? index : '') }
             item={ item }
-            application={ applicationsQuery.data?.submissions?.find(({ tokenAddress }) => tokenAddress.toLowerCase() === item.contractAddress.toLowerCase()) }
+            application={ applicationsQuery.data?.submissions?.find(
+              ({ tokenAddress }) => tokenAddress.toLowerCase() === item.contractAddress.toLowerCase(),
+            ) }
             onAdd={ handleItemAdd }
             onEdit={ handleItemEdit }
             isLoading={ isLoading }
@@ -162,14 +177,13 @@ const VerifiedAddresses = () => {
   ) : null;
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="My verified addresses"/>
       <AccountPageDescription allowCut={ false }>
         <span>
-          Verify ownership of a smart contract address to easily update information in Blockscout.
-          You will sign a single message to verify contract ownership.
-          Once verified, you can update token information, address name tags, and address labels from the
-          Blockscout console without needing to sign additional messages.
+          Verify ownership of a smart contract address to easily update information in Blockscout. You will sign a single message to verify
+          contract ownership. Once verified, you can update token information, address name tags, and address labels from the Blockscout
+          console without needing to sign additional messages.
         </span>
         <chakra.p fontWeight={ 600 } mt={ 5 }>
           Before starting, make sure that:
@@ -178,13 +192,13 @@ const VerifiedAddresses = () => {
           <ListItem>The source code for the smart contract is deployed on “{ config.chain.name }”.</ListItem>
           <ListItem>
             <span>The source code is verified (if not yet verified, you can use </span>
-            <Link href="https://docs.blockscout.com/for-users/verifying-a-smart-contract" target="_blank">this tool</Link>
+            <Link href="https://docs.blockscout.com/for-users/verifying-a-smart-contract" target="_blank">
+              this tool
+            </Link>
             <span>).</span>
           </ListItem>
         </OrderedList>
-        <chakra.div mt={ 5 }>
-          Once these steps are complete, click the Add address button below to get started.
-        </chakra.div>
+        <chakra.div mt={ 5 }>Once these steps are complete, click the Add address button below to get started.</chakra.div>
         <AdminSupportText mt={ 5 }/>
       </AccountPageDescription>
       <DataListDisplay
@@ -202,7 +216,7 @@ const VerifiedAddresses = () => {
         onAddTokenInfoClick={ handleItemAdd }
         onShowListClick={ modalProps.onClose }
       />
-    </>
+    </PeersystPageWrapper>
   );
 };
 

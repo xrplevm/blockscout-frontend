@@ -14,6 +14,7 @@ import * as regexp from 'lib/regexp';
 import { TOKEN_INSTANCE, TOKEN_INFO_ERC_1155 } from 'stubs/token';
 import * as tokenStubs from 'stubs/token';
 import { generateListStub } from 'stubs/utils';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AddressQrCode from 'ui/address/details/AddressQrCode';
 import AccountActionsMenu from 'ui/shared/AccountActionsMenu/AccountActionsMenu';
 import TextAd from 'ui/shared/ad/TextAd';
@@ -31,7 +32,7 @@ import TokenTransfer from 'ui/token/TokenTransfer/TokenTransfer';
 import TokenInstanceDetails from 'ui/tokenInstance/TokenInstanceDetails';
 import TokenInstanceMetadata from 'ui/tokenInstance/TokenInstanceMetadata';
 
-export type TokenTabs = 'token_transfers' | 'holders'
+export type TokenTabs = 'token_transfers' | 'holders';
 
 const TokenInstanceContent = () => {
   const router = useRouter();
@@ -65,7 +66,9 @@ const TokenInstanceContent = () => {
     pathParams: { hash, id },
     scrollRef,
     options: {
-      enabled: Boolean(hash && id && (!tab || tab === 'token_transfers') && !tokenInstanceQuery.isPlaceholderData && tokenInstanceQuery.data),
+      enabled: Boolean(
+        hash && id && (!tab || tab === 'token_transfers') && !tokenInstanceQuery.isPlaceholderData && tokenInstanceQuery.data,
+      ),
       placeholderData: generateListStub<'token_instance_transfers'>(
         tokenQuery.data?.type === 'ERC-1155' ? tokenStubs.TOKEN_TRANSFER_ERC_1155 : tokenStubs.TOKEN_TRANSFER_ERC_721,
         10,
@@ -75,10 +78,7 @@ const TokenInstanceContent = () => {
   });
 
   const shouldFetchHolders =
-    !tokenQuery.isPlaceholderData &&
-    !tokenInstanceQuery.isPlaceholderData &&
-    tokenInstanceQuery.data &&
-    !tokenInstanceQuery.data.is_unique;
+    !tokenQuery.isPlaceholderData && !tokenInstanceQuery.isPlaceholderData && tokenInstanceQuery.data && !tokenInstanceQuery.data.is_unique;
 
   const holdersQuery = useQueryWithPages({
     resourceName: 'token_instance_holders',
@@ -87,7 +87,10 @@ const TokenInstanceContent = () => {
     options: {
       enabled: Boolean(hash && tab === 'holders' && shouldFetchHolders),
       placeholderData: generateListStub<'token_instance_holders'>(
-        tokenQuery.data?.type === 'ERC-1155' ? tokenStubs.TOKEN_HOLDER_ERC_1155 : tokenStubs.TOKEN_HOLDER_ERC_20, 10, { next_page_params: null }),
+        tokenQuery.data?.type === 'ERC-1155' ? tokenStubs.TOKEN_HOLDER_ERC_1155 : tokenStubs.TOKEN_HOLDER_ERC_20,
+        10,
+        { next_page_params: null },
+      ),
     },
   });
 
@@ -122,12 +125,13 @@ const TokenInstanceContent = () => {
     shouldFetchHolders ?
       { id: 'holders', title: 'Holders', component: <TokenHolders holdersQuery={ holdersQuery } token={ tokenQuery.data }/> } :
       undefined,
-    { id: 'metadata', title: 'Metadata', component: (
-      <TokenInstanceMetadata
-        data={ tokenInstanceQuery.data?.metadata }
-        isPlaceholderData={ tokenInstanceQuery.isPlaceholderData }
-      />
-    ) },
+    {
+      id: 'metadata',
+      title: 'Metadata',
+      component: (
+        <TokenInstanceMetadata data={ tokenInstanceQuery.data?.metadata } isPlaceholderData={ tokenInstanceQuery.isPlaceholderData }/>
+      ),
+    },
   ].filter(Boolean);
 
   throwOnResourceLoadError(tokenInstanceQuery);
@@ -162,7 +166,7 @@ const TokenInstanceContent = () => {
     } catch (error) {
       return (
         <LinkExternal href={ tokenInstanceQuery.data.external_app_url } isLoading={ isLoading } ml={{ base: 0, lg: 'auto' }}>
-            View in app
+          View in app
         </LinkExternal>
       );
     }
@@ -198,7 +202,7 @@ const TokenInstanceContent = () => {
   );
 
   return (
-    <>
+    <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
       <PageTitle
         title={ `ID ${ tokenInstanceQuery.data?.id }` }
@@ -213,7 +217,9 @@ const TokenInstanceContent = () => {
       { /* should stay before tabs to scroll up with pagination */ }
       <Box ref={ scrollRef }></Box>
 
-      { isLoading ? <TabsSkeleton tabs={ tabs }/> : (
+      { isLoading ? (
+        <TabsSkeleton tabs={ tabs }/>
+      ) : (
         <RoutedTabs
           tabs={ tabs }
           tabListProps={ isMobile ? { mt: 8 } : { mt: 3, py: 5, marginBottom: 0 } }
@@ -221,7 +227,7 @@ const TokenInstanceContent = () => {
           stickyEnabled={ !isMobile }
         />
       ) }
-    </>
+    </PeersystPageWrapper>
   );
 };
 

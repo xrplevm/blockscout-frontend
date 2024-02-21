@@ -11,6 +11,7 @@ import getQueryParamString from 'lib/router/getQueryParamString';
 import { TX_ZKEVM_L2 } from 'stubs/tx';
 import { generateListStub } from 'stubs/utils';
 import { ZKEVM_L2_TXN_BATCH } from 'stubs/zkEvmL2';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import TextAd from 'ui/shared/ad/TextAd';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
@@ -46,10 +47,14 @@ const ZkEvmL2TxnBatch = () => {
   throwOnAbsentParamError(number);
   throwOnResourceLoadError(batchQuery);
 
-  const tabs: Array<RoutedTab> = React.useMemo(() => ([
-    { id: 'index', title: 'Details', component: <ZkEvmL2TxnBatchDetails query={ batchQuery }/> },
-    { id: 'txs', title: 'Transactions', component: <TxsWithFrontendSorting query={ batchTxsQuery } showSocketInfo={ false }/> },
-  ].filter(Boolean)), [ batchQuery, batchTxsQuery ]);
+  const tabs: Array<RoutedTab> = React.useMemo(
+    () =>
+      [
+        { id: 'index', title: 'Details', component: <ZkEvmL2TxnBatchDetails query={ batchQuery }/> },
+        { id: 'txs', title: 'Transactions', component: <TxsWithFrontendSorting query={ batchTxsQuery } showSocketInfo={ false }/> },
+      ].filter(Boolean),
+    [ batchQuery, batchTxsQuery ],
+  );
 
   const backLink = React.useMemo(() => {
     const hasGoBackLink = appProps.referrer && appProps.referrer.includes('/zkevm_l2_txn_batches');
@@ -65,18 +70,11 @@ const ZkEvmL2TxnBatch = () => {
   }, [ appProps.referrer ]);
 
   return (
-    <>
+    <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
-      <PageTitle
-        title={ `Tx batch #${ number }` }
-        backLink={ backLink }
-      />
-      { batchQuery.isPlaceholderData ? <TabsSkeleton tabs={ tabs }/> : (
-        <RoutedTabs
-          tabs={ tabs }
-        />
-      ) }
-    </>
+      <PageTitle title={ `Tx batch #${ number }` } backLink={ backLink }/>
+      { batchQuery.isPlaceholderData ? <TabsSkeleton tabs={ tabs }/> : <RoutedTabs tabs={ tabs }/> }
+    </PeersystPageWrapper>
   );
 };
 

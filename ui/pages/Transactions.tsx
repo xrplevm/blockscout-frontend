@@ -9,6 +9,7 @@ import useIsMobile from 'lib/hooks/useIsMobile';
 import useNewTxsSocket from 'lib/hooks/useNewTxsSocket';
 import { TX } from 'stubs/tx';
 import { generateListStub } from 'stubs/utils';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
@@ -98,7 +99,7 @@ const Transactions = () => {
   const pagination = router.query.tab === 'watchlist' ? txsWatchlistQuery.pagination : txsQuery.pagination;
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Transactions" withTextAd/>
       <RoutedTabs
         tabs={ tabs }
@@ -106,7 +107,7 @@ const Transactions = () => {
         rightSlot={ pagination.isVisible && !isMobile ? <Pagination my={ 1 } { ...pagination }/> : null }
         stickyEnabled={ !isMobile }
       />
-    </>
+    </PeersystPageWrapper>
   );
 };
 

@@ -1,5 +1,6 @@
 import React from 'react';
 
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import ContractVerificationForm from 'ui/contractVerification/ContractVerificationForm';
 import useFormConfigQuery from 'ui/contractVerification/useFormConfigQuery';
 import ContentLoader from 'ui/shared/ContentLoader';
@@ -18,16 +19,14 @@ const ContractVerification = () => {
       return <ContentLoader/>;
     }
 
-    return (
-      <ContractVerificationForm config={ configQuery.data }/>
-    );
+    return <ContractVerificationForm config={ configQuery.data }/>;
   })();
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Verify & publish contract"/>
       { content }
-    </>
+    </PeersystPageWrapper>
   );
 };
 

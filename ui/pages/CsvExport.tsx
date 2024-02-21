@@ -12,6 +12,7 @@ import throwOnAbsentParamError from 'lib/errors/throwOnAbsentParamError';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import { nbsp } from 'lib/html-entities';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import CsvExportForm from 'ui/csvExport/CsvExportForm';
 import ContentLoader from 'ui/shared/ContentLoader';
 import AddressEntity from 'ui/shared/entities/address/AddressEntity';
@@ -127,11 +128,8 @@ const CsvExport = () => {
   })();
 
   return (
-    <>
-      <PageTitle
-        title="Export data to CSV file"
-        backLink={ backLink }
-      />
+    <PeersystPageWrapper>
+      <PageTitle title="Export data to CSV file" backLink={ backLink }/>
       <Flex mb={ 10 } whiteSpace="pre-wrap" flexWrap="wrap">
         <span>Export { exportType.text } for address </span>
         <AddressEntity
@@ -140,12 +138,16 @@ const CsvExport = () => {
           noCopy
         />
         <span>{ nbsp }</span>
-        { filterType && filterValue && <span>with applied filter by { filterType } ({ filterValue }) </span> }
+        { filterType && filterValue && (
+          <span>
+            with applied filter by { filterType } ({ filterValue }){ ' ' }
+          </span>
+        ) }
         <span>to CSV file. </span>
         <span>Exports are limited to the last 10K { exportType.text }.</span>
       </Flex>
       { content }
-    </>
+    </PeersystPageWrapper>
   );
 };
 
