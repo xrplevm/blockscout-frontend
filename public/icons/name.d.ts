@@ -74,6 +74,7 @@
 	| "networks/logo-placeholder"
 	| "nft_shield"
 	| "output_roots"
+	| "peersyst"
 	| "plus"
 	| "privattags"
 	| "profile"

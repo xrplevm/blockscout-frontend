@@ -10,6 +10,7 @@ import type { ResourceError } from 'lib/api/resources';
 import useApiQuery from 'lib/api/useApiQuery';
 import useFetch from 'lib/hooks/useFetch';
 import useIssueUrl from 'lib/hooks/useIssueUrl';
+import IconSvg from 'ui/shared/IconSvg';
 import NetworkAddToWallet from 'ui/shared/NetworkAddToWallet';
 
 import FooterLinkItem from './FooterLinkItem';
@@ -120,7 +121,7 @@ const Footer = () => {
       return (
         <Box gridArea={ gridArea }>
           <Link fontSize="xs" href="https://www.peersyst.com">
-            peersyst.com
+            <IconSvg name="peersyst" w={ 36 } h={ 8 }/>
           </Link>
           <Text mt={ 3 } fontSize="xs">
             Building the XRPLedger EVMSidechain and bridge solution for XRP with Ripple
