@@ -47,8 +47,8 @@ const variantOutline = defineStyle((props) => {
 
   const isGrayTheme = c === 'gray' || c === 'gray-dark';
   const color = isGrayTheme ? mode('blackAlpha.800', 'whiteAlpha.800')(props) : mode(`${ c }.600`, `${ c }.300`)(props);
-  const borderColor = isGrayTheme ? mode('purple.200', 'purple.600')(props) : mode(`${ c }.600`, `${ c }.300`)(props);
-  const activeBg = isGrayTheme ? mode('purple.50', 'purple.600')(props) : mode(`${ c }.50`, 'purple.600')(props);
+  const borderColor = isGrayTheme ? mode('purple.200', 'purple.300')(props) : mode(`${ c }.400`, `${ c }.300`)(props);
+  const activeBg = isGrayTheme ? mode('purple.50', 'purple.300')(props) : mode(`${ c }.50`, 'purple.300')(props);
   const activeColor = (() => {
     if (c === 'gray') {
       return mode('purple.600', 'purple.50')(props);
@@ -62,6 +62,10 @@ const variantOutline = defineStyle((props) => {
     return 'purple.500';
   })();
 
+  const hoverColor = (() => {
+    return mode('purple.200', 'purple.800')(props);
+  })();
+
   return {
     color,
     fontWeight: props.fontWeight || 600,
@@ -72,7 +76,7 @@ const variantOutline = defineStyle((props) => {
     _hover: {
       color: 'link_hovered',
       borderColor: 'link_hovered',
-      bg: 'transparent',
+      bg: hoverColor,
       _active: {
         bg: props.isActive ? activeBg : 'transparent',
         borderColor: props.isActive ? activeBg : 'link_hovered',

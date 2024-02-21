@@ -25,11 +25,17 @@ const FilterButton = ({ isActive, isLoading, appliedFiltersNum, onClick, as }: P
   return (
     <Button
       ref={ ref }
-      rightIcon={ appliedFiltersNum ? <Circle bg={ badgeBgColor } size={ 5 } color={ badgeColor }>{ appliedFiltersNum }</Circle> : undefined }
+      rightIcon={
+        appliedFiltersNum ? (
+          <Circle bg={ badgeBgColor } size={ 5 } color={ badgeColor }>
+            { appliedFiltersNum }
+          </Circle>
+        ) : undefined
+      }
       size="sm"
       fontWeight="500"
       variant="outline"
-      colorScheme="gray-dark"
+      colorScheme="purple"
       onClick={ onClick }
       isActive={ isActive }
       px={ 1.5 }

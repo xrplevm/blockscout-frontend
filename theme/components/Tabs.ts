@@ -12,8 +12,8 @@ const variantSoftRounded = definePartsStyle((props) => {
       fontWeight: '600',
       color: mode('gray.600', 'gray.400')(props),
       _selected: {
-        color: mode('purple.800', 'purple.300')(props),
-        bg: mode('purple.300', 'purple.800')(props),
+        color: mode('purple.400', 'purple.300')(props),
+        bg: mode('purple.200', 'purple.800')(props),
         _hover: {
           color: mode('purple.000', 'purple.500')(props),
         },

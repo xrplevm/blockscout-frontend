@@ -11,7 +11,7 @@ type Props = {
 };
 
 const NumberWidget = ({ label, value, isLoading, description }: Props) => {
-  const bgColor = useColorModeValue('gray.200', 'gray.700');
+  const bgColor = useColorModeValue('gray.100', 'gray.700');
   const skeletonBgColor = useColorModeValue('blackAlpha.50', 'whiteAlpha.50');
   const hintColor = useColorModeValue('gray.600', 'gray.400');
 
