@@ -3,6 +3,7 @@ import React from 'react';
 import type { RoutedTab } from 'ui/shared/Tabs/types';
 
 import useRedirectForInvalidAuthToken from 'lib/hooks/useRedirectForInvalidAuthToken';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import PrivateAddressTags from 'ui/privateTags/PrivateAddressTags';
 import PrivateTransactionTags from 'ui/privateTags/PrivateTransactionTags';
 import PageTitle from 'ui/shared/Page/PageTitle';
@@ -17,10 +18,10 @@ const PrivateTags = () => {
   useRedirectForInvalidAuthToken();
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Private tags"/>
       <RoutedTabs tabs={ TABS }/>
-    </>
+    </PeersystPageWrapper>
   );
 };
 

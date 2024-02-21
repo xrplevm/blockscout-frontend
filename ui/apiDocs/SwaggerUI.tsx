@@ -11,8 +11,8 @@ import React from 'react';
 
 import config from 'configs/app';
 import ContentLoader from 'ui/shared/ContentLoader';
-
 import 'swagger-ui-react/swagger-ui.css';
+import PageTitle from 'ui/shared/Page/PageTitle';
 
 const feature = config.features.restApiDocs;
 
@@ -32,6 +32,7 @@ const SwaggerUI = () => {
   const mainColor = useColorModeValue('blackAlpha.800', 'whiteAlpha.800');
   const borderColor = useToken('colors', 'divider');
   const mainBgColor = useColorModeValue('blackAlpha.100', 'whiteAlpha.200');
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   const swaggerStyle: SystemStyleObject = {
     '.swagger-ui .scheme-container, .opblock-tag': {
@@ -44,9 +45,10 @@ const SwaggerUI = () => {
       outline: 'none',
     },
     // eslint-disable-next-line max-len
-    '.swagger-ui .opblock .opblock-summary-path, .swagger-ui .opblock .opblock-summary-description, .swagger-ui div, .swagger-ui p, .swagger-ui h5, .swagger-ui .response-col_links, .swagger-ui h4, .swagger-ui table thead tr th, .swagger-ui table thead tr td, .swagger-ui .parameter__name, .swagger-ui .parameter__type, .swagger-ui .response-col_status, .swagger-ui .tab li, .swagger-ui .opblock .opblock-section-header h4': {
-      color: 'unset',
-    },
+    '.swagger-ui .opblock .opblock-summary-path, .swagger-ui .opblock .opblock-summary-description, .swagger-ui div, .swagger-ui p, .swagger-ui h5, .swagger-ui .response-col_links, .swagger-ui h4, .swagger-ui table thead tr th, .swagger-ui table thead tr td, .swagger-ui .parameter__name, .swagger-ui .parameter__type, .swagger-ui .response-col_status, .swagger-ui .tab li, .swagger-ui .opblock .opblock-section-header h4':
+      {
+        color: 'unset',
+      },
     '.swagger-ui input': {
       color: 'blackAlpha.800',
     },
@@ -132,12 +134,9 @@ const SwaggerUI = () => {
   }
 
   return (
-    <Box sx={ swaggerStyle }>
-      <SwaggerUIReact
-        url={ feature.specUrl }
-        plugins={ [ NeverShowInfoPlugin ] }
-        requestInterceptor={ reqInterceptor }
-      />
+    <Box style={ swaggerStyle } backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
+      <PageTitle title="API Documentation"/>
+      <SwaggerUIReact url={ feature.specUrl } plugins={ [ NeverShowInfoPlugin ] } requestInterceptor={ reqInterceptor }/>
     </Box>
   );
 };

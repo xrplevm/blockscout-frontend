@@ -8,6 +8,7 @@ import { resourceKey } from 'lib/api/resources';
 import { getResourceKey } from 'lib/api/useApiQuery';
 import useRedirectForInvalidAuthToken from 'lib/hooks/useRedirectForInvalidAuthToken';
 import { WATCH_LIST_ITEM_WITH_TOKEN_INFO } from 'stubs/account';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';
 import ActionBar from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
@@ -20,7 +21,6 @@ import WatchListItem from 'ui/watchlist/WatchlistTable/WatchListItem';
 import WatchlistTable from 'ui/watchlist/WatchlistTable/WatchlistTable';
 
 const WatchList: React.FC = () => {
-
   const { data, isPlaceholderData, isError, pagination } = useQueryWithPages({
     resourceName: 'watchlist',
     options: {
@@ -36,10 +36,13 @@ const WatchList: React.FC = () => {
   const [ addressModalData, setAddressModalData ] = useState<WatchlistAddress>();
   const [ deleteModalData, setDeleteModalData ] = useState<WatchlistAddress>();
 
-  const onEditClick = useCallback((data: WatchlistAddress) => {
-    setAddressModalData(data);
-    addressModalProps.onOpen();
-  }, [ addressModalProps ]);
+  const onEditClick = useCallback(
+    (data: WatchlistAddress) => {
+      setAddressModalData(data);
+      addressModalProps.onOpen();
+    },
+    [ addressModalProps ],
+  );
 
   const onAddressModalClose = useCallback(() => {
     setAddressModalData(undefined);
@@ -52,10 +55,13 @@ const WatchList: React.FC = () => {
     addressModalProps.onClose();
   }, [ addressModalProps, queryClient ]);
 
-  const onDeleteClick = useCallback((data: WatchlistAddress) => {
-    setDeleteModalData(data);
-    deleteModalProps.onOpen();
-  }, [ deleteModalProps ]);
+  const onDeleteClick = useCallback(
+    (data: WatchlistAddress) => {
+      setDeleteModalData(data);
+      deleteModalProps.onOpen();
+    },
+    [ deleteModalProps ],
+  );
 
   const onDeleteModalClose = useCallback(() => {
     setDeleteModalData(undefined);
@@ -66,8 +72,7 @@ const WatchList: React.FC = () => {
     queryClient.setQueryData(getResourceKey('watchlist'), (prevData: WatchlistResponse | undefined) => {
       const newItems = prevData?.items.filter((item: WatchlistAddress) => item.id !== deleteModalData?.id);
       return { ...prevData, items: newItems };
-    },
-    );
+    });
   }, [ deleteModalData?.id, queryClient ]);
 
   const description = (
@@ -111,18 +116,9 @@ const WatchList: React.FC = () => {
     return (
       <>
         { description }
-        <DataListDisplay
-          isError={ isError }
-          items={ data?.items }
-          emptyText=""
-          content={ list }
-          actionBar={ actionBar }
-        />
+        <DataListDisplay isError={ isError } items={ data?.items } emptyText="" content={ list } actionBar={ actionBar }/>
         <Skeleton mt={ 8 } isLoaded={ !isPlaceholderData } display="inline-block">
-          <Button
-            size="lg"
-            onClick={ addressModalProps.onOpen }
-          >
+          <Button size="lg" onClick={ addressModalProps.onOpen }>
             Add address
           </Button>
         </Skeleton>
@@ -134,22 +130,17 @@ const WatchList: React.FC = () => {
           isAdd={ !addressModalData }
         />
         { deleteModalData && (
-          <DeleteAddressModal
-            { ...deleteModalProps }
-            onClose={ onDeleteModalClose }
-            onSuccess={ onDeleteSuccess }
-            data={ deleteModalData }
-          />
+          <DeleteAddressModal { ...deleteModalProps } onClose={ onDeleteModalClose } onSuccess={ onDeleteSuccess } data={ deleteModalData }/>
         ) }
       </>
     );
   })();
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Watch list"/>
       { content }
-    </>
+    </PeersystPageWrapper>
   );
 };
 

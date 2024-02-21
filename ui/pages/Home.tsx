@@ -15,7 +15,7 @@ import WalletMenuDesktop from 'ui/snippets/walletMenu/WalletMenuDesktop';
 const rollupFeature = config.features.rollup;
 
 const Home = () => {
-  const bgColor = useColorModeValue('gray.100', 'black');
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   return (
     <Box as="main">
@@ -47,7 +47,15 @@ const Home = () => {
       <Stats/>
       <ChainIndicators/>
       <AdBanner mt={{ base: 6, lg: 8 }} mx="auto" display="flex" justifyContent="center"/>
-      <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 8 } backgroundColor={ bgColor }>
+      <Flex
+        mt={ 8 }
+        direction={{ base: 'column', lg: 'row' }}
+        columnGap={ 12 }
+        rowGap={ 8 }
+        backgroundColor={ bgColor }
+        borderRadius="md"
+        padding={{ base: 6, lg: 8 }}
+      >
         { rollupFeature.isEnabled && rollupFeature.type === 'zkEvm' ? <LatestZkEvmL2Batches/> : <LatestBlocks/> }
         <Box flexGrow={ 1 }>
           <Transactions/>

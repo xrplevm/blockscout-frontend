@@ -1,4 +1,4 @@
-import { Box, Flex, HStack } from '@chakra-ui/react';
+import { Box, Flex, HStack, useColorModeValue } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -45,6 +45,7 @@ const TOKEN_TABS = [ 'tokens_erc20', 'tokens_nfts', 'tokens_nfts_collection', 't
 const AddressPageContent = () => {
   const router = useRouter();
   const appProps = useAppContext();
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   const tabsScrollRef = React.useRef<HTMLDivElement>(null);
   const hash = getQueryParamString(router.query.hash);
@@ -135,23 +136,25 @@ const AddressPageContent = () => {
           component: <AddressLogs scrollRef={ tabsScrollRef }/>,
         } :
         undefined,
-      addressQuery.data?.is_contract ? {
-        id: 'contract',
-        title: () => {
-          if (addressQuery.data.is_verified) {
-            return (
-              <>
-                <span>Contract</span>
-                <IconSvg name="status/success" boxSize="14px" color="green.500" ml={ 1 }/>
-              </>
-            );
-          }
+      addressQuery.data?.is_contract ?
+        {
+          id: 'contract',
+          title: () => {
+            if (addressQuery.data.is_verified) {
+              return (
+                <>
+                  <span>Contract</span>
+                  <IconSvg name="status/success" boxSize="14px" color="green.500" ml={ 1 }/>
+                </>
+              );
+            }
 
-          return 'Contract';
-        },
-        component: <AddressContract tabs={ contractTabs }/>,
-        subTabs: contractTabs.map(tab => tab.id),
-      } : undefined,
+            return 'Contract';
+          },
+          component: <AddressContract tabs={ contractTabs }/>,
+          subTabs: contractTabs.map((tab) => tab.id),
+        } :
+        undefined,
     ].filter(Boolean);
   }, [ addressQuery.data, contractTabs, addressTabsCountersQuery.data, userOpsAccountQuery.data ]);
 
@@ -166,12 +169,14 @@ const AddressPageContent = () => {
         addressQuery.data?.implementation_address ? { label: 'proxy', display_name: 'Proxy' } : undefined,
         addressQuery.data?.token ? { label: 'token', display_name: 'Token' } : undefined,
         isSafeAddress ? { label: 'safe', display_name: 'Multisig: Safe' } : undefined,
-        config.features.userOps.isEnabled && userOpsAccountQuery.data ? { label: 'user_ops_acc', display_name: 'Smart contract wallet' } : undefined,
+        config.features.userOps.isEnabled && userOpsAccountQuery.data ?
+          { label: 'user_ops_acc', display_name: 'Smart contract wallet' } :
+          undefined,
       ] }
     />
   );
 
-  const content = (addressQuery.isError || addressQuery.isDegradedData) ? null : <RoutedTabs tabs={ tabs } tabListProps={{ mt: 8 }}/>;
+  const content = addressQuery.isError || addressQuery.isDegradedData ? null : <RoutedTabs tabs={ tabs } tabListProps={{ mt: 8 }}/>;
 
   const backLink = React.useMemo(() => {
     const hasGoBackLink = appProps.referrer && appProps.referrer.includes('/accounts');
@@ -189,14 +194,7 @@ const AddressPageContent = () => {
   const titleSecondRow = (
     <Flex alignItems="center" w="100%" columnGap={ 2 } rowGap={ 2 } flexWrap={{ base: 'wrap', lg: 'nowrap' }}>
       { addressQuery.data?.ens_domain_name && (
-        <EnsEntity
-          name={ addressQuery.data?.ens_domain_name }
-          fontFamily="heading"
-          fontSize="lg"
-          fontWeight={ 500 }
-          mr={ 1 }
-          maxW="300px"
-        />
+        <EnsEntity name={ addressQuery.data?.ens_domain_name } fontFamily="heading" fontSize="lg" fontWeight={ 500 } mr={ 1 } maxW="300px"/>
       ) }
       <AddressEntity
         address={{ ...addressQuery.data, hash, name: '', ens_domain_name: '' }}
@@ -208,23 +206,27 @@ const AddressPageContent = () => {
         isSafeAddress={ isSafeAddress }
         mr={ 4 }
       />
-      { !isLoading && addressQuery.data?.is_contract && addressQuery.data.token &&
-        <AddressAddToWallet token={ addressQuery.data.token } variant="button"/> }
+      { !isLoading && addressQuery.data?.is_contract && addressQuery.data.token && (
+        <AddressAddToWallet token={ addressQuery.data.token } variant="button"/>
+      ) }
       { !isLoading && !addressQuery.data?.is_contract && config.features.account.isEnabled && (
         <AddressFavoriteButton hash={ hash } watchListId={ addressQuery.data?.watchlist_address_id }/>
       ) }
       <AddressQrCode address={{ hash }} isLoading={ isLoading }/>
       <AccountActionsMenu isLoading={ isLoading }/>
       <HStack ml="auto" gap={ 2 }/>
-      { addressQuery.data?.is_contract && addressQuery.data?.is_verified && config.UI.views.address.solidityscanEnabled && <SolidityscanReport hash={ hash }/> }
-      { !isLoading && addressQuery.data && config.features.nameService.isEnabled &&
-        <AddressEnsDomains addressHash={ hash } mainDomainName={ addressQuery.data.ens_domain_name }/> }
+      { addressQuery.data?.is_contract && addressQuery.data?.is_verified && config.UI.views.address.solidityscanEnabled && (
+        <SolidityscanReport hash={ hash }/>
+      ) }
+      { !isLoading && addressQuery.data && config.features.nameService.isEnabled && (
+        <AddressEnsDomains addressHash={ hash } mainDomainName={ addressQuery.data.ens_domain_name }/>
+      ) }
       <NetworkExplorers type="address" pathParam={ hash }/>
     </Flex>
   );
 
   return (
-    <>
+    <Box backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
       <TextAd mb={ 6 }/>
       <PageTitle
         title={ `${ addressQuery.data?.is_contract ? 'Contract' : 'Address' } details` }
@@ -236,11 +238,8 @@ const AddressPageContent = () => {
       <AddressDetails addressQuery={ addressQuery } scrollRef={ tabsScrollRef }/>
       { /* should stay before tabs to scroll up with pagination */ }
       <Box ref={ tabsScrollRef }></Box>
-      { (isLoading || addressTabsCountersQuery.isPlaceholderData) ?
-        <TabsSkeleton tabs={ tabs }/> :
-        content
-      }
-    </>
+      { isLoading || addressTabsCountersQuery.isPlaceholderData ? <TabsSkeleton tabs={ tabs }/> : content }
+    </Box>
   );
 };
 

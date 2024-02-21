@@ -11,6 +11,7 @@ import getQueryParamString from 'lib/router/getQueryParamString';
 import { ADDRESS_REGEXP } from 'lib/validations/address';
 import { ENS_DOMAIN } from 'stubs/ENS';
 import { generateListStub } from 'stubs/utils';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import NameDomainsActionBar from 'ui/nameDomains/NameDomainsActionBar';
 import NameDomainsListItem from 'ui/nameDomains/NameDomainsListItem';
 import NameDomainsTable from 'ui/nameDomains/NameDomainsTable';
@@ -31,9 +32,9 @@ const NameDomains = () => {
   const onlyActive = getQueryParamString(router.query.only_active);
 
   const initialFilters: EnsDomainLookupFiltersOptions = [
-    ownedBy === 'true' ? 'owned_by' as const : undefined,
-    resolvedTo === 'true' ? 'resolved_to' as const : undefined,
-    onlyActive === 'false' ? 'with_inactive' as const : undefined,
+    ownedBy === 'true' ? ('owned_by' as const) : undefined,
+    resolvedTo === 'true' ? ('resolved_to' as const) : undefined,
+    onlyActive === 'false' ? ('with_inactive' as const) : undefined,
   ].filter(Boolean);
   const initialSort = getSortValueFromQuery<Sort>(router.query, SORT_OPTIONS);
 
@@ -81,7 +82,9 @@ const NameDomains = () => {
   React.useEffect(() => {
     const hasInactiveFilter = filterValue.some((value) => value === 'with_inactive');
     if (isAddressSearch) {
-      setFilterValue([ 'owned_by' as const, 'resolved_to' as const, hasInactiveFilter ? 'with_inactive' as const : undefined ].filter(Boolean));
+      setFilterValue(
+        [ 'owned_by' as const, 'resolved_to' as const, hasInactiveFilter ? ('with_inactive' as const) : undefined ].filter(Boolean),
+      );
       onFilterChange<'addresses_lookup'>({
         address: debouncedSearchTerm,
         resolved_to: true,
@@ -89,67 +92,76 @@ const NameDomains = () => {
         only_active: !hasInactiveFilter,
       });
     } else {
-      setFilterValue([ hasInactiveFilter ? 'with_inactive' as const : undefined ].filter(Boolean));
+      setFilterValue([ hasInactiveFilter ? ('with_inactive' as const) : undefined ].filter(Boolean));
       onFilterChange<'domains_lookup'>({
         name: debouncedSearchTerm,
         only_active: !hasInactiveFilter,
       });
     }
-  // should run only the type of search changes
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // should run only the type of search changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ isAddressSearch ]);
 
-  const handleSortToggle = React.useCallback((event: React.MouseEvent) => {
-    if (isLoading) {
-      return;
-    }
-    const field = (event.currentTarget as HTMLDivElement).getAttribute('data-field') as SortField | undefined;
+  const handleSortToggle = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (isLoading) {
+        return;
+      }
+      const field = (event.currentTarget as HTMLDivElement).getAttribute('data-field') as SortField | undefined;
 
-    if (field) {
-      setSort((prevValue) => {
-        const nextSortValue = getNextSortValue(field)(prevValue);
-        onSortingChange(getSortParamsFromValue(nextSortValue));
-        return nextSortValue;
-      });
-    }
-  }, [ isLoading, onSortingChange ]);
+      if (field) {
+        setSort((prevValue) => {
+          const nextSortValue = getNextSortValue(field)(prevValue);
+          onSortingChange(getSortParamsFromValue(nextSortValue));
+          return nextSortValue;
+        });
+      }
+    },
+    [ isLoading, onSortingChange ],
+  );
 
-  const handleSearchTermChange = React.useCallback((value: string) => {
-    setSearchTerm(value);
-    const isAddressSearch = ADDRESS_REGEXP.test(value);
-    if (isAddressSearch) {
-      onFilterChange<'addresses_lookup'>({
-        address: value,
-        resolved_to: filterValue.includes('resolved_to'),
-        owned_by: filterValue.includes('owned_by'),
-        only_active: !filterValue.includes('with_inactive'),
-      });
-    } else {
-      onFilterChange<'domains_lookup'>({
-        name: value,
-        only_active: !filterValue.includes('with_inactive'),
-      });
-    }
-  }, [ onFilterChange, filterValue ]);
+  const handleSearchTermChange = React.useCallback(
+    (value: string) => {
+      setSearchTerm(value);
+      const isAddressSearch = ADDRESS_REGEXP.test(value);
+      if (isAddressSearch) {
+        onFilterChange<'addresses_lookup'>({
+          address: value,
+          resolved_to: filterValue.includes('resolved_to'),
+          owned_by: filterValue.includes('owned_by'),
+          only_active: !filterValue.includes('with_inactive'),
+        });
+      } else {
+        onFilterChange<'domains_lookup'>({
+          name: value,
+          only_active: !filterValue.includes('with_inactive'),
+        });
+      }
+    },
+    [ onFilterChange, filterValue ],
+  );
 
-  const handleFilterValueChange = React.useCallback((value: EnsDomainLookupFiltersOptions) => {
-    setFilterValue(value);
+  const handleFilterValueChange = React.useCallback(
+    (value: EnsDomainLookupFiltersOptions) => {
+      setFilterValue(value);
 
-    const isAddressSearch = ADDRESS_REGEXP.test(debouncedSearchTerm);
-    if (isAddressSearch) {
-      onFilterChange<'addresses_lookup'>({
-        address: debouncedSearchTerm,
-        resolved_to: value.includes('resolved_to'),
-        owned_by: value.includes('owned_by'),
-        only_active: !value.includes('with_inactive'),
-      });
-    } else {
-      onFilterChange<'domains_lookup'>({
-        name: debouncedSearchTerm,
-        only_active: !value.includes('with_inactive'),
-      });
-    }
-  }, [ debouncedSearchTerm, onFilterChange ]);
+      const isAddressSearch = ADDRESS_REGEXP.test(debouncedSearchTerm);
+      if (isAddressSearch) {
+        onFilterChange<'addresses_lookup'>({
+          address: debouncedSearchTerm,
+          resolved_to: value.includes('resolved_to'),
+          owned_by: value.includes('owned_by'),
+          only_active: !value.includes('with_inactive'),
+        });
+      } else {
+        onFilterChange<'domains_lookup'>({
+          name: debouncedSearchTerm,
+          only_active: !value.includes('with_inactive'),
+        });
+      }
+    },
+    [ debouncedSearchTerm, onFilterChange ],
+  );
 
   const hasActiveFilters = Boolean(debouncedSearchTerm) || filterValue.length > 0;
 
@@ -158,21 +170,12 @@ const NameDomains = () => {
       <Show below="lg" ssr={ false }>
         <Box>
           { data?.items.map((item, index) => (
-            <NameDomainsListItem
-              key={ item.id + (isLoading ? index : '') }
-              { ...item }
-              isLoading={ isLoading }
-            />
+            <NameDomainsListItem key={ item.id + (isLoading ? index : '') } { ...item } isLoading={ isLoading }/>
           )) }
         </Box>
       </Show>
       <Hide below="lg" ssr={ false }>
-        <NameDomainsTable
-          data={ data }
-          isLoading={ isLoading }
-          sort={ sort }
-          onSortToggle={ handleSortToggle }
-        />
+        <NameDomainsTable data={ data } isLoading={ isLoading } sort={ sort } onSortToggle={ handleSortToggle }/>
       </Hide>
     </>
   );
@@ -192,7 +195,7 @@ const NameDomains = () => {
   );
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Name services lookup" withTextAd/>
       <DataListDisplay
         isError={ isError }
@@ -205,7 +208,7 @@ const NameDomains = () => {
         content={ content }
         actionBar={ actionBar }
       />
-    </>
+    </PeersystPageWrapper>
   );
 };
 

@@ -8,6 +8,7 @@ import config from 'configs/app';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import useFeatureValue from 'lib/growthbook/useFeatureValue';
 import useIsMobile from 'lib/hooks/useIsMobile';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import MarketplaceAppModal from 'ui/marketplace/MarketplaceAppModal';
 import MarketplaceCategoriesMenu from 'ui/marketplace/MarketplaceCategoriesMenu';
 import MarketplaceDisclaimerModal from 'ui/marketplace/MarketplaceDisclaimerModal';
@@ -67,7 +68,7 @@ const Marketplace = () => {
   const { value: isExperiment } = useFeatureValue('marketplace_exp', false);
 
   const categoryTabs = React.useMemo(() => {
-    const tabs: Array<TabItem> = categories.map(category => ({
+    const tabs: Array<TabItem> = categories.map((category) => ({
       id: category.name,
       title: category.name,
       count: category.count,
@@ -92,13 +93,16 @@ const Marketplace = () => {
   }, [ categories, appsTotal ]);
 
   const selectedCategoryIndex = React.useMemo(() => {
-    const index = categoryTabs.findIndex(c => c.id === selectedCategoryId);
+    const index = categoryTabs.findIndex((c) => c.id === selectedCategoryId);
     return index === -1 ? 0 : index;
   }, [ categoryTabs, selectedCategoryId ]);
 
-  const handleCategoryChange = React.useCallback((index: number) => {
-    onCategoryChange(categoryTabs[index].id);
-  }, [ categoryTabs, onCategoryChange ]);
+  const handleCategoryChange = React.useCallback(
+    (index: number) => {
+      onCategoryChange(categoryTabs[index].id);
+    },
+    [ categoryTabs, onCategoryChange ],
+  );
 
   throwOnResourceLoadError(isError && error ? { isError, error } : { isError: false, error: null });
 
@@ -106,46 +110,48 @@ const Marketplace = () => {
     return null;
   }
 
-  const selectedApp = displayedApps.find(app => app.id === selectedAppId);
+  const selectedApp = displayedApps.find((app) => app.id === selectedAppId);
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle
         title="DAppscout"
-        contentAfter={ (isMobile && links.length > 1) ? (
-          <Menu>
-            <MenuButton
-              as={ IconButton }
-              size="sm"
-              variant="outline"
-              colorScheme="gray"
-              px="9px"
-              ml="auto"
-              icon={ <IconSvg name="dots" boxSize="18px"/> }
-            />
-            <MenuList minW="max-content">
-              { links.map(({ label, href, icon }) => (
-                <MenuItem key={ label } as="a" href={ href } target="_blank" py={ 2 } px={ 4 }>
-                  <IconSvg name={ icon } boxSize={ 4 } mr={ 2.5 }/>
+        contentAfter={
+          isMobile && links.length > 1 ? (
+            <Menu>
+              <MenuButton
+                as={ IconButton }
+                size="sm"
+                variant="outline"
+                colorScheme="gray"
+                px="9px"
+                ml="auto"
+                icon={ <IconSvg name="dots" boxSize="18px"/> }
+              />
+              <MenuList minW="max-content">
+                { links.map(({ label, href, icon }) => (
+                  <MenuItem key={ label } as="a" href={ href } target="_blank" py={ 2 } px={ 4 }>
+                    <IconSvg name={ icon } boxSize={ 4 } mr={ 2.5 }/>
+                    { label }
+                    <IconSvg name="arrows/north-east" boxSize={ 4 } color="gray.400" ml={ 2 }/>
+                  </MenuItem>
+                )) }
+              </MenuList>
+            </Menu>
+          ) : (
+            <Flex ml="auto">
+              { links.map(({ label, href }) => (
+                <LinkExternal key={ label } href={ href } variant="subtle" fontSize="sm" lineHeight={ 5 } ml={ 2 }>
                   { label }
-                  <IconSvg name="arrows/north-east" boxSize={ 4 } color="gray.400" ml={ 2 }/>
-                </MenuItem>
+                </LinkExternal>
               )) }
-            </MenuList>
-          </Menu>
-        ) : (
-          <Flex ml="auto">
-            { links.map(({ label, href }) => (
-              <LinkExternal key={ label } href={ href } variant="subtle" fontSize="sm" lineHeight={ 5 } ml={ 2 }>
-                { label }
-              </LinkExternal>
-            )) }
-          </Flex>
-        ) }
+            </Flex>
+          )
+        }
       />
       { isExperiment && (
         <Box marginTop={{ base: 0, lg: 8 }}>
-          { (isCategoriesPlaceholderData) ? (
+          { isCategoriesPlaceholderData ? (
             <TabsSkeleton tabs={ categoryTabs }/>
           ) : (
             <TabsWithScroll
@@ -157,13 +163,10 @@ const Marketplace = () => {
           ) }
         </Box>
       ) }
-      <Box
-        display="flex"
-        flexDirection={{ base: 'column', sm: 'row' }}
-      >
+      <Box display="flex" flexDirection={{ base: 'column', sm: 'row' }}>
         { !isExperiment && (
           <MarketplaceCategoriesMenu
-            categories={ categories.map(c => c.name) }
+            categories={ categories.map((c) => c.name) }
             selectedCategoryId={ selectedCategoryId }
             onSelect={ onCategoryChange }
             isLoading={ isPlaceholderData }
@@ -190,7 +193,7 @@ const Marketplace = () => {
         selectedCategoryId={ selectedCategoryId }
       />
 
-      { (selectedApp && isAppInfoModalOpen) && (
+      { selectedApp && isAppInfoModalOpen && (
         <MarketplaceAppModal
           onClose={ clearSelectedAppId }
           isFavorite={ favoriteApps.includes(selectedApp.id) }
@@ -199,14 +202,10 @@ const Marketplace = () => {
         />
       ) }
 
-      { (selectedApp && isDisclaimerModalOpen) && (
-        <MarketplaceDisclaimerModal
-          isOpen={ isDisclaimerModalOpen }
-          onClose={ clearSelectedAppId }
-          appId={ selectedApp.id }
-        />
+      { selectedApp && isDisclaimerModalOpen && (
+        <MarketplaceDisclaimerModal isOpen={ isDisclaimerModalOpen } onClose={ clearSelectedAppId } appId={ selectedApp.id }/>
       ) }
-    </>
+    </PeersystPageWrapper>
   );
 };
 

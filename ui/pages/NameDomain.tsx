@@ -11,6 +11,7 @@ import useApiQuery from 'lib/api/useApiQuery';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { ENS_DOMAIN } from 'stubs/ENS';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import NameDomainDetails from 'ui/nameDomain/NameDomainDetails';
 import NameDomainHistory from 'ui/nameDomain/NameDomainHistory';
 import TextAd from 'ui/shared/ad/TextAd';
@@ -56,23 +57,18 @@ const NameDomain = () => {
       w="100%"
       flexWrap={{ base: 'wrap', lg: 'nowrap' }}
     >
-      <EnsEntity
-        name={ domainName }
-        isLoading={ isLoading }
-        noLink
-        maxW={{ lg: infoQuery.data?.resolved_address ? '300px' : 'min-content' }}
-      />
+      <EnsEntity name={ domainName } isLoading={ isLoading } noLink maxW={{ lg: infoQuery.data?.resolved_address ? '300px' : 'min-content' }}/>
       { infoQuery.data?.resolved_address && (
         <Flex alignItems="center" maxW="100%" columnGap={ 3 }>
-          <AddressEntity
-            address={ infoQuery.data?.resolved_address }
-            isLoading={ isLoading }
-          />
+          <AddressEntity address={ infoQuery.data?.resolved_address } isLoading={ isLoading }/>
           <Tooltip label="Lookup for related domain names">
             <LinkInternal
               flexShrink={ 0 }
               display="inline-flex"
-              href={ route({ pathname: '/name-domains', query: { owned_by: 'true', resolved_to: 'true', address: infoQuery.data?.resolved_address?.hash } }) }
+              href={ route({
+                pathname: '/name-domains',
+                query: { owned_by: 'true', resolved_to: 'true', address: infoQuery.data?.resolved_address?.hash },
+              }) }
             >
               <IconSvg name="search" boxSize={ 5 } isLoading={ isLoading }/>
             </LinkInternal>
@@ -83,7 +79,7 @@ const NameDomain = () => {
   );
 
   return (
-    <>
+    <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
       <PageTitle title="Name details" secondRow={ titleSecondRow }/>
       { infoQuery.isPlaceholderData ? (
@@ -91,8 +87,10 @@ const NameDomain = () => {
           <TabsSkeleton tabs={ tabs } mt={ 6 }/>
           { tabs[tabIndex]?.component }
         </>
-      ) : <RoutedTabs tabs={ tabs }/> }
-    </>
+      ) : (
+        <RoutedTabs tabs={ tabs }/>
+      ) }
+    </PeersystPageWrapper>
   );
 };
 

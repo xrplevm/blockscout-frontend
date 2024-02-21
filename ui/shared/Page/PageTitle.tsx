@@ -1,4 +1,4 @@
-import { Heading, Flex, Tooltip, Link, chakra, Skeleton, useDisclosure, useColorModeValue } from '@chakra-ui/react';
+import { Heading, Flex, Tooltip, Link, chakra, Skeleton, useDisclosure } from '@chakra-ui/react';
 import _debounce from 'lodash/debounce';
 import React from 'react';
 
@@ -67,7 +67,6 @@ const PageTitle = ({ title, contentAfter, withTextAd, backLink, className, isLoa
   const tooltip = useDisclosure();
   const isMobile = useIsMobile();
   const [ isTextTruncated, setIsTextTruncated ] = React.useState(false);
-  const bgColor = useColorModeValue('gray.100', 'black');
 
   const headingRef = React.useRef<HTMLHeadingElement>(null);
   const textRef = React.useRef<HTMLSpanElement>(null);
@@ -102,7 +101,7 @@ const PageTitle = ({ title, contentAfter, withTextAd, backLink, className, isLoa
   }, [ updatedTruncateState ]);
 
   return (
-    <Flex className={ className } flexDir="column" rowGap={ 3 } mb={ 6 } backgroundColor={ bgColor }>
+    <Flex className={ className } flexDir="column" rowGap={ 3 } mb={ 6 }>
       <Flex flexDir="row" flexWrap="wrap" rowGap={ 3 } columnGap={ 3 } alignItems="center">
         <Flex h={{ base: 'auto', lg: isLoading ? 10 : 'auto' }} maxW="100%" alignItems="center">
           { backLink && <BackLink { ...backLink } isLoading={ isLoading }/> }

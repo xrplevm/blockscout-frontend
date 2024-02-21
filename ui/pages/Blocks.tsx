@@ -1,3 +1,4 @@
+import { Box, useColorModeValue } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -23,16 +24,19 @@ const BlocksPageContent = () => {
   const router = useRouter();
   const isMobile = useIsMobile();
   const tab = getQueryParamString(router.query.tab);
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   const blocksQuery = useQueryWithPages({
     resourceName: 'blocks',
     filters: { type: 'block' },
     options: {
       enabled: tab === 'blocks' || !tab,
-      placeholderData: generateListStub<'blocks'>(BLOCK, 50, { next_page_params: {
-        block_number: 8988686,
-        items_count: 50,
-      } }),
+      placeholderData: generateListStub<'blocks'>(BLOCK, 50, {
+        next_page_params: {
+          block_number: 8988686,
+          items_count: 50,
+        },
+      }),
     },
   });
   const reorgsQuery = useQueryWithPages({
@@ -40,10 +44,12 @@ const BlocksPageContent = () => {
     filters: { type: 'reorg' },
     options: {
       enabled: tab === 'reorgs',
-      placeholderData: generateListStub<'blocks'>(BLOCK, 50, { next_page_params: {
-        block_number: 8988686,
-        items_count: 50,
-      } }),
+      placeholderData: generateListStub<'blocks'>(BLOCK, 50, {
+        next_page_params: {
+          block_number: 8988686,
+          items_count: 50,
+        },
+      }),
     },
   });
   const unclesQuery = useQueryWithPages({
@@ -51,10 +57,12 @@ const BlocksPageContent = () => {
     filters: { type: 'uncle' },
     options: {
       enabled: tab === 'uncles',
-      placeholderData: generateListStub<'blocks'>(BLOCK, 50, { next_page_params: {
-        block_number: 8988686,
-        items_count: 50,
-      } }),
+      placeholderData: generateListStub<'blocks'>(BLOCK, 50, {
+        next_page_params: {
+          block_number: 8988686,
+          items_count: 50,
+        },
+      }),
     },
   });
 
@@ -75,7 +83,7 @@ const BlocksPageContent = () => {
   ];
 
   return (
-    <>
+    <Box backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
       <PageTitle title="Blocks" withTextAd/>
       <RoutedTabs
         tabs={ tabs }
@@ -83,7 +91,7 @@ const BlocksPageContent = () => {
         rightSlot={ <BlocksTabSlot pagination={ pagination }/> }
         stickyEnabled={ !isMobile }
       />
-    </>
+    </Box>
   );
 };
 

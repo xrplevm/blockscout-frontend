@@ -4,6 +4,7 @@ import React from 'react';
 
 import { TOP_ADDRESS } from 'stubs/address';
 import { generateListStub } from 'stubs/utils';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AddressesListItem from 'ui/addresses/AddressesListItem';
 import AddressesTable from 'ui/addresses/AddressesTable';
 import ActionBar from 'ui/shared/ActionBar';
@@ -18,18 +19,14 @@ const Accounts = () => {
   const { isError, isPlaceholderData, data, pagination } = useQueryWithPages({
     resourceName: 'addresses',
     options: {
-      placeholderData: generateListStub<'addresses'>(
-        TOP_ADDRESS,
-        50,
-        {
-          next_page_params: {
-            fetched_coin_balance: '42',
-            hash: '0x99f0ec06548b086e46cb0019c78d0b9b9f36cd53',
-            items_count: 50,
-          },
-          total_supply: '0',
+      placeholderData: generateListStub<'addresses'>(TOP_ADDRESS, 50, {
+        next_page_params: {
+          fetched_coin_balance: '42',
+          hash: '0x99f0ec06548b086e46cb0019c78d0b9b9f36cd53',
+          items_count: 50,
         },
-      ),
+        total_supply: '0',
+      }),
     },
   });
 
@@ -72,16 +69,10 @@ const Accounts = () => {
   ) : null;
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle title="Top accounts" withTextAd/>
-      <DataListDisplay
-        isError={ isError }
-        items={ data?.items }
-        emptyText="There are no accounts."
-        content={ content }
-        actionBar={ actionBar }
-      />
-    </>
+      <DataListDisplay isError={ isError } items={ data?.items } emptyText="There are no accounts." content={ content } actionBar={ actionBar }/>
+    </PeersystPageWrapper>
   );
 };
 
