@@ -134,7 +134,7 @@ const SwaggerUI = () => {
   }
 
   return (
-    <Box style={ swaggerStyle } backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
+    <Box sx={ swaggerStyle } backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
       <PageTitle title="API Documentation"/>
       <SwaggerUIReact url={ feature.specUrl } plugins={ [ NeverShowInfoPlugin ] } requestInterceptor={ reqInterceptor }/>
     </Box>
