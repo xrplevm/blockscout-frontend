@@ -1,5 +1,5 @@
 import type { GridProps } from '@chakra-ui/react';
-import { Box, Grid, Flex, Text, Link, VStack, Skeleton } from '@chakra-ui/react';
+import { Box, Grid, Flex, Text, Link, VStack, Skeleton, useColorModeValue } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 
@@ -97,6 +97,8 @@ const Footer = () => {
 
   const fetch = useFetch();
 
+  const peersystLogoColor = useColorModeValue('#132e6d', 'white');
+
   const { isPlaceholderData, data: linksData } = useQuery<unknown, ResourceError<unknown>, Array<CustomLinksGroup>>({
     queryKey: [ 'footer-links' ],
     queryFn: async() => fetch(config.UI.footer.links || '', undefined, { resource: 'footer-links' }),
@@ -121,7 +123,7 @@ const Footer = () => {
       return (
         <Box gridArea={ gridArea }>
           <Link fontSize="xs" href="https://www.peersyst.com">
-            <IconSvg name="peersyst" w={ 36 } h={ 8 }/>
+            <IconSvg name="peersyst" w={ 36 } h={ 8 } color={ peersystLogoColor }/>
           </Link>
           <Text mt={ 3 } fontSize="xs">
             Building the XRPLedger EVMSidechain and bridge solution for XRP with Ripple
@@ -140,7 +142,7 @@ const Footer = () => {
         </Box>
       );
     },
-    [ apiVersionUrl, backendVersionData?.backend_version, frontendLink ],
+    [ apiVersionUrl, backendVersionData?.backend_version, frontendLink, peersystLogoColor ],
   );
 
   const containerProps: GridProps = {
