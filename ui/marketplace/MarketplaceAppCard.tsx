@@ -40,31 +40,37 @@ const MarketplaceAppCard = ({
 
   const categoriesLabel = categories.join(', ');
 
-  const handleClick = useCallback((event: MouseEvent) => {
-    const isShown = window.localStorage.getItem('marketplace-disclaimer-shown');
-    if (!isShown) {
-      event.preventDefault();
-      showDisclaimer(id);
-    }
-  }, [ showDisclaimer, id ]);
+  const handleClick = useCallback(
+    (event: MouseEvent) => {
+      const isShown = window.localStorage.getItem('marketplace-disclaimer-shown');
+      if (!isShown) {
+        event.preventDefault();
+        showDisclaimer(id);
+      }
+    },
+    [ showDisclaimer, id ],
+  );
 
-  const handleInfoClick = useCallback((event: MouseEvent) => {
-    event.preventDefault();
-    mixpanel.logEvent(mixpanel.EventTypes.PAGE_WIDGET, { Type: 'More button', Info: id });
-    onInfoClick(id);
-  }, [ onInfoClick, id ]);
+  const handleInfoClick = useCallback(
+    (event: MouseEvent) => {
+      event.preventDefault();
+      mixpanel.logEvent(mixpanel.EventTypes.PAGE_WIDGET, { Type: 'More button', Info: id });
+      onInfoClick(id);
+    },
+    [ onInfoClick, id ],
+  );
 
   const handleFavoriteClick = useCallback(() => {
     onFavoriteClick(id, isFavorite);
   }, [ onFavoriteClick, id, isFavorite ]);
 
   const logoUrl = useColorModeValue(logo, logoDarkMode || logo);
-  const moreButtonBgGradient = `linear(to-r, ${ useColorModeValue('whiteAlpha.50', 'blackAlpha.50') }, ${ useColorModeValue('white', 'black') } 20%)`;
 
   const [ integrationIcon, integrationIconColor, integrationText ] = React.useMemo(() => {
     let icon: IconName = 'integration/partial';
     let color = 'gray.400';
-    let text = 'This app opens in Blockscout without Blockscout wallet functionality. Use your external web3 wallet to connect directly to this application';
+    let text =
+      'This app opens in Blockscout without Blockscout wallet functionality. Use your external web3 wallet to connect directly to this application';
 
     if (external) {
       icon = 'arrows/north-east';
@@ -113,11 +119,7 @@ const MarketplaceAppCard = ({
           alignItems="center"
           justifyContent="center"
         >
-          <Image
-            src={ isLoading ? undefined : logoUrl }
-            alt={ `${ title } app icon` }
-            borderRadius="8px"
-          />
+          <Image src={ isLoading ? undefined : logoUrl } alt={ `${ title } app icon` } borderRadius="8px"/>
         </Skeleton>
 
         <Skeleton
@@ -130,21 +132,9 @@ const MarketplaceAppCard = ({
           fontFamily="heading"
           display="inline-block"
         >
-          <MarketplaceAppCardLink
-            id={ id }
-            url={ url }
-            external={ external }
-            title={ title }
-            onClick={ handleClick }
-          />
+          <MarketplaceAppCardLink id={ id } url={ url } external={ external } title={ title } onClick={ handleClick }/>
           { isExperiment && (
-            <Tooltip
-              label={ integrationText }
-              textAlign="center"
-              padding={ 2 }
-              openDelay={ 300 }
-              maxW={ 400 }
-            >
+            <Tooltip label={ integrationText } textAlign="center" padding={ 2 } openDelay={ 300 } maxW={ 400 }>
               <IconSvg
                 name={ integrationIcon }
                 boxSize={ 5 }
@@ -158,26 +148,16 @@ const MarketplaceAppCard = ({
           ) }
         </Skeleton>
 
-        <Skeleton
-          isLoaded={ !isLoading }
-          marginBottom={{ base: 0, sm: 2 }}
-          color="text_secondary"
-          fontSize="xs"
-        >
+        <Skeleton isLoaded={ !isLoading } marginBottom={{ base: 0, sm: 2 }} color="text_secondary" fontSize="xs">
           <span>{ categoriesLabel }</span>
         </Skeleton>
 
-        <Skeleton
-          isLoaded={ !isLoading }
-          fontSize={{ base: 'xs', sm: 'sm' }}
-          lineHeight="20px"
-          noOfLines={ isExperiment ? 3 : 4 }
-        >
+        <Skeleton isLoaded={ !isLoading } fontSize={{ base: 'xs', sm: 'sm' }} lineHeight="20px" noOfLines={ isExperiment ? 3 : 4 }>
           { shortDescription }
         </Skeleton>
 
-        { !isLoading && (
-          isExperiment ? (
+        { !isLoading &&
+          (isExperiment ? (
             <Box
               display="flex"
               position={{ base: 'absolute', sm: 'relative' }}
@@ -186,23 +166,12 @@ const MarketplaceAppCard = ({
               marginTop={{ base: 0, sm: 'auto' }}
               paddingTop={{ base: 0, sm: 4 }}
             >
-              <Link
-                fontSize={{ base: 'xs', sm: 'sm' }}
-                paddingRight={{ sm: 2 }}
-                href="#"
-                onClick={ handleInfoClick }
-              >
+              <Link fontSize={{ base: 'xs', sm: 'sm' }} paddingRight={{ sm: 2 }} href="#" onClick={ handleInfoClick }>
                 More info
               </Link>
             </Box>
           ) : (
-            <Box
-              position="absolute"
-              right={{ base: 3, sm: '20px' }}
-              bottom={{ base: 3, sm: '20px' }}
-              paddingLeft={ 8 }
-              bgGradient={ moreButtonBgGradient }
-            >
+            <Box position="absolute" right={{ base: 3, sm: '20px' }} bottom={{ base: 3, sm: '20px' }} paddingLeft={ 8 }>
               <Link
                 fontSize={{ base: 'xs', sm: 'sm' }}
                 display="flex"
@@ -213,17 +182,11 @@ const MarketplaceAppCard = ({
                 href="#"
                 onClick={ handleInfoClick }
               >
-              More
-
-                <IconSvg
-                  name="arrows/north-east"
-                  marginLeft={ 1 }
-                  boxSize={ 4 }
-                />
+                More
+                <IconSvg name="arrows/north-east" marginLeft={ 1 } boxSize={ 4 }/>
               </Link>
             </Box>
-          )
-        ) }
+          )) }
 
         { !isLoading && (
           <IconButton
@@ -239,9 +202,12 @@ const MarketplaceAppCard = ({
             w={ 9 }
             h={ 8 }
             onClick={ handleFavoriteClick }
-            icon={ isFavorite ?
-              <IconSvg name="star_filled" w={ 4 } h={ 4 } color="yellow.400"/> :
-              <IconSvg name="star_outline" w={ 4 } h={ 4 } color="gray.300"/>
+            icon={
+              isFavorite ? (
+                <IconSvg name="star_filled" w={ 4 } h={ 4 } color="yellow.400"/>
+              ) : (
+                <IconSvg name="star_outline" w={ 4 } h={ 4 } color="gray.300"/>
+              )
             }
           />
         ) }

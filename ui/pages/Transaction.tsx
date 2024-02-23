@@ -8,6 +8,7 @@ import { useAppContext } from 'lib/contexts/app';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { publicClient } from 'lib/web3/client';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import TextAd from 'ui/shared/ad/TextAd';
 import EntityTags from 'ui/shared/EntityTags';
 import PageTitle from 'ui/shared/Page/PageTitle';
@@ -37,9 +38,7 @@ const TransactionPageContent = () => {
   const showDegradedView = publicClient && (isError || isPlaceholderData) && errorUpdateCount > 0;
 
   const tabs: Array<RoutedTab> = (() => {
-    const detailsComponent = showDegradedView ?
-      <TxDetailsDegraded hash={ hash } txQuery={ txQuery }/> :
-      <TxDetails txQuery={ txQuery }/>;
+    const detailsComponent = showDegradedView ? <TxDetailsDegraded hash={ hash } txQuery={ txQuery }/> : <TxDetails txQuery={ txQuery }/>;
 
     return [
       {
@@ -64,10 +63,7 @@ const TransactionPageContent = () => {
   const tabIndex = useTabIndexFromQuery(tabs);
 
   const tags = (
-    <EntityTags
-      isLoading={ isPlaceholderData }
-      tagsBefore={ [ data?.tx_tag ? { label: data.tx_tag, display_name: data.tx_tag } : undefined ] }
-    />
+    <EntityTags isLoading={ isPlaceholderData } tagsBefore={ [ data?.tx_tag ? { label: data.tx_tag, display_name: data.tx_tag } : undefined ] }/>
   );
 
   const backLink = React.useMemo(() => {
@@ -105,16 +101,11 @@ const TransactionPageContent = () => {
   }
 
   return (
-    <>
+    <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
-      <PageTitle
-        title="Transaction details"
-        backLink={ backLink }
-        contentAfter={ tags }
-        secondRow={ titleSecondRow }
-      />
+      <PageTitle title="Transaction details" backLink={ backLink } contentAfter={ tags } secondRow={ titleSecondRow }/>
       { content }
-    </>
+    </PeersystPageWrapper>
   );
 };
 
