@@ -9,6 +9,7 @@ import { currencyUnits } from 'lib/units';
 import { generateListStub } from 'stubs/utils';
 import { WITHDRAWAL } from 'stubs/withdrawals';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
+import { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
@@ -22,12 +23,10 @@ const Withdrawals = () => {
   const { data, isError, isPlaceholderData, pagination } = useQueryWithPages({
     resourceName: 'withdrawals',
     options: {
-      placeholderData: generateListStub<'withdrawals'>(WITHDRAWAL, 50, {
-        next_page_params: {
-          index: 5,
-          items_count: 50,
-        },
-      }),
+      placeholderData: generateListStub<'withdrawals'>(WITHDRAWAL, 50, { next_page_params: {
+        index: 5,
+        items_count: 50,
+      } }),
     },
   });
 
@@ -43,17 +42,22 @@ const Withdrawals = () => {
   const content = data?.items ? (
     <>
       <Show below="lg" ssr={ false }>
-        { data.items.map((item, index) => (
+        { data.items.map(((item, index) => (
           <BeaconChainWithdrawalsListItem
             key={ item.index + (isPlaceholderData ? String(index) : '') }
             item={ item }
             view="list"
             isLoading={ isPlaceholderData }
           />
-        )) }
+        ))) }
       </Show>
       <Hide below="lg" ssr={ false }>
-        <BeaconChainWithdrawalsTable items={ data.items } view="list" top={ pagination.isVisible ? 80 : 0 } isLoading={ isPlaceholderData }/>
+        <BeaconChainWithdrawalsTable
+          items={ data.items }
+          view="list"
+          top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }
+          isLoading={ isPlaceholderData }
+        />
       </Hide>
     </>
   ) : null;
@@ -67,8 +71,8 @@ const Withdrawals = () => {
       <Skeleton isLoaded={ !countersQuery.isPlaceholderData && !isPlaceholderData } display="flex" flexWrap="wrap">
         { countersQuery.data && (
           <Text lineHeight={{ base: '24px', lg: '32px' }}>
-            { BigNumber(countersQuery.data.withdrawal_count).toFormat() } withdrawals processed and{ ' ' }
-            { getCurrencyValue({ value: countersQuery.data.withdrawal_sum }).valueStr } { currencyUnits.ether } withdrawn
+            { BigNumber(countersQuery.data.withdrawal_count).toFormat() } withdrawals processed
+            and { getCurrencyValue({ value: countersQuery.data.withdrawal_sum }).valueStr } { currencyUnits.ether } withdrawn
           </Text>
         ) }
       </Skeleton>
@@ -79,7 +83,10 @@ const Withdrawals = () => {
 
   return (
     <PeersystPageWrapper>
-      <PageTitle title="Withdrawals" withTextAd/>
+      <PageTitle
+        title={ config.meta.seo.enhancedDataEnabled ? `${ config.chain.name } withdrawals` : 'Withdrawals' }
+        withTextAd
+      />
       <DataListDisplay
         isError={ isError }
         items={ data?.items }

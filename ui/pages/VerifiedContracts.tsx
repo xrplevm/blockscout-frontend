@@ -5,6 +5,7 @@ import React from 'react';
 import type { VerifiedContractsFilters } from 'types/api/contracts';
 import type { VerifiedContractsSorting, VerifiedContractsSortingField, VerifiedContractsSortingValue } from 'types/api/verifiedContracts';
 
+import config from 'configs/app';
 import useDebounce from 'lib/hooks/useDebounce';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import { apos } from 'lib/html-entities';
@@ -30,10 +31,9 @@ import VerifiedContractsTable from 'ui/verifiedContracts/VerifiedContractsTable'
 const VerifiedContracts = () => {
   const router = useRouter();
   const [ searchTerm, setSearchTerm ] = React.useState(getQueryParamString(router.query.q) || undefined);
-  const [ type, setType ] = React.useState((getQueryParamString(router.query.filter) as VerifiedContractsFilters['filter']) || undefined);
-  const [ sort, setSort ] = React.useState<VerifiedContractsSortingValue | undefined>(
-    getSortValueFromQuery<VerifiedContractsSortingValue>(router.query, SORT_OPTIONS),
-  );
+  const [ type, setType ] = React.useState(getQueryParamString(router.query.filter) as VerifiedContractsFilters['filter'] || undefined);
+  const [ sort, setSort ] =
+    React.useState<VerifiedContractsSortingValue | undefined>(getSortValueFromQuery<VerifiedContractsSortingValue>(router.query, SORT_OPTIONS));
 
   const debouncedSearchTerm = useDebounce(searchTerm || '', 300);
 
@@ -44,46 +44,47 @@ const VerifiedContracts = () => {
     filters: { q: debouncedSearchTerm, filter: type },
     sorting: getSortParamsFromValue<VerifiedContractsSortingValue, VerifiedContractsSortingField, VerifiedContractsSorting['order']>(sort),
     options: {
-      placeholderData: generateListStub<'verified_contracts'>(VERIFIED_CONTRACT_INFO, 50, {
-        next_page_params: {
-          items_count: '50',
-          smart_contract_id: '50',
+      placeholderData: generateListStub<'verified_contracts'>(
+        VERIFIED_CONTRACT_INFO,
+        50,
+        {
+          next_page_params: {
+            items_count: '50',
+            smart_contract_id: '50',
+          },
         },
-      }),
+      ),
     },
   });
 
-  const handleSearchTermChange = React.useCallback(
-    (value: string) => {
-      onFilterChange({ q: value, filter: type });
-      setSearchTerm(value);
-    },
-    [ type, onFilterChange ],
+  const handleSearchTermChange = React.useCallback((value: string) => {
+    onFilterChange({ q: value, filter: type });
+    setSearchTerm(value);
+  }, [ type, onFilterChange ]);
+
+  const handleTypeChange = React.useCallback((value: string | Array<string>) => {
+    if (Array.isArray(value)) {
+      return;
+    }
+
+    const filter = value === 'all' ? undefined : value as VerifiedContractsFilters['filter'];
+
+    onFilterChange({ q: debouncedSearchTerm, filter });
+    setType(filter);
+  }, [ debouncedSearchTerm, onFilterChange ]);
+
+  const handleSortChange = React.useCallback((value?: VerifiedContractsSortingValue) => {
+    setSort(value);
+    onSortingChange(getSortParamsFromValue(value));
+  }, [ onSortingChange ]);
+
+  const typeFilter = (
+    <VerifiedContractsFilter
+      onChange={ handleTypeChange }
+      defaultValue={ type }
+      hasActiveFilter={ Boolean(type) }
+    />
   );
-
-  const handleTypeChange = React.useCallback(
-    (value: string | Array<string>) => {
-      if (Array.isArray(value)) {
-        return;
-      }
-
-      const filter = value === 'all' ? undefined : (value as VerifiedContractsFilters['filter']);
-
-      onFilterChange({ q: debouncedSearchTerm, filter });
-      setType(filter);
-    },
-    [ debouncedSearchTerm, onFilterChange ],
-  );
-
-  const handleSortChange = React.useCallback(
-    (value?: VerifiedContractsSortingValue) => {
-      setSort(value);
-      onSortingChange(getSortParamsFromValue(value));
-    },
-    [ onSortingChange ],
-  );
-
-  const typeFilter = <VerifiedContractsFilter onChange={ handleTypeChange } defaultValue={ type } isActive={ Boolean(type) }/>;
 
   const filterInput = (
     <FilterInput
@@ -95,7 +96,15 @@ const VerifiedContracts = () => {
     />
   );
 
-  const sortButton = <Sort options={ SORT_OPTIONS } sort={ sort } setSort={ handleSortChange }/>;
+  const sortButton = (
+    <Sort
+      name="verified_contracts_sorting"
+      defaultValue={ sort }
+      options={ SORT_OPTIONS }
+      onChange={ handleSortChange }
+      isLoading={ isPlaceholderData }
+    />
+  );
 
   const actionBar = (
     <>
@@ -129,7 +138,10 @@ const VerifiedContracts = () => {
 
   return (
     <PeersystPageWrapper>
-      <PageTitle title="Verified contracts" withTextAd/>
+      <PageTitle
+        title={ config.meta.seo.enhancedDataEnabled ? `Verified ${ config.chain.name } contracts` : 'Verified contracts' }
+        withTextAd
+      />
       <VerifiedContractsCounters/>
       <DataListDisplay
         isError={ isError }

@@ -19,7 +19,7 @@ import type { ApiResource, ResourceName, ResourcePathParams } from './resources'
 
 export interface Params<R extends ResourceName> {
   pathParams?: ResourcePathParams<R>;
-  queryParams?: Record<string, string | Array<string> | number | boolean | undefined>;
+  queryParams?: Record<string, string | Array<string> | number | boolean | undefined | null>;
   fetchParams?: Pick<FetchParams, 'body' | 'method' | 'signal' | 'headers'>;
 }
 
@@ -41,6 +41,7 @@ export default function useApiFetch() {
       'x-endpoint': resource.endpoint && isNeedProxy() ? resource.endpoint : undefined,
       Authorization: resource.endpoint && resource.needAuth ? apiToken : undefined,
       'x-csrf-token': withBody && csrfToken ? csrfToken : undefined,
+      ...resource.headers,
       ...fetchParams?.headers,
     }, Boolean) as HeadersInit;
 

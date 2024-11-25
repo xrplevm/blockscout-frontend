@@ -4,7 +4,6 @@ import React, { useCallback, useState } from 'react';
 import type { ApiKey } from 'types/api/account';
 
 import useApiQuery from 'lib/api/useApiQuery';
-import useRedirectForInvalidAuthToken from 'lib/hooks/useRedirectForInvalidAuthToken';
 import { space } from 'lib/html-entities';
 import { API_KEY } from 'stubs/account';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
@@ -15,6 +14,7 @@ import DeleteApiKeyModal from 'ui/apiKey/DeleteApiKeyModal';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';
 import DataFetchAlert from 'ui/shared/DataFetchAlert';
 import PageTitle from 'ui/shared/Page/PageTitle';
+import useRedirectForInvalidAuthToken from 'ui/snippets/auth/useRedirectForInvalidAuthToken';
 
 const DATA_LIMIT = 3;
 
@@ -32,26 +32,20 @@ const ApiKeysPage: React.FC = () => {
     },
   });
 
-  const onEditClick = useCallback(
-    (data: ApiKey) => {
-      setApiKeyModalData(data);
-      apiKeyModalProps.onOpen();
-    },
-    [ apiKeyModalProps ],
-  );
+  const onEditClick = useCallback((data: ApiKey) => {
+    setApiKeyModalData(data);
+    apiKeyModalProps.onOpen();
+  }, [ apiKeyModalProps ]);
 
   const onApiKeyModalClose = useCallback(() => {
     setApiKeyModalData(undefined);
     apiKeyModalProps.onClose();
   }, [ apiKeyModalProps ]);
 
-  const onDeleteClick = useCallback(
-    (data: ApiKey) => {
-      setDeleteModalData(data);
-      deleteModalProps.onOpen();
-    },
-    [ deleteModalProps ],
-  );
+  const onDeleteClick = useCallback((data: ApiKey) => {
+    setDeleteModalData(data);
+    deleteModalProps.onOpen();
+  }, [ deleteModalProps ]);
 
   const onDeleteModalClose = useCallback(() => {
     setDeleteModalData(undefined);
@@ -61,10 +55,7 @@ const ApiKeysPage: React.FC = () => {
   const description = (
     <AccountPageDescription>
       Create API keys to use for your RPC and EthRPC API requests. For more information, see { space }
-      <Link href="https://docs.blockscout.com/for-users/api#api-keys" target="_blank">
-        “How to use a Blockscout API key”
-      </Link>
-      .
+      <Link href="https://docs.blockscout.com/for-users/api#api-keys" target="_blank">“How to use a Blockscout API key”</Link>.
     </AccountPageDescription>
   );
 
@@ -113,7 +104,11 @@ const ApiKeysPage: React.FC = () => {
           columnGap={ 5 }
           rowGap={ 5 }
         >
-          <Button size="lg" onClick={ apiKeyModalProps.onOpen } isDisabled={ !canAdd }>
+          <Button
+            size="lg"
+            onClick={ apiKeyModalProps.onOpen }
+            isDisabled={ !canAdd }
+          >
             Add API key
           </Button>
           { !canAdd && (

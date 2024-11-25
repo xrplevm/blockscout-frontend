@@ -7,11 +7,16 @@ import type {
   FormFieldsMultiPartFile,
   FormFieldsSourcify,
   FormFieldsStandardInput,
+  FormFieldsStandardInputZk,
   FormFieldsVyperContract,
   FormFieldsVyperMultiPartFile,
   FormFieldsVyperStandardInput,
 } from './types';
-import type { SmartContractVerificationMethod, SmartContractVerificationError, SmartContractVerificationConfig } from 'types/api/contract';
+import type {
+  SmartContractVerificationError,
+  SmartContractLicenseType,
+} from 'types/api/contract';
+import type { SmartContractVerificationConfig, SmartContractVerificationMethod } from 'types/client/contract';
 
 import type { Params as FetchParams } from 'lib/hooks/useFetch';
 
@@ -20,19 +25,23 @@ export const SUPPORTED_VERIFICATION_METHODS: Array<SmartContractVerificationMeth
   'standard-input',
   'sourcify',
   'multi-part',
+  'solidity-hardhat',
+  'solidity-foundry',
   'vyper-code',
   'vyper-multi-part',
   'vyper-standard-input',
 ];
 
 export const METHOD_LABELS: Record<SmartContractVerificationMethod, string> = {
-  'flattened-code': 'Solidity (Flattened source code)',
+  'flattened-code': 'Solidity (Single file)',
   'standard-input': 'Solidity (Standard JSON input)',
   sourcify: 'Solidity (Sourcify)',
   'multi-part': 'Solidity (Multi-part files)',
   'vyper-code': 'Vyper (Contract)',
   'vyper-multi-part': 'Vyper (Multi-part files)',
   'vyper-standard-input': 'Vyper (Standard JSON input)',
+  'solidity-hardhat': 'Solidity (Hardhat)',
+  'solidity-foundry': 'Solidity (Foundry)',
 };
 
 export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields> = {
@@ -52,6 +61,7 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
     autodetect_constructor_args: true,
     constructor_args: '',
     libraries: [],
+    license_type: null,
   },
   'standard-input': {
     address: '',
@@ -64,6 +74,7 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
     sources: [],
     autodetect_constructor_args: true,
     constructor_args: '',
+    license_type: null,
   },
   sourcify: {
     address: '',
@@ -72,6 +83,7 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
       label: METHOD_LABELS.sourcify,
     },
     sources: [],
+    license_type: null,
   },
   'multi-part': {
     address: '',
@@ -85,6 +97,7 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
     optimization_runs: '200',
     sources: [],
     libraries: [],
+    license_type: null,
   },
   'vyper-code': {
     address: '',
@@ -97,6 +110,7 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
     evm_version: null,
     code: '',
     constructor_args: '',
+    license_type: null,
   },
   'vyper-multi-part': {
     address: '',
@@ -107,6 +121,7 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
     compiler: null,
     evm_version: null,
     sources: [],
+    license_type: null,
   },
   'vyper-standard-input': {
     address: '',
@@ -116,11 +131,44 @@ export const DEFAULT_VALUES: Record<SmartContractVerificationMethod, FormFields>
     },
     compiler: null,
     sources: [],
+    license_type: null,
+  },
+  'solidity-hardhat': {
+    address: '',
+    method: {
+      value: 'solidity-hardhat' as const,
+      label: METHOD_LABELS['solidity-hardhat'],
+    },
+    compiler: null,
+    sources: [],
+    license_type: null,
+  },
+  'solidity-foundry': {
+    address: '',
+    method: {
+      value: 'solidity-foundry' as const,
+      label: METHOD_LABELS['solidity-foundry'],
+    },
+    compiler: null,
+    sources: [],
+    license_type: null,
   },
 };
 
-export function getDefaultValues(method: SmartContractVerificationMethod, config: SmartContractVerificationConfig, hash?: string) {
-  const defaultValues = { ...DEFAULT_VALUES[method], address: hash };
+export function getDefaultValues(
+  methodParam: SmartContractVerificationMethod | undefined,
+  config: SmartContractVerificationConfig,
+  hash: string | undefined,
+  licenseType: FormFields['license_type'],
+) {
+  const singleMethod = config.verification_options.length === 1 ? config.verification_options[0] : undefined;
+  const method = singleMethod || methodParam;
+
+  if (!method) {
+    return { address: hash || '' };
+  }
+
+  const defaultValues: FormFields = { ...DEFAULT_VALUES[method], address: hash || '', license_type: licenseType };
 
   if ('evm_version' in defaultValues) {
     if (method === 'flattened-code' || method === 'multi-part') {
@@ -137,6 +185,13 @@ export function getDefaultValues(method: SmartContractVerificationMethod, config
       'name' in defaultValues && (defaultValues.name = undefined);
       'autodetect_constructor_args' in defaultValues && (defaultValues.autodetect_constructor_args = false);
     }
+  }
+
+  if (singleMethod) {
+    defaultValues.method = {
+      label: METHOD_LABELS[config.verification_options[0]],
+      value: config.verification_options[0],
+    };
   }
 
   return defaultValues;
@@ -162,6 +217,8 @@ export function sortVerificationMethods(methodA: SmartContractVerificationMethod
 }
 
 export function prepareRequestBody(data: FormFields): FetchParams['body'] {
+  const defaultLicenseType: SmartContractLicenseType = 'none';
+
   switch (data.method.value) {
     case 'flattened-code': {
       const _data = data as FormFieldsFlattenSourceCode;
@@ -176,18 +233,23 @@ export function prepareRequestBody(data: FormFields): FetchParams['body'] {
         evm_version: _data.evm_version?.value,
         autodetect_constructor_args: _data.autodetect_constructor_args,
         constructor_args: _data.constructor_args,
+        license_type: _data.license_type?.value ?? defaultLicenseType,
       };
     }
 
     case 'standard-input': {
-      const _data = data as FormFieldsStandardInput;
+      const _data = data as (FormFieldsStandardInput | FormFieldsStandardInputZk);
 
       const body = new FormData();
       _data.compiler && body.set('compiler_version', _data.compiler.value);
+      body.set('license_type', _data.license_type?.value ?? defaultLicenseType);
       body.set('contract_name', _data.name);
       body.set('autodetect_constructor_args', String(Boolean(_data.autodetect_constructor_args)));
       body.set('constructor_args', _data.constructor_args);
       addFilesToFormData(body, _data.sources, 'files');
+
+      // zkSync fields
+      'zk_compiler' in _data && _data.zk_compiler && body.set('zk_compiler_version', _data.zk_compiler.value);
 
       return body;
     }
@@ -196,7 +258,8 @@ export function prepareRequestBody(data: FormFields): FetchParams['body'] {
       const _data = data as FormFieldsSourcify;
       const body = new FormData();
       addFilesToFormData(body, _data.sources, 'files');
-      _data.contract_index && body.set('chosen_contract_index', _data.contract_index.value);
+      body.set('chosen_contract_index', _data.contract_index?.value ?? defaultLicenseType);
+      _data.license_type && body.set('license_type', _data.license_type.value);
 
       return body;
     }
@@ -207,6 +270,7 @@ export function prepareRequestBody(data: FormFields): FetchParams['body'] {
       const body = new FormData();
       _data.compiler && body.set('compiler_version', _data.compiler.value);
       _data.evm_version && body.set('evm_version', _data.evm_version.value);
+      body.set('license_type', _data.license_type?.value ?? defaultLicenseType);
       body.set('is_optimization_enabled', String(Boolean(_data.is_optimization_enabled)));
       _data.is_optimization_enabled && body.set('optimization_runs', _data.optimization_runs);
 
@@ -226,6 +290,7 @@ export function prepareRequestBody(data: FormFields): FetchParams['body'] {
         source_code: _data.code,
         contract_name: _data.name,
         constructor_args: _data.constructor_args,
+        license_type: _data.license_type?.value ?? defaultLicenseType,
       };
     }
 
@@ -235,6 +300,7 @@ export function prepareRequestBody(data: FormFields): FetchParams['body'] {
       const body = new FormData();
       _data.compiler && body.set('compiler_version', _data.compiler.value);
       _data.evm_version && body.set('evm_version', _data.evm_version.value);
+      body.set('license_type', _data.license_type?.value ?? defaultLicenseType);
       addFilesToFormData(body, _data.sources, 'files');
       addFilesToFormData(body, _data.interfaces, 'interfaces');
 
@@ -246,6 +312,7 @@ export function prepareRequestBody(data: FormFields): FetchParams['body'] {
 
       const body = new FormData();
       _data.compiler && body.set('compiler_version', _data.compiler.value);
+      body.set('license_type', _data.license_type?.value ?? defaultLicenseType);
       addFilesToFormData(body, _data.sources, 'files');
 
       return body;

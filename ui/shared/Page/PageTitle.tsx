@@ -5,7 +5,7 @@ import React from 'react';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import TextAd from 'ui/shared/ad/TextAd';
 import IconSvg from 'ui/shared/IconSvg';
-import LinkInternal from 'ui/shared/LinkInternal';
+import LinkInternal from 'ui/shared/links/LinkInternal';
 
 type BackLinkProp = { label: string; url: string } | { label: string; onClick: () => void };
 
@@ -33,6 +33,7 @@ const BackLink = (props: BackLinkProp & { isLoading?: boolean }) => {
       <Skeleton
         boxSize={ 6 }
         display="inline-block"
+        flexShrink={ 0 }
         borderRadius="base"
         mr={ 3 }
         my={ 2 }
@@ -42,7 +43,7 @@ const BackLink = (props: BackLinkProp & { isLoading?: boolean }) => {
     );
   }
 
-  const icon = <IconSvg name="arrows/east" boxSize={ 6 } transform="rotate(180deg)" margin="auto" color="gray.400"/>;
+  const icon = <IconSvg name="arrows/east" boxSize={ 6 } transform="rotate(180deg)" margin="auto" color="gray.400" flexShrink={ 0 }/>;
 
   if ('url' in props) {
     return (
@@ -102,11 +103,20 @@ const PageTitle = ({ title, contentAfter, withTextAd, backLink, className, isLoa
 
   return (
     <Flex className={ className } flexDir="column" rowGap={ 3 } mb={ 6 }>
-      <Flex flexDir="row" flexWrap="wrap" rowGap={ 3 } columnGap={ 3 } alignItems="center">
+      <Flex
+        flexDir="row"
+        flexWrap="wrap"
+        rowGap={ 3 }
+        columnGap={ 3 }
+        alignItems="center"
+      >
         <Flex h={{ base: 'auto', lg: isLoading ? 10 : 'auto' }} maxW="100%" alignItems="center">
           { backLink && <BackLink { ...backLink } isLoading={ isLoading }/> }
           { beforeTitle }
-          <Skeleton isLoaded={ !isLoading } overflow="hidden">
+          <Skeleton
+            isLoaded={ !isLoading }
+            overflow="hidden"
+          >
             <Tooltip
               label={ title }
               isOpen={ tooltip.isOpen }
@@ -132,7 +142,9 @@ const PageTitle = ({ title, contentAfter, withTextAd, backLink, className, isLoa
                 onMouseLeave={ tooltip.onClose }
                 onClick={ isMobile ? tooltip.onToggle : undefined }
               >
-                <span ref={ textRef }>{ title }</span>
+                <span ref={ textRef }>
+                  { title }
+                </span>
               </Heading>
             </Tooltip>
           </Skeleton>
@@ -142,9 +154,9 @@ const PageTitle = ({ title, contentAfter, withTextAd, backLink, className, isLoa
         { withTextAd && <TextAd order={{ base: -1, lg: 100 }} mb={{ base: 6, lg: 0 }} ml="auto" w={{ base: '100%', lg: 'auto' }}/> }
       </Flex>
       { secondRow && (
-        <Flex alignItems="center" minH={ 10 } overflow="hidden">
+        <Skeleton isLoaded={ !isLoading } alignItems="center" minH={ 10 } overflow="hidden" display="flex" _empty={{ display: 'none' }}>
           { secondRow }
-        </Flex>
+        </Skeleton>
       ) }
     </Flex>
   );

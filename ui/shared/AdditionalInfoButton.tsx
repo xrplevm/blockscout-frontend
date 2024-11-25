@@ -37,11 +37,12 @@ const AdditionalInfoButton = ({ isOpen, onClick, className, isLoading }: Props, 
       onClick={ onClick }
       cursor="pointer"
       flexShrink={ 0 }
+      aria-label="Transaction info"
     >
       <IconSvg
         name="info"
         boxSize={ 5 }
-        color="link"
+        color={ isOpen ? 'link_hovered' : 'icon_info' }
         _hover={{ color: 'link_hovered' }}
       />
     </Button>

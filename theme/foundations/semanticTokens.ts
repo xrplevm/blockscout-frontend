@@ -20,9 +20,21 @@ const semanticTokens = {
       'default': 'purple.500',
       _dark: 'purple.300',
     },
+    icon_link_external: {
+      'default': 'gray.300',
+      _dark: 'gray.500',
+    },
+    icon_info: {
+      'default': 'gray.400',
+      _dark: 'gray.500',
+    },
     error: {
-      'default': 'red.400',
-      _dark: 'red.300',
+      'default': 'red.500',
+      _dark: 'red.500',
+    },
+    dialog_bg: {
+      'default': 'white',
+      _dark: 'gray.900',
     },
   },
   shadows: {

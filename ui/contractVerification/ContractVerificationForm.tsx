@@ -5,7 +5,8 @@ import { useForm, FormProvider } from 'react-hook-form';
 
 import type { FormFields } from './types';
 import type { SocketMessage } from 'lib/socket/types';
-import type { SmartContractVerificationMethod, SmartContractVerificationConfig, SmartContract } from 'types/api/contract';
+import type { SmartContract, SmartContractVerificationMethodApi } from 'types/api/contract';
+import type { SmartContractVerificationConfig } from 'types/client/contract';
 
 import { route } from 'nextjs-routes';
 
@@ -18,9 +19,12 @@ import useSocketChannel from 'lib/socket/useSocketChannel';
 import useSocketMessage from 'lib/socket/useSocketMessage';
 
 import ContractVerificationFieldAddress from './fields/ContractVerificationFieldAddress';
+import ContractVerificationFieldLicenseType from './fields/ContractVerificationFieldLicenseType';
 import ContractVerificationFieldMethod from './fields/ContractVerificationFieldMethod';
 import ContractVerificationFlattenSourceCode from './methods/ContractVerificationFlattenSourceCode';
 import ContractVerificationMultiPartFile from './methods/ContractVerificationMultiPartFile';
+import ContractVerificationSolidityFoundry from './methods/ContractVerificationSolidityFoundry';
+import ContractVerificationSolidityHardhat from './methods/ContractVerificationSolidityHardhat';
 import ContractVerificationSourcify from './methods/ContractVerificationSourcify';
 import ContractVerificationStandardInput from './methods/ContractVerificationStandardInput';
 import ContractVerificationVyperContract from './methods/ContractVerificationVyperContract';
@@ -29,7 +33,7 @@ import ContractVerificationVyperStandardInput from './methods/ContractVerificati
 import { prepareRequestBody, formatSocketErrors, getDefaultValues, METHOD_LABELS } from './utils';
 
 interface Props {
-  method?: SmartContractVerificationMethod;
+  method?: SmartContractVerificationMethodApi;
   config: SmartContractVerificationConfig;
   hash?: string;
 }
@@ -37,9 +41,9 @@ interface Props {
 const ContractVerificationForm = ({ method: methodFromQuery, config, hash }: Props) => {
   const formApi = useForm<FormFields>({
     mode: 'onBlur',
-    defaultValues: methodFromQuery ? getDefaultValues(methodFromQuery, config, hash) : undefined,
+    defaultValues: getDefaultValues(methodFromQuery, config, hash, null),
   });
-  const { control, handleSubmit, watch, formState, setError, reset, getFieldState } = formApi;
+  const { handleSubmit, watch, formState, setError, reset, getFieldState } = formApi;
   const submitPromiseResolver = React.useRef<(value: unknown) => void>();
   const methodNameRef = React.useRef<string>();
 
@@ -141,7 +145,7 @@ const ContractVerificationForm = ({ method: methodFromQuery, config, hash }: Pro
     topic: `addresses:${ address?.toLowerCase() }`,
     onSocketClose: handleSocketError,
     onSocketError: handleSocketError,
-    isDisabled: Boolean(address && addressState.error),
+    isDisabled: !address || Boolean(address && addressState.error),
   });
   useSocketMessage({
     channel,
@@ -158,15 +162,18 @@ const ContractVerificationForm = ({ method: methodFromQuery, config, hash }: Pro
       'vyper-code': <ContractVerificationVyperContract config={ config }/>,
       'vyper-multi-part': <ContractVerificationVyperMultiPartFile/>,
       'vyper-standard-input': <ContractVerificationVyperStandardInput/>,
+      'solidity-hardhat': <ContractVerificationSolidityHardhat config={ config }/>,
+      'solidity-foundry': <ContractVerificationSolidityFoundry/>,
     };
   }, [ config ]);
   const method = watch('method');
+  const licenseType = watch('license_type');
   const content = methods[method?.value] || null;
   const methodValue = method?.value;
 
   useUpdateEffect(() => {
     if (methodValue) {
-      reset(getDefaultValues(methodValue, config, address || hash));
+      reset(getDefaultValues(methodValue, config, hash || address, licenseType));
 
       const methodName = METHOD_LABELS[methodValue];
       mixpanel.logEvent(mixpanel.EventTypes.CONTRACT_VERIFICATION, { Status: 'Method selected', Method: methodName });
@@ -183,14 +190,11 @@ const ContractVerificationForm = ({ method: methodFromQuery, config, hash }: Pro
       >
         <Grid as="section" columnGap="30px" rowGap={{ base: 2, lg: 5 }} templateColumns={{ base: '1fr', lg: 'minmax(auto, 680px) minmax(0, 340px)' }}>
           { !hash && <ContractVerificationFieldAddress/> }
-          <ContractVerificationFieldMethod
-            control={ control }
-            methods={ config.verification_options }
-            isDisabled={ formState.isSubmitting }
-          />
+          <ContractVerificationFieldLicenseType/>
+          <ContractVerificationFieldMethod methods={ config.verification_options }/>
         </Grid>
         { content }
-        { Boolean(method) && (
+        { Boolean(method) && method.value !== 'solidity-hardhat' && method.value !== 'solidity-foundry' && (
           <Button
             variant="solid"
             size="lg"

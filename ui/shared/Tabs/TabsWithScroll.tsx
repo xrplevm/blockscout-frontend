@@ -1,6 +1,11 @@
 import type { LazyMode } from '@chakra-ui/lazy-utils';
 import type { ChakraProps, ThemingProps } from '@chakra-ui/react';
-import { Tabs, TabPanel, TabPanels, chakra } from '@chakra-ui/react';
+import {
+  Tabs,
+  TabPanel,
+  TabPanels,
+  chakra,
+} from '@chakra-ui/react';
 import _debounce from 'lodash/debounce';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -17,9 +22,12 @@ export interface Props extends ThemingProps<'Tabs'> {
   tabListProps?: ChakraProps | (({ isSticky, activeTabIndex }: { isSticky: boolean; activeTabIndex: number }) => ChakraProps);
   rightSlot?: React.ReactNode;
   rightSlotProps?: ChakraProps;
+  leftSlot?: React.ReactNode;
+  leftSlotProps?: ChakraProps;
   stickyEnabled?: boolean;
   onTabChange?: (index: number) => void;
   defaultTabIndex?: number;
+  isLoading?: boolean;
   className?: string;
 }
 
@@ -29,9 +37,12 @@ const TabsWithScroll = ({
   tabListProps,
   rightSlot,
   rightSlotProps,
+  leftSlot,
+  leftSlotProps,
   stickyEnabled,
   onTabChange,
   defaultTabIndex,
+  isLoading,
   className,
   ...themeProps
 }: Props) => {
@@ -44,12 +55,12 @@ const TabsWithScroll = ({
     return [ ...tabs, menuButton ];
   }, [ tabs ]);
 
-  const handleTabChange = React.useCallback(
-    (index: number) => {
-      onTabChange ? onTabChange(index) : setActiveTabIndex(index);
-    },
-    [ onTabChange ],
-  );
+  const handleTabChange = React.useCallback((index: number) => {
+    if (isLoading) {
+      return;
+    }
+    onTabChange ? onTabChange(index) : setActiveTabIndex(index);
+  }, [ isLoading, onTabChange ]);
 
   useEffect(() => {
     if (defaultTabIndex !== undefined) {
@@ -87,25 +98,26 @@ const TabsWithScroll = ({
       lazyBehavior={ lazyBehavior }
     >
       <AdaptiveTabsList
-        // the easiest and most readable way to achieve correct tab's cut recalculation when screen is resized
+        // the easiest and most readable way to achieve correct tab's cut recalculation when
+        //    - screen is resized or
+        //    - tabs list is changed when API data is loaded
         // is to do full re-render of the tabs list
-        // so we use screenWidth as a key for the TabsList component
-        key={ screenWidth }
+        // so we use screenWidth + tabIds as a key for the TabsList component
+        key={ isLoading + '_' + screenWidth + '_' + tabsList.map((tab) => tab.id).join(':') }
         tabs={ tabs }
         tabListProps={ tabListProps }
+        leftSlot={ leftSlot }
+        leftSlotProps={ leftSlotProps }
         rightSlot={ rightSlot }
         rightSlotProps={ rightSlotProps }
         stickyEnabled={ stickyEnabled }
         activeTabIndex={ activeTabIndex }
         onItemClick={ handleTabChange }
         themeProps={ themeProps }
+        isLoading={ isLoading }
       />
       <TabPanels>
-        { tabsList.map((tab) => (
-          <TabPanel padding={ 0 } key={ tab.id }>
-            { tab.component }
-          </TabPanel>
-        )) }
+        { tabsList.map((tab) => <TabPanel padding={ 0 } key={ tab.id?.toString() }>{ tab.component }</TabPanel>) }
       </TabPanels>
     </Tabs>
   );

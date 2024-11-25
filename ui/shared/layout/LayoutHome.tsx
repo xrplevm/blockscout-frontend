@@ -13,7 +13,8 @@ const LayoutHome = ({ children }: Props) => {
   return (
     <Layout.Container>
       <Layout.TopRow/>
-      <HeaderMobile isHomePage/>
+      <Layout.NavBar/>
+      <HeaderMobile hideSearchBar/>
       <Layout.MainArea>
         <Layout.SideBar/>
         <Layout.MainColumn paddingTop={{ base: 3, lg: 6 }}>

@@ -1,4 +1,4 @@
-import { inRange } from 'lodash';
+import _inRange from 'lodash/inRange';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -14,7 +14,6 @@ import getQueryParamString from 'lib/router/getQueryParamString';
 import { USER_OP } from 'stubs/userOps';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import TextAd from 'ui/shared/ad/TextAd';
-import UserOpEntity from 'ui/shared/entities/userOp/UserOpEntity';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import RoutedTabs from 'ui/shared/Tabs/RoutedTabs';
 import TabsSkeleton from 'ui/shared/Tabs/TabsSkeleton';
@@ -24,6 +23,7 @@ import TxTokenTransfer from 'ui/tx/TxTokenTransfer';
 import useTxQuery from 'ui/tx/useTxQuery';
 import UserOpDetails from 'ui/userOp/UserOpDetails';
 import UserOpRaw from 'ui/userOp/UserOpRaw';
+import UserOpSubHeading from 'ui/userOp/UserOpSubHeading';
 
 const UserOp = () => {
   const router = useRouter();
@@ -40,59 +40,42 @@ const UserOp = () => {
 
   const txQuery = useTxQuery({ hash: userOpQuery.data?.transaction_hash, isEnabled: !userOpQuery.isPlaceholderData });
 
-  const filterTokenTransfersByLogIndex = React.useCallback(
-    (tt: TokenTransfer) => {
-      if (!userOpQuery.data) {
+  const filterTokenTransfersByLogIndex = React.useCallback((tt: TokenTransfer) => {
+    if (!userOpQuery.data) {
+      return true;
+    } else {
+      if (_inRange(
+        Number(tt.log_index),
+        userOpQuery.data?.user_logs_start_index,
+        userOpQuery.data?.user_logs_start_index + userOpQuery.data?.user_logs_count,
+      )) {
         return true;
-      } else {
-        if (
-          inRange(
-            Number(tt.log_index),
-            userOpQuery.data?.user_logs_start_index,
-            userOpQuery.data?.user_logs_start_index + userOpQuery.data?.user_logs_count,
-          )
-        ) {
-          return true;
-        }
-        return false;
       }
-    },
-    [ userOpQuery.data ],
-  );
+      return false;
+    }
+  }, [ userOpQuery.data ]);
 
-  const filterLogsByLogIndex = React.useCallback(
-    (log: Log) => {
-      if (!userOpQuery.data) {
+  const filterLogsByLogIndex = React.useCallback((log: Log) => {
+    if (!userOpQuery.data) {
+      return true;
+    } else {
+      if (_inRange(log.index, userOpQuery.data?.user_logs_start_index, userOpQuery.data?.user_logs_start_index + userOpQuery.data?.user_logs_count)) {
         return true;
-      } else {
-        if (
-          inRange(
-            log.index,
-            userOpQuery.data?.user_logs_start_index,
-            userOpQuery.data?.user_logs_start_index + userOpQuery.data?.user_logs_count,
-          )
-        ) {
-          return true;
-        }
-        return false;
       }
-    },
-    [ userOpQuery.data ],
-  );
+      return false;
+    }
+  }, [ userOpQuery.data ]);
 
-  const tabs: Array<RoutedTab> = React.useMemo(
-    () => [
-      { id: 'index', title: 'Details', component: <UserOpDetails query={ userOpQuery }/> },
-      {
-        id: 'token_transfers',
-        title: 'Token transfers',
-        component: <TxTokenTransfer txQuery={ txQuery } tokenTransferFilter={ filterTokenTransfersByLogIndex }/>,
-      },
-      { id: 'logs', title: 'Logs', component: <TxLogs txQuery={ txQuery } logsFilter={ filterLogsByLogIndex }/> },
-      { id: 'raw', title: 'Raw', component: <UserOpRaw rawData={ userOpQuery.data?.raw } isLoading={ userOpQuery.isPlaceholderData }/> },
-    ],
-    [ userOpQuery, txQuery, filterTokenTransfersByLogIndex, filterLogsByLogIndex ],
-  );
+  const tabs: Array<RoutedTab> = React.useMemo(() => ([
+    { id: 'index', title: 'Details', component: <UserOpDetails query={ userOpQuery }/> },
+    {
+      id: 'token_transfers',
+      title: 'Token transfers',
+      component: <TxTokenTransfer txQuery={ txQuery } tokenTransferFilter={ filterTokenTransfersByLogIndex }/>,
+    },
+    { id: 'logs', title: 'Logs', component: <TxLogs txQuery={ txQuery } logsFilter={ filterLogsByLogIndex }/> },
+    { id: 'raw', title: 'Raw', component: <UserOpRaw rawData={ userOpQuery.data?.raw } isLoading={ userOpQuery.isPlaceholderData }/> },
+  ]), [ userOpQuery, txQuery, filterTokenTransfersByLogIndex, filterLogsByLogIndex ]);
 
   const tabIndex = useTabIndexFromQuery(tabs);
 
@@ -112,20 +95,23 @@ const UserOp = () => {
   throwOnAbsentParamError(hash);
   throwOnResourceLoadError(userOpQuery);
 
-  const titleSecondRow = <UserOpEntity hash={ hash } noLink noCopy={ false } fontWeight={ 500 } fontFamily="heading"/>;
+  const titleSecondRow = <UserOpSubHeading hash={ hash }/>;
 
   return (
     <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
-      <PageTitle title="User operation details" backLink={ backLink } secondRow={ titleSecondRow }/>
+      <PageTitle
+        title="User operation details"
+        backLink={ backLink }
+        secondRow={ titleSecondRow }
+      />
       { userOpQuery.isPlaceholderData ? (
         <>
           <TabsSkeleton tabs={ tabs } mt={ 6 }/>
           { tabs[tabIndex]?.component }
         </>
-      ) : (
-        <RoutedTabs tabs={ tabs }/>
-      ) }
+      ) :
+        <RoutedTabs tabs={ tabs }/> }
     </PeersystPageWrapper>
   );
 };

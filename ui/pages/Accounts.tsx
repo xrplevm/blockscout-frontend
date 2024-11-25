@@ -7,7 +7,7 @@ import { generateListStub } from 'stubs/utils';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AddressesListItem from 'ui/addresses/AddressesListItem';
 import AddressesTable from 'ui/addresses/AddressesTable';
-import ActionBar from 'ui/shared/ActionBar';
+import ActionBar, { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
@@ -45,7 +45,7 @@ const Accounts = () => {
     <>
       <Hide below="lg" ssr={ false }>
         <AddressesTable
-          top={ pagination.isVisible ? 80 : 0 }
+          top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }
           items={ data.items }
           totalSupply={ totalSupply }
           pageStartIndex={ pageStartIndex }

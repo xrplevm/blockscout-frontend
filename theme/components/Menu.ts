@@ -1,7 +1,12 @@
 import { menuAnatomy as parts } from '@chakra-ui/anatomy';
-import { createMultiStyleConfigHelpers, cssVar, defineStyle } from '@chakra-ui/styled-system';
+import {
+  createMultiStyleConfigHelpers,
+  cssVar,
+  defineStyle,
+} from '@chakra-ui/styled-system';
 
-const { defineMultiStyleConfig, definePartsStyle } = createMultiStyleConfigHelpers(parts.keys);
+const { defineMultiStyleConfig, definePartsStyle } =
+  createMultiStyleConfigHelpers(parts.keys);
 
 const $bg = cssVar('menu-bg');
 const $shadow = cssVar('menu-shadow');

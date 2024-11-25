@@ -18,7 +18,7 @@ import TextAd from 'ui/shared/ad/TextAd';
 import AddressEntity from 'ui/shared/entities/address/AddressEntity';
 import EnsEntity from 'ui/shared/entities/ens/EnsEntity';
 import IconSvg from 'ui/shared/IconSvg';
-import LinkInternal from 'ui/shared/LinkInternal';
+import LinkInternal from 'ui/shared/links/LinkInternal';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import RoutedTabs from 'ui/shared/Tabs/RoutedTabs';
 import TabsSkeleton from 'ui/shared/Tabs/TabsSkeleton';
@@ -37,7 +37,7 @@ const NameDomain = () => {
 
   const tabs: Array<RoutedTab> = [
     { id: 'details', title: 'Details', component: <NameDomainDetails query={ infoQuery }/> },
-    { id: 'history', title: 'History', component: <NameDomainHistory/> },
+    { id: 'history', title: 'History', component: <NameDomainHistory domain={ infoQuery.data }/> },
   ];
 
   const tabIndex = useTabIndexFromQuery(tabs);
@@ -57,18 +57,24 @@ const NameDomain = () => {
       w="100%"
       flexWrap={{ base: 'wrap', lg: 'nowrap' }}
     >
-      <EnsEntity name={ domainName } isLoading={ isLoading } noLink maxW={{ lg: infoQuery.data?.resolved_address ? '300px' : 'min-content' }}/>
+      <EnsEntity
+        domain={ domainName }
+        protocol={ infoQuery.data?.protocol }
+        isLoading={ isLoading }
+        noLink
+        maxW={{ lg: infoQuery.data?.resolved_address ? '300px' : 'max-content' }}
+      />
       { infoQuery.data?.resolved_address && (
         <Flex alignItems="center" maxW="100%" columnGap={ 3 }>
-          <AddressEntity address={ infoQuery.data?.resolved_address } isLoading={ isLoading }/>
+          <AddressEntity
+            address={ infoQuery.data?.resolved_address }
+            isLoading={ isLoading }
+          />
           <Tooltip label="Lookup for related domain names">
             <LinkInternal
               flexShrink={ 0 }
               display="inline-flex"
-              href={ route({
-                pathname: '/name-domains',
-                query: { owned_by: 'true', resolved_to: 'true', address: infoQuery.data?.resolved_address?.hash },
-              }) }
+              href={ route({ pathname: '/name-domains', query: { owned_by: 'true', resolved_to: 'true', address: infoQuery.data?.resolved_address?.hash } }) }
             >
               <IconSvg name="search" boxSize={ 5 } isLoading={ isLoading }/>
             </LinkInternal>
@@ -87,9 +93,7 @@ const NameDomain = () => {
           <TabsSkeleton tabs={ tabs } mt={ 6 }/>
           { tabs[tabIndex]?.component }
         </>
-      ) : (
-        <RoutedTabs tabs={ tabs }/>
-      ) }
+      ) : <RoutedTabs tabs={ tabs }/> }
     </PeersystPageWrapper>
   );
 };
