@@ -1,12 +1,10 @@
 import { Flex, useDisclosure } from '@chakra-ui/react';
 import React from 'react';
 
-import useFetchProfileInfo from 'lib/hooks/useFetchProfileInfo';
-import useRedirectForInvalidAuthToken from 'lib/hooks/useRedirectForInvalidAuthToken';
-import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import type { Screen } from 'ui/snippets/auth/types';
 
 import config from 'configs/app';
+import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import MyProfileEmail from 'ui/myProfile/MyProfileEmail';
 import MyProfileWallet from 'ui/myProfile/MyProfileWallet';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';
