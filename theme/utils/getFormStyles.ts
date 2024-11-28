@@ -18,7 +18,7 @@ export default function getFormStyles(props: StyleFunctionProps) {
       focus: {
         color: mode('gray.800', 'gray.50')(props),
         bgColor: props.bgColor || mode('white', 'black')(props),
-        borderColor: mode('blue.400', 'blue.400')(props),
+        borderColor: mode('purple.400', 'purple.400')(props),
       },
       filled: {
         color: mode('gray.800', 'gray.50')(props),

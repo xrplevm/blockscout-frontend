@@ -29,7 +29,7 @@ const variantSubtle = defineStyle((props) => {
 
   if (c === 'black-blue') {
     return {
-      bg: mode('blue.50', 'blue.800')(props),
+      bg: mode('purple.50', 'purple.800')(props),
       color: mode('blackAlpha.800', 'whiteAlpha.800')(props),
     };
   }

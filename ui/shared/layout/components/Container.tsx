@@ -7,14 +7,12 @@ interface Props {
 }
 
 const Container = ({ children, className }: Props) => {
-  const bgColor = useColorModeValue('white', 'black');
-
   return (
     <Box
       className={ className }
       minWidth={{ base: '100vw', lg: 'fit-content' }}
       m="0 auto"
-      bgColor={ bgColor }
+      bgColor={ 'transparent' }
     >
       { children }
     </Box>

@@ -96,8 +96,8 @@ const variantOutline = defineStyle((props) => {
 
 const variantRadioGroup = defineStyle((props) => {
   const outline = runIfFn(variantOutline, props);
-  const bgColor = mode('blue.50', 'gray.800')(props);
-  const selectedTextColor = mode('blue.700', 'gray.50')(props);
+  const bgColor = mode('purple.50', 'gray.800')(props);
+  const selectedTextColor = mode('purple.700', 'gray.50')(props);
 
   return {
     ...outline,
@@ -196,8 +196,8 @@ const variantHero = defineStyle((props) => {
   const buttonConfig = config.UI.homepage.heroBanner?.button;
   return {
     bg: mode(
-      buttonConfig?._default?.background?.[0] || 'blue.600',
-      buttonConfig?._default?.background?.[1] || buttonConfig?._default?.background?.[0] || 'blue.600',
+      buttonConfig?._default?.background?.[0] || 'purple.600',
+      buttonConfig?._default?.background?.[1] || buttonConfig?._default?.background?.[0] || 'purple.600',
     )(props),
     color: mode(
       buttonConfig?._default?.text_color?.[0] || 'white',
@@ -205,8 +205,8 @@ const variantHero = defineStyle((props) => {
     )(props),
     _hover: {
       bg: mode(
-        buttonConfig?._hover?.background?.[0] || 'blue.400',
-        buttonConfig?._hover?.background?.[1] || buttonConfig?._hover?.background?.[0] || 'blue.400',
+        buttonConfig?._hover?.background?.[0] || 'purple.400',
+        buttonConfig?._hover?.background?.[1] || buttonConfig?._hover?.background?.[0] || 'purple.400',
       )(props),
       color: mode(
         buttonConfig?._hover?.text_color?.[0] || 'white',
@@ -215,8 +215,8 @@ const variantHero = defineStyle((props) => {
     },
     '&[data-selected=true]': {
       bg: mode(
-        buttonConfig?._selected?.background?.[0] || 'blue.50',
-        buttonConfig?._selected?.background?.[1] || buttonConfig?._selected?.background?.[0] || 'blue.50',
+        buttonConfig?._selected?.background?.[0] || 'purple.50',
+        buttonConfig?._selected?.background?.[1] || buttonConfig?._selected?.background?.[0] || 'purple.50',
       )(props),
       color: mode(
         buttonConfig?._selected?.text_color?.[0] || 'blackAlpha.800',

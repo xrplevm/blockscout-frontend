@@ -423,7 +423,7 @@ const AddressPageContent = () => {
       { /* should stay before tabs to scroll up with pagination */ }
       <Box ref={ tabsScrollRef }></Box>
       { content }
-    </>
+    </Box>
   );
 };
 
