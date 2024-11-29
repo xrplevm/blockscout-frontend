@@ -1,4 +1,4 @@
-import type { GridProps, HTMLChakraProps } from '@chakra-ui/react';
+import {GridProps, HTMLChakraProps, Image} from '@chakra-ui/react';
 import { Box, Grid, Flex, Text, Link, VStack, Skeleton, useColorModeValue } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
@@ -10,8 +10,6 @@ import type { ResourceError } from 'lib/api/resources';
 import useApiQuery from 'lib/api/useApiQuery';
 import useFetch from 'lib/hooks/useFetch';
 import useIssueUrl from 'lib/hooks/useIssueUrl';
-import { copy } from 'lib/html-entities';
-import IconSvg from 'ui/shared/IconSvg';
 import { CONTENT_MAX_WIDTH } from 'ui/shared/layout/utils';
 import NetworkAddToWallet from 'ui/shared/NetworkAddToWallet';
 
@@ -94,7 +92,7 @@ const Footer = () => {
 
   const fetch = useFetch();
 
-  const peersystLogoColor = useColorModeValue('#132e6d', 'white');
+  const logo = useColorModeValue('peersyst-light.svg', 'peersyst-dark.svg');
 
   const { isPlaceholderData, data: linksData } = useQuery<unknown, ResourceError<unknown>, Array<CustomLinksGroup>>({
     queryKey: [ 'footer-links' ],
@@ -127,9 +125,9 @@ const Footer = () => {
       return (
         <Box gridArea={ gridArea }>
           <Link fontSize="xs" href="https://www.peersyst.com">
-            <IconSvg name="peersyst" w={ 36 } h={ 8 } color={ peersystLogoColor }/>
+            <Image src={`/static/${logo}`} alt="Peersyst" w={36} h={8}/>
           </Link>
-          <Text mt={ 3 } fontSize="xs">
+          <Text mt={3} fontSize="xs">
             Building the XRPLedger EVMSidechain and bridge solution for XRP with Ripple
           </Text>
           <VStack spacing={ 1 } mt={ 6 } alignItems="start">
@@ -146,7 +144,7 @@ const Footer = () => {
         </Box>
       );
     },
-    [ apiVersionUrl, backendVersionData?.backend_version, frontendLink, peersystLogoColor ],
+    [ apiVersionUrl, backendVersionData?.backend_version, frontendLink, logo ],
   );
 
   const containerProps: HTMLChakraProps<'div'> = {
