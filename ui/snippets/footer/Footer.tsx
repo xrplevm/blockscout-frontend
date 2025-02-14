@@ -1,5 +1,5 @@
-import {GridProps, HTMLChakraProps, Image} from '@chakra-ui/react';
-import { Box, Grid, Flex, Text, Link, VStack, Skeleton, useColorModeValue } from '@chakra-ui/react';
+import type { GridProps, HTMLChakraProps } from '@chakra-ui/react';
+import { Image, Box, Grid, Flex, Text, Link, VStack, Skeleton, useColorModeValue } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 
@@ -23,7 +23,6 @@ const FRONT_VERSION_URL = `https://github.com/blockscout/frontend/tree/${ config
 const FRONT_COMMIT_URL = `https://github.com/blockscout/frontend/commit/${ config.UI.footer.frontendCommit }`;
 
 const Footer = () => {
-
   const { data: backendVersionData } = useApiQuery('config_backend_version', {
     queryOptions: {
       staleTime: Infinity,
@@ -31,7 +30,6 @@ const Footer = () => {
   });
   const apiVersionUrl = getApiVersionUrl(backendVersionData?.backend_version);
   const issueUrl = useIssueUrl(backendVersionData?.backend_version);
-  const logoColor = useColorModeValue('blue.600', 'white');
 
   const BLOCKSCOUT_LINKS = [
     {
@@ -80,11 +78,19 @@ const Footer = () => {
 
   const frontendLink = (() => {
     if (config.UI.footer.frontendVersion) {
-      return <Link href={ FRONT_VERSION_URL } target="_blank">{ config.UI.footer.frontendVersion }</Link>;
+      return (
+        <Link href={ FRONT_VERSION_URL } target="_blank">
+          { config.UI.footer.frontendVersion }
+        </Link>
+      );
     }
 
     if (config.UI.footer.frontendCommit) {
-      return <Link href={ FRONT_COMMIT_URL } target="_blank">{ config.UI.footer.frontendCommit }</Link>;
+      return (
+        <Link href={ FRONT_COMMIT_URL } target="_blank">
+          { config.UI.footer.frontendCommit }
+        </Link>
+      );
     }
 
     return null;
@@ -106,14 +112,7 @@ const Footer = () => {
 
   const renderNetworkInfo = React.useCallback((gridArea?: GridProps['gridArea']) => {
     return (
-      <Flex
-        gridArea={ gridArea }
-        flexWrap="wrap"
-        columnGap={ 8 }
-        rowGap={ 6 }
-        mb={{ base: 5, lg: 10 }}
-        _empty={{ display: 'none' }}
-      >
+      <Flex gridArea={ gridArea } flexWrap="wrap" columnGap={ 8 } rowGap={ 6 } mb={{ base: 5, lg: 10 }} _empty={{ display: 'none' }}>
         { !config.UI.indexingAlert.intTxs.isHidden && <IntTxsIndexingStatus/> }
         <NetworkAddToWallet/>
       </Flex>
@@ -125,9 +124,9 @@ const Footer = () => {
       return (
         <Box gridArea={ gridArea }>
           <Link fontSize="xs" href="https://www.peersyst.com">
-            <Image src={`/static/${logo}`} alt="Peersyst" w={36} h={8}/>
+            <Image src={ `/static/${ logo }` } alt="Peersyst" w={ 36 } h={ 8 }/>
           </Link>
-          <Text mt={3} fontSize="xs">
+          <Text mt={ 3 } fontSize="xs">
             Building the XRPLedger EVMSidechain and bridge solution for XRP with Ripple
           </Text>
           <VStack spacing={ 1 } mt={ 6 } alignItems="start">
@@ -182,21 +181,18 @@ const Footer = () => {
             justifyContent={{ lg: 'flex-end' }}
             mt={{ base: 8, lg: 0 }}
           >
-            {
-              ([
-                { title: 'Blockscout', links: BLOCKSCOUT_LINKS },
-                ...(linksData || []),
-              ])
-                .slice(0, colNum)
-                .map(linkGroup => (
-                  <Box key={ linkGroup.title }>
-                    <Skeleton fontWeight={ 500 } mb={ 3 } display="inline-block" isLoaded={ !isPlaceholderData }>{ linkGroup.title }</Skeleton>
-                    <VStack spacing={ 1 } alignItems="start">
-                      { linkGroup.links.map(link => <FooterLinkItem { ...link } key={ link.text } isLoading={ isPlaceholderData }/>) }
-                    </VStack>
-                  </Box>
-                ))
-            }
+            { [ { title: 'Blockscout', links: BLOCKSCOUT_LINKS }, ...(linksData || []) ].slice(0, colNum).map((linkGroup) => (
+              <Box key={ linkGroup.title }>
+                <Skeleton fontWeight={ 500 } mb={ 3 } display="inline-block" isLoaded={ !isPlaceholderData }>
+                  { linkGroup.title }
+                </Skeleton>
+                <VStack spacing={ 1 } alignItems="start">
+                  { linkGroup.links.map((link) => (
+                    <FooterLinkItem { ...link } key={ link.text } isLoading={ isPlaceholderData }/>
+                  )) }
+                </VStack>
+              </Box>
+            )) }
           </Grid>
         </Grid>
       </Box>
@@ -214,7 +210,6 @@ const Footer = () => {
         `,
         }}
       >
-
         { renderNetworkInfo({ lg: 'network' }) }
         { renderProjectInfo({ lg: 'info' }) }
 
@@ -236,7 +231,9 @@ const Footer = () => {
           justifyContent={{ lg: 'flex-end' }}
           mt={{ base: 8, lg: 0 }}
         >
-          { BLOCKSCOUT_LINKS.map(link => <FooterLinkItem { ...link } key={ link.text }/>) }
+          { BLOCKSCOUT_LINKS.map((link) => (
+            <FooterLinkItem { ...link } key={ link.text }/>
+          )) }
         </Grid>
       </Grid>
     </Box>

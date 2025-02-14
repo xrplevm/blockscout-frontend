@@ -14,7 +14,7 @@ import AdBanner from 'ui/shared/ad/AdBanner';
 const rollupFeature = config.features.rollup;
 
 const Home = () => {
-    const bgColor = useColorModeValue('white', 'gray.800');
+  const bgColor = useColorModeValue('white', 'gray.800');
 
   const leftWidget = (() => {
     if (rollupFeature.isEnabled && !rollupFeature.homepage.showLatestBlocks) {
@@ -38,8 +38,8 @@ const Home = () => {
       </Flex>
       <AdBanner mt={ 6 } mx="auto" display={{ base: 'flex', lg: 'none' }} justifyContent="center"/>
       <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 6 } backgroundColor={ bgColor }
-            borderRadius="md"
-            padding={{ base: 6, lg: 8 }}>
+        borderRadius="md"
+        padding={{ base: 6, lg: 8 }}>
         { leftWidget }
         <Box flexGrow={ 1 }>
           <Transactions/>
