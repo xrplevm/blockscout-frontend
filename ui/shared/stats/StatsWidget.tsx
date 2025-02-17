@@ -51,8 +51,8 @@ const StatsWidget = ({
   period,
   href,
 }: Props) => {
-  const bgColor = useColorModeValue('white', 'whiteAlpha.100');
-  const skeletonBgColor = useColorModeValue('blackAlpha.50', 'whiteAlpha.50');
+  const bgColor = useColorModeValue('white', 'gray.800');
+  const skeletonBgColor = useColorModeValue('blackAlpha.50', 'gray.800');
   const hintColor = useColorModeValue('gray.600', 'gray.400');
 
   return (
@@ -65,10 +65,12 @@ const StatsWidget = ({
         borderRadius="base"
         justifyContent="space-between"
         columnGap={ 2 }
-        { ...(href && !isLoading ? {
-          as: 'a',
-          href,
-        } : {}) }
+        { ...(href && !isLoading ?
+          {
+            as: 'a',
+            href,
+          } :
+          {}) }
       >
         { icon && (
           <IconSvg
@@ -82,46 +84,37 @@ const StatsWidget = ({
           />
         ) }
         <Box w={{ base: '100%', lg: icon ? 'calc(100% - 48px)' : '100%' }}>
-          <Skeleton
-            isLoaded={ !isLoading }
-            color="text_secondary"
-            fontSize="xs"
-            lineHeight="16px"
-            w="fit-content"
-          >
+          <Skeleton isLoaded={ !isLoading } color="text_secondary" fontSize="xs" lineHeight="16px" w="fit-content">
             <h2>{ label }</h2>
           </Skeleton>
-          <Skeleton
-            isLoaded={ !isLoading }
-            display="flex"
-            alignItems="baseline"
-            fontWeight={ 500 }
-            fontSize="lg"
-            lineHeight={ 6 }
-          >
+          <Skeleton isLoaded={ !isLoading } display="flex" alignItems="baseline" fontWeight={ 500 } fontSize="lg" lineHeight={ 6 }>
             { valuePrefix && <chakra.span whiteSpace="pre">{ valuePrefix }</chakra.span> }
-            { typeof value === 'string' ? (
-              <TruncatedValue isLoading={ isLoading } value={ value }/>
-            ) : (
-              value
-            ) }
+            { typeof value === 'string' ? <TruncatedValue isLoading={ isLoading } value={ value }/> : value }
             { valuePostfix && <chakra.span whiteSpace="pre">{ valuePostfix }</chakra.span> }
             { diff && Number(diff) > 0 && (
               <>
                 <Text ml={ 2 } mr={ 1 } color="green.500">
                   +{ diffFormatted || Number(diff).toLocaleString() }
                 </Text>
-                <Text variant="secondary" fontSize="sm">({ diffPeriod })</Text>
+                <Text variant="secondary" fontSize="sm">
+                  ({ diffPeriod })
+                </Text>
               </>
             ) }
-            { period && <Text variant="secondary" fontSize="xs" fontWeight={ 400 } ml={ 1 }>({ period })</Text> }
+            { period && (
+              <Text variant="secondary" fontSize="xs" fontWeight={ 400 } ml={ 1 }>
+                ({ period })
+              </Text>
+            ) }
           </Skeleton>
         </Box>
         { typeof hint === 'string' ? (
           <Skeleton isLoaded={ !isLoading } alignSelf="center" borderRadius="base">
             <Hint label={ hint } boxSize={ 6 } color={ hintColor }/>
           </Skeleton>
-        ) : hint }
+        ) : (
+          hint
+        ) }
       </Flex>
     </Container>
   );

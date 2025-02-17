@@ -123,31 +123,31 @@ const TokenInstanceContent = () => {
 
   return (
     <MetadataUpdateProvider>
-        <PeersystPageWrapper>
-          <TextAd mb={ 6 }/>
+      <PeersystPageWrapper>
+        <TextAd mb={ 6 }/>
 
-          <TokenInstancePageTitle
-            isLoading={ isLoading }
-            token={ tokenQuery.data }
-            instance={ tokenInstanceQuery.data }
-            hash={ hash }
-          />
+        <TokenInstancePageTitle
+          isLoading={ isLoading }
+          token={ tokenQuery.data }
+          instance={ tokenInstanceQuery.data }
+          hash={ hash }
+        />
 
-          <TokenInstanceDetails data={ tokenInstanceQuery?.data } isLoading={ isLoading } scrollRef={ scrollRef } token={ tokenQuery.data }/>
+        <TokenInstanceDetails data={ tokenInstanceQuery?.data } isLoading={ isLoading } scrollRef={ scrollRef } token={ tokenQuery.data }/>
 
-          { /* should stay before tabs to scroll up with pagination */ }
-          <Box ref={ scrollRef }></Box>
+        { /* should stay before tabs to scroll up with pagination */ }
+        <Box ref={ scrollRef }></Box>
 
-          <RoutedTabs
-            tabs={ tabs }
-            tabListProps={ isMobile ? { mt: 8 } : { mt: 3, py: 5, marginBottom: 0 } }
-            isLoading={ isLoading }
-            rightSlot={ !isMobile && pagination?.isVisible ? <Pagination { ...pagination }/> : null }
-            stickyEnabled={ !isMobile }
-          />
+        <RoutedTabs
+          tabs={ tabs }
+          tabListProps={ isMobile ? { mt: 8 } : { mt: 3, py: 5, marginBottom: 0 } }
+          isLoading={ isLoading }
+          rightSlot={ !isMobile && pagination?.isVisible ? <Pagination { ...pagination }/> : null }
+          stickyEnabled={ !isMobile }
+        />
 
-          <TokenInstanceMetadataFetcher hash={ hash } id={ id }/>
-        </PeersystPageWrapper>
+        <TokenInstanceMetadataFetcher hash={ hash } id={ id }/>
+      </PeersystPageWrapper>
     </MetadataUpdateProvider>
   );
 };
