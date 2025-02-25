@@ -22,33 +22,42 @@ const AddressBalance = ({ data, isLoading }: Props) => {
   const [ lastBlockNumber, setLastBlockNumber ] = React.useState<number>(data.block_number_balance_updated_at || 0);
   const queryClient = useQueryClient();
 
-  const updateData = React.useCallback((balance: string, exchangeRate: string, blockNumber: number) => {
-    if (blockNumber < lastBlockNumber) {
-      return;
-    }
-
-    setLastBlockNumber(blockNumber);
-    const queryKey = getResourceKey('address', { pathParams: { hash: data.hash } });
-    queryClient.setQueryData(queryKey, (prevData: Address | undefined) => {
-      if (!prevData) {
+  const updateData = React.useCallback(
+    (balance: string, exchangeRate: string, blockNumber: number) => {
+      if (blockNumber < lastBlockNumber) {
         return;
       }
-      return {
-        ...prevData,
-        coin_balance: balance,
-        exchange_rate: exchangeRate,
-        block_number_balance_updated_at: blockNumber,
-      };
-    });
-  }, [ data.hash, lastBlockNumber, queryClient ]);
 
-  const handleNewBalanceMessage: SocketMessage.AddressBalance['handler'] = React.useCallback((payload) => {
-    updateData(payload.balance, payload.exchange_rate, payload.block_number);
-  }, [ updateData ]);
+      setLastBlockNumber(blockNumber);
+      const queryKey = getResourceKey('address', { pathParams: { hash: data.hash } });
+      queryClient.setQueryData(queryKey, (prevData: Address | undefined) => {
+        if (!prevData) {
+          return;
+        }
+        return {
+          ...prevData,
+          coin_balance: balance,
+          exchange_rate: exchangeRate,
+          block_number_balance_updated_at: blockNumber,
+        };
+      });
+    },
+    [ data.hash, lastBlockNumber, queryClient ],
+  );
 
-  const handleNewCoinBalanceMessage: SocketMessage.AddressCurrentCoinBalance['handler'] = React.useCallback((payload) => {
-    updateData(payload.coin_balance, payload.exchange_rate, payload.block_number);
-  }, [ updateData ]);
+  const handleNewBalanceMessage: SocketMessage.AddressBalance['handler'] = React.useCallback(
+    (payload) => {
+      updateData(payload.balance, payload.exchange_rate, payload.block_number);
+    },
+    [ updateData ],
+  );
+
+  const handleNewCoinBalanceMessage: SocketMessage.AddressCurrentCoinBalance['handler'] = React.useCallback(
+    (payload) => {
+      updateData(payload.coin_balance, payload.exchange_rate, payload.block_number);
+    },
+    [ updateData ],
+  );
 
   const channel = useSocketChannel({
     topic: `addresses:${ data.hash.toLowerCase() }`,
@@ -67,14 +76,11 @@ const AddressBalance = ({ data, isLoading }: Props) => {
 
   return (
     <>
-      <DetailsInfoItem.Label
-        hint={ `${ currencyUnits.ether } balance` }
-        isLoading={ isLoading }
-      >
+      <DetailsInfoItem.Label hint={ `${ currencyUnits.ether } balance` } isLoading={ isLoading }>
         Balance
       </DetailsInfoItem.Label>
       <DetailsInfoItem.Value alignSelf="center" flexWrap="nowrap">
-        <NativeTokenIcon boxSize={ 6 } mr={ 2 } isLoading={ isLoading }/>
+        <NativeTokenIcon boxSize={ 6 } mr={ 2 }/>
         <CurrencyValue
           value={ data.coin_balance || '0' }
           exchangeRate={ data.exchange_rate }
