@@ -45,6 +45,7 @@
 	| "copy"
 	| "cross"
 	| "delete"
+	| "devnet"
 	| "docs"
 	| "donate"
 	| "dots"

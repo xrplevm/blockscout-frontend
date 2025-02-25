@@ -85,7 +85,7 @@ const Marketplace = () => {
   const graphLinksQuery = useGraphLinks();
 
   const categoryTabs = React.useMemo(() => {
-    const tabs: Array<TabItem> = categories.map(category => ({
+    const tabs: Array<TabItem> = categories.map((category) => ({
       id: category.name,
       title: category.name,
       count: category.count,
@@ -110,26 +110,32 @@ const Marketplace = () => {
   }, [ categories, appsTotal, favoriteApps.length ]);
 
   const selectedCategoryIndex = React.useMemo(() => {
-    const index = categoryTabs.findIndex(c => c.id === selectedCategoryId);
+    const index = categoryTabs.findIndex((c) => c.id === selectedCategoryId);
     return index === -1 ? 0 : index;
   }, [ categoryTabs, selectedCategoryId ]);
 
-  const selectedApp = displayedApps.find(app => app.id === selectedAppId);
+  const selectedApp = displayedApps.find((app) => app.id === selectedAppId);
 
-  const handleCategoryChange = React.useCallback((index: number) => {
-    const tabId = categoryTabs[index].id;
-    if (typeof tabId === 'string') {
-      onCategoryChange(tabId);
-    }
-  }, [ categoryTabs, onCategoryChange ]);
+  const handleCategoryChange = React.useCallback(
+    (index: number) => {
+      const tabId = categoryTabs[index].id;
+      if (typeof tabId === 'string') {
+        onCategoryChange(tabId);
+      }
+    },
+    [ categoryTabs, onCategoryChange ],
+  );
 
-  const handleAppClick = React.useCallback((event: MouseEvent, id: string) => {
-    const isShown = window.localStorage.getItem('marketplace-disclaimer-shown');
-    if (!isShown) {
-      event.preventDefault();
-      showDisclaimer(id);
-    }
-  }, [ showDisclaimer ]);
+  const handleAppClick = React.useCallback(
+    (event: MouseEvent, id: string) => {
+      const isShown = window.localStorage.getItem('marketplace-disclaimer-shown');
+      if (!isShown) {
+        event.preventDefault();
+        showDisclaimer(id);
+      }
+    },
+    [ showDisclaimer ],
+  );
 
   const handleGoBackInContractListModal = React.useCallback(() => {
     clearSelectedAppId();
@@ -151,36 +157,38 @@ const Marketplace = () => {
       <PageTitle
         title="DAppscout"
         mb={ 2 }
-        contentAfter={ (isMobile && links.length > 1) ? (
-          <Menu>
-            <MenuButton
-              as={ IconButton }
-              size="sm"
-              variant="outline"
-              colorScheme="gray"
-              px="9px"
-              ml="auto"
-              icon={ <IconSvg name="dots" boxSize="18px"/> }
-            />
-            <MenuList minW="max-content">
-              { links.map(({ label, href, icon }) => (
-                <MenuItem key={ label } as="a" href={ href } target="_blank" py={ 2 } px={ 4 }>
-                  <IconSvg name={ icon } boxSize={ 4 } mr={ 2.5 }/>
+        contentAfter={
+          isMobile && links.length > 1 ? (
+            <Menu>
+              <MenuButton
+                as={ IconButton }
+                size="sm"
+                variant="outline"
+                colorScheme="gray"
+                px="9px"
+                ml="auto"
+                icon={ <IconSvg name="dots" boxSize="18px"/> }
+              />
+              <MenuList minW="max-content">
+                { links.map(({ label, href, icon }) => (
+                  <MenuItem key={ label } as="a" href={ href } target="_blank" py={ 2 } px={ 4 }>
+                    <IconSvg name={ icon } boxSize={ 4 } mr={ 2.5 }/>
+                    { label }
+                    <IconSvg name="link_external" boxSize={ 3 } color="icon_link_external" ml={ 2 }/>
+                  </MenuItem>
+                )) }
+              </MenuList>
+            </Menu>
+          ) : (
+            <Flex ml="auto">
+              { links.map(({ label, href }) => (
+                <LinkExternal key={ label } href={ href } variant="subtle" fontSize="sm" lineHeight={ 5 } ml={ 2 }>
                   { label }
-                  <IconSvg name="link_external" boxSize={ 3 } color="icon_link_external" ml={ 2 }/>
-                </MenuItem>
+                </LinkExternal>
               )) }
-            </MenuList>
-          </Menu>
-        ) : (
-          <Flex ml="auto">
-            { links.map(({ label, href }) => (
-              <LinkExternal key={ label } href={ href } variant="subtle" fontSize="sm" lineHeight={ 5 } ml={ 2 }>
-                { label }
-              </LinkExternal>
-            )) }
-          </Flex>
-        ) }
+            </Flex>
+          )
+        }
       />
 
       <Banner
@@ -192,15 +200,7 @@ const Marketplace = () => {
         onAppClick={ handleAppClick }
       />
 
-      <ActionBar
-        showShadow
-        display="flex"
-        flexDirection="column"
-        mx={{ base: -3, lg: -12 }}
-        px={{ base: 3, lg: 12 }}
-        pt={{ base: 4, lg: 6 }}
-        pb={{ base: 4, lg: 3 }}
-      >
+      <ActionBar showShadow display="flex" flexDirection="column" px={{ base: 3, lg: 0 }} pt={{ base: 4, lg: 6 }} pb={{ base: 4, lg: 3 }}>
         <TabsWithScroll
           tabs={ categoryTabs }
           onTabChange={ handleCategoryChange }
@@ -210,14 +210,7 @@ const Marketplace = () => {
         />
 
         <Flex gap={{ base: 2, lg: 3 }}>
-          { showSort && (
-            <Sort
-              name="dapps_sorting"
-              options={ SORT_OPTIONS }
-              onChange={ setSorting }
-              isLoading={ isPlaceholderData }
-            />
-          ) }
+          { showSort && <Sort name="dapps_sorting" options={ SORT_OPTIONS } onChange={ setSorting } isLoading={ isPlaceholderData }/> }
           <FilterInput
             initialValue={ filterQuery }
             onChange={ onSearchInputChange }
@@ -246,7 +239,7 @@ const Marketplace = () => {
         graphLinksQuery={ graphLinksQuery }
       />
 
-      { (selectedApp && isAppInfoModalOpen) && (
+      { selectedApp && isAppInfoModalOpen && (
         <MarketplaceAppModal
           onClose={ clearSelectedAppId }
           isFavorite={ favoriteApps.includes(selectedApp.id) }
@@ -262,15 +255,11 @@ const Marketplace = () => {
         />
       ) }
 
-      { (selectedApp && isDisclaimerModalOpen) && (
-        <MarketplaceDisclaimerModal
-          isOpen={ isDisclaimerModalOpen }
-          onClose={ clearSelectedAppId }
-          appId={ selectedApp.id }
-        />
+      { selectedApp && isDisclaimerModalOpen && (
+        <MarketplaceDisclaimerModal isOpen={ isDisclaimerModalOpen } onClose={ clearSelectedAppId } appId={ selectedApp.id }/>
       ) }
 
-      { (selectedApp && contractListModalType) && (
+      { selectedApp && contractListModalType && (
         <ContractListModal
           type={ contractListModalType }
           contracts={ selectedApp?.securityReport?.contractsData }

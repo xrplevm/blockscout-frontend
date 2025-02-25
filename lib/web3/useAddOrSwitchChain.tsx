@@ -16,30 +16,39 @@ export default function useAddOrSwitchChain() {
 
     const hexadecimalChainId = '0x' + Number(config.chain.id).toString(16);
 
+    let networkType = '';
+    if (config.chain.isTestnet) {
+      networkType = 'Testnet';
+    } else if (config.chain.isDevnet) {
+      networkType = 'Devnet';
+    }
+    const chainName = `${ config.chain.name } ${ networkType }`;
+
     try {
       return await provider.request({
         method: 'wallet_switchEthereumChain',
         params: [ { chainId: hexadecimalChainId } ],
       });
     } catch (error) {
-
       const errorObj = getErrorObj(error);
       const code = errorObj && 'code' in errorObj ? errorObj.code : undefined;
       const originalErrorCode = _get(errorObj, 'data.originalError.code');
 
       // This error code indicates that the chain has not been added to Wallet.
       if (code === 4902 || originalErrorCode === 4902) {
-        const params = [ {
-          chainId: hexadecimalChainId,
-          chainName: config.chain.name,
-          nativeCurrency: {
-            name: config.chain.currency.name,
-            symbol: config.chain.currency.symbol,
-            decimals: config.chain.currency.decimals,
+        const params = [
+          {
+            chainId: hexadecimalChainId,
+            chainName: chainName,
+            nativeCurrency: {
+              name: config.chain.currency.name,
+              symbol: config.chain.currency.symbol,
+              decimals: config.chain.currency.decimals,
+            },
+            rpcUrls: [ config.chain.rpcUrl ],
+            blockExplorerUrls: [ config.app.baseUrl ],
           },
-          rpcUrls: [ config.chain.rpcUrl ],
-          blockExplorerUrls: [ config.app.baseUrl ],
-        } ] as never;
+        ] as never;
         // in wagmi types for wallet_addEthereumChain method is not provided
 
         return await provider.request({

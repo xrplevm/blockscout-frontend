@@ -9,11 +9,15 @@ interface Props {
 }
 
 const TestnetBadge = ({ className }: Props) => {
-  if (!config.chain.isTestnet) {
+  if (!config.chain.isTestnet && !config.chain.isDevnet) {
     return null;
   }
 
-  return <IconSvg className={ className } name="testnet" h="14px" w="37px" color="red.400"/>;
+  if (config.chain.isDevnet) {
+    return <IconSvg className={ className } name="devnet" h="14px" w="37px" color="red.400"/>;
+  }
+
+  return <IconSvg className={ className } name="testnet" h="14px" w="37px" color="yellow.500"/>;
 };
 
 export default React.memo(chakra(TestnetBadge));

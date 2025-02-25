@@ -127,7 +127,8 @@ const Footer = () => {
             <Image src={ `/static/${ logo }` } alt="Peersyst" w={ 36 } h={ 8 }/>
           </Link>
           <Text mt={ 3 } fontSize="xs">
-            Building the XRPLedger EVMSidechain and bridge solution for XRP with Ripple
+            The XRP Ledger Ethereum Virtual Machine (EVM) sidechain is a fast and secure blockchain that brings web3 applications to the XRP
+            Ledger community.
           </Text>
           <VStack spacing={ 1 } mt={ 6 } alignItems="start">
             { apiVersionUrl && (

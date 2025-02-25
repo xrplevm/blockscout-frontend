@@ -37,7 +37,6 @@ const NetworkAddToWallet = () => {
         Target: 'network',
         Wallet: wallet,
       });
-
     } catch (error) {
       toast({
         position: 'top-right',
