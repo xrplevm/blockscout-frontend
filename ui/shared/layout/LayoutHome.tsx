@@ -22,27 +22,29 @@ const LayoutHome = ({ children }: Props) => {
           <AppErrorBoundary>
             { children }
             <img
-              src="/static/bg-top.png"
+              src="/static/bg-lines-left.png"
               style={{
-                top: 0,
+                top: '50%',
                 left: 0,
-                width: '25vw',
+                width: '20vw',
                 position: 'absolute',
                 zIndex: -1,
+                transform: 'translateY(-50%)',
               }}
-              alt="bg-top"
+              alt="bg-lines-left"
             />
           </AppErrorBoundary>
           <img
-            src="/static/bg-bottom.png"
+            src="/static/bg-lines-right.png"
             style={{
               width: '15vw',
+              top: '50%',
               zIndex: -1,
               position: 'absolute',
               right: 0,
-              bottom: 0,
+              transform: 'translateY(-50%)',
             }}
-            alt="bg-bottom"
+            alt="bg-lines-right"
           />
         </Layout.MainColumn>
       </Layout.MainArea>
