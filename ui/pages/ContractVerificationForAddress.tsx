@@ -1,4 +1,4 @@
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -9,6 +9,7 @@ import useApiQuery from 'lib/api/useApiQuery';
 import { useAppContext } from 'lib/contexts/app';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import getQueryParamString from 'lib/router/getQueryParamString';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import ContractVerificationForm from 'ui/contractVerification/ContractVerificationForm';
 import useFormConfigQuery from 'ui/contractVerification/useFormConfigQuery';
 import ContentLoader from 'ui/shared/ContentLoader';

@@ -1,13 +1,15 @@
-// eslint-disable-next-line no-restricted-imports
-import { Image, chakra } from '@chakra-ui/react';
+import { chakra } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
+import { Image } from 'toolkit/chakra/image';
 
 import TokenLogoPlaceholder from './TokenLogoPlaceholder';
 
 type Props = {
+  isLoading?: boolean;
   className?: string;
+  type?: 'primary' | 'secondary';
 };
 
 const NativeTokenIcon = ({ className }: Props) => {
@@ -22,7 +24,6 @@ const NativeTokenIcon = ({ className }: Props) => {
       src="/static/xrp-logo.png"
       alt={ `${ config.chain.currency.symbol } logo` }
       fallback={ <TokenLogoPlaceholder borderRadius="base" className={ className }/> }
-      fallbackStrategy="beforeLoadOrError"
     />
   );
 };

@@ -128,7 +128,7 @@ const Footer = () => {
             The XRP Ledger Ethereum Virtual Machine (EVM) sidechain is a fast and secure blockchain that brings web3 applications to the XRP
             Ledger community.
           </Text>
-          <VStack spacing={ 1 } mt={ 6 } alignItems="start">
+          <VStack mt={ 6 } alignItems="start">
             { apiVersionUrl && (
               <Text fontSize="xs">
                 Backend:{ ' ' }
