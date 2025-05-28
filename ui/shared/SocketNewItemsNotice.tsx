@@ -61,7 +61,7 @@ const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, typ
   })();
 
   const color = useColorModeValue('blackAlpha.800', 'whiteAlpha.800');
-  const bgColor = useColorModeValue('gray.100', 'purple.100');
+  const bgColor = useColorModeValue('gray.100', 'gray.700');
 
   const content = !isLoading ? (
     <Alert

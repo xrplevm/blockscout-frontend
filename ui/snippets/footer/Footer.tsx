@@ -121,7 +121,7 @@ const Footer = () => {
       return (
         <Box gridArea={ gridArea }>
           <Link fontSize="xs" href="https://www.peersyst.com">
-            <Image src={ `/static/${ logo }` } alt="Peersyst" w={ 36 } h={ 8 }/>
+            <Image src={ `/static/${ logo }` } alt="Peersyst" w={ 36 }/>
           </Link>
           <Text mt={ 3 } fontSize="xs">
             The XRP Ledger Ethereum Virtual Machine (EVM) sidechain is a fast and secure blockchain that brings web3 applications to the XRP

@@ -11,6 +11,7 @@ import DataListDisplay from 'ui/shared/DataListDisplay';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
+import PeersystPageWrapper from "../../theme/components/PeersystPageWrapper";
 
 const InternalTxs = () => {
   const isMobile = useIsMobile();
@@ -52,7 +53,7 @@ const InternalTxs = () => {
   ) : null;
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle
         title="Internal transactions"
         withTextAd
@@ -65,7 +66,7 @@ const InternalTxs = () => {
       >
         { content }
       </DataListDisplay>
-    </>
+    </PeersystPageWrapper>
   );
 };
 

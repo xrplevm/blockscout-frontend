@@ -18,7 +18,7 @@ const NativeTokenIcon = ({ className }: Props) => {
         backgroundColor: 'white',
         padding: '2px',
       }}
-      src="https://cryptologos.cc/logos/xrp-xrp-logo.png?v=040"
+      src="/static/xrp-logo.png"
       alt={ `${ config.chain.currency.symbol } logo` }
       fallback={ <TokenLogoPlaceholder borderRadius="base" className={ className }/> }
       fallbackStrategy="beforeLoadOrError"

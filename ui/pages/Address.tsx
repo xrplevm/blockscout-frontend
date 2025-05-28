@@ -55,6 +55,7 @@ import sortEntityTags from 'ui/shared/EntityTags/sortEntityTags';
 import IconSvg from 'ui/shared/IconSvg';
 import NetworkExplorers from 'ui/shared/NetworkExplorers';
 import PageTitle from 'ui/shared/Page/PageTitle';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 const TOKEN_TABS = [ 'tokens_erc20', 'tokens_nfts', 'tokens_nfts_collection', 'tokens_nfts_list' ];
 const PREDEFINED_TAG_PRIORITY = 100;

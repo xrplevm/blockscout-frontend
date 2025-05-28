@@ -15,6 +15,7 @@ import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
 import { getTokenFilterValue } from 'ui/tokens/utils';
 import TokenTransfersListItem from 'ui/tokenTransfers/TokenTransfersListItem';
 import TokenTransfersTable from 'ui/tokenTransfers/TokenTransfersTable';
+import PeersystPageWrapper from "../../theme/components/PeersystPageWrapper";
 
 const TokenTransfers = () => {
   const router = useRouter();
@@ -68,7 +69,7 @@ const TokenTransfers = () => {
   );
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle
         title="Token Transfers"
         withTextAd
@@ -81,7 +82,7 @@ const TokenTransfers = () => {
       >
         { content }
       </DataListDisplay>
-    </>
+    </PeersystPageWrapper>
   );
 };
 

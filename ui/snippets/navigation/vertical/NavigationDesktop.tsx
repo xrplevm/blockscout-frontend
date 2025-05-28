@@ -67,6 +67,7 @@ const NavigationDesktop = () => {
       transitionProperty="width, padding"
       transitionDuration="normal"
       transitionTimingFunction="ease"
+      zIndex={ 1 }
     >
       <TestnetBadge position="absolute" pl={ 3 } w="49px" top="34px"/>
       <Box

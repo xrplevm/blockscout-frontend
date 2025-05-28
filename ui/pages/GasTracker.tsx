@@ -19,6 +19,7 @@ import GasTrackerPrices from 'ui/gasTracker/GasTrackerPrices';
 import GasInfoUpdateTimer from 'ui/shared/gas/GasInfoUpdateTimer';
 import NativeTokenIcon from 'ui/shared/NativeTokenIcon';
 import PageTitle from 'ui/shared/Page/PageTitle';
+import PeersystPageWrapper from "../../theme/components/PeersystPageWrapper";
 
 const GasTracker = () => {
   const { data, isPlaceholderData, isError, error, dataUpdatedAt } = useApiQuery('stats', {
@@ -82,7 +83,7 @@ const GasTracker = () => {
   const faq = config.meta.seo.enhancedDataEnabled ? <GasTrackerFaq/> : null;
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle
         title={ config.meta.seo.enhancedDataEnabled ? `${ config.chain.name } gas tracker` : 'Gas tracker' }
         secondRow={ titleSecondRow }
@@ -96,7 +97,7 @@ const GasTracker = () => {
         </Box>
       ) }
       { faq }
-    </>
+    </PeersystPageWrapper>
   );
 };
 

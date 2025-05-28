@@ -1,4 +1,4 @@
-import { Box, useColorModeValue } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -8,6 +8,7 @@ import useIsMobile from 'lib/hooks/useIsMobile';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { BLOCK } from 'stubs/block';
 import { generateListStub } from 'stubs/utils';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import RoutedTabs from 'toolkit/components/RoutedTabs/RoutedTabs';
 import BlocksContent from 'ui/blocks/BlocksContent';
 import BlocksTabSlot from 'ui/blocks/BlocksTabSlot';

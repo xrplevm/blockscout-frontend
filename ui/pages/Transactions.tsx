@@ -153,7 +153,7 @@ const Transactions = () => {
     }
 
     return (
-      <Flex alignItems="center" gap={ 6 }>
+      <Flex alignItems="center" gap={ 6 } >
         { isAdvancedFilterEnabled && (
           <Link
             href={ route({ pathname: '/advanced-filter' }) }

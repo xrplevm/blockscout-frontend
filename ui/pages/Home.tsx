@@ -1,4 +1,4 @@
-import { Box, Flex, useColorModeValue } from '@chakra-ui/react';
+import { Box, Flex } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
@@ -10,6 +10,7 @@ import LatestBlocks from 'ui/home/LatestBlocks';
 import Stats from 'ui/home/Stats';
 import Transactions from 'ui/home/Transactions';
 import AdBanner from 'ui/shared/ad/AdBanner';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 const rollupFeature = config.features.rollup;
 

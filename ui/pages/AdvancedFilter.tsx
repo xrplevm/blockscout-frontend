@@ -37,6 +37,7 @@ import IconSvg from 'ui/shared/IconSvg';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
+import PeersystPageWrapper from "../../theme/components/PeersystPageWrapper";
 
 const COLUMNS_CHECKED = {} as Record<ColumnsIds, boolean>;
 TABLE_COLUMNS.forEach(c => COLUMNS_CHECKED[c.id] = true);
@@ -212,7 +213,7 @@ const AdvancedFilter = () => {
   );
 
   return (
-    <>
+    <PeersystPageWrapper>
       <PageTitle
         title="Advanced filter"
         withTextAd
@@ -255,7 +256,7 @@ const AdvancedFilter = () => {
       >
         { content }
       </DataListDisplay>
-    </>
+    </PeersystPageWrapper>
   );
 };
 
