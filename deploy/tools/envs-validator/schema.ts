@@ -731,6 +731,7 @@ const schema = yup
       }),
     NEXT_PUBLIC_NETWORK_TOKEN_STANDARD_NAME: yup.string(),
     NEXT_PUBLIC_IS_TESTNET: yup.boolean(),
+    NEXT_PUBLIC_IS_DEVNET: yup.boolean(),
 
     // 3. API configuration
     NEXT_PUBLIC_API_PROTOCOL: yup.string().oneOf(protocols),
