@@ -15,9 +15,7 @@ on:
                 description: Image platforms (you can specify multiple platforms separated by comma)
                 required: false
                 type: string
-                default: |
-                    linux/amd64
-                    linux/arm64/v8
+                default: linux/amd64
     workflow_call:
         inputs:
             tags:
@@ -79,7 +77,7 @@ jobs:
                     file: ./Dockerfile
                     push: true
                     cache-from: type=gha
-                    tags: ${{ steps.meta.outputs.tags }}
+                    tags: ${{ inputs.tags || steps.meta.outputs.tags }}
                     platforms: ${{ inputs.platforms }}
                     labels: ${{ steps.meta.outputs.labels }}
                     build-args: |
