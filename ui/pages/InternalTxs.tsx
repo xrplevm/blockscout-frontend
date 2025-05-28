@@ -11,7 +11,8 @@ import DataListDisplay from 'ui/shared/DataListDisplay';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
-import PeersystPageWrapper from "../../theme/components/PeersystPageWrapper";
+
+import PeersystPageWrapper from '../../theme/components/PeersystPageWrapper';
 
 const InternalTxs = () => {
   const isMobile = useIsMobile();

@@ -4,16 +4,16 @@ const SwaggerUIReact = dynamic(() => import('swagger-ui-react'), {
   ssr: false,
 });
 
-import { SystemStyleObject } from '@chakra-ui/react';
+import type { SystemStyleObject } from '@chakra-ui/react';
 import { Box, useToken } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
 import React from 'react';
 
 import config from 'configs/app';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import ContentLoader from 'ui/shared/ContentLoader';
 import 'swagger-ui-react/swagger-ui.css';
 import PageTitle from 'ui/shared/Page/PageTitle';
-import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 const feature = config.features.restApiDocs;
 

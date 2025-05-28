@@ -7,9 +7,9 @@ import { route } from 'nextjs-routes';
 
 import config from 'configs/app';
 import * as mixpanel from 'lib/mixpanel/index';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import { Image } from 'toolkit/chakra/image';
 import { Link } from 'toolkit/chakra/link';
-import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 type Props = {
   data: NonNullable<AddressMetadataTagFormatted['meta']>;

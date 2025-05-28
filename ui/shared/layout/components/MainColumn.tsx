@@ -2,7 +2,7 @@ import { Flex, chakra } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
-import {useColorModeValue} from "../../../../toolkit/chakra/color-mode";
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 interface Props {
   className?: string;

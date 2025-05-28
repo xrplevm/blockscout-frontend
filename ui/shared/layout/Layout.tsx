@@ -24,6 +24,7 @@ const LayoutDefault = ({ children }: Props) => {
             <AppErrorBoundary>
               <Layout.Content>
                 { children }
+                { /* eslint-disable-next-line @next/next/no-img-element */ }
                 <img
                   src="/static/bg-lines-left.png"
                   style={{
@@ -38,6 +39,7 @@ const LayoutDefault = ({ children }: Props) => {
                 />
               </Layout.Content>
             </AppErrorBoundary>
+            { /* eslint-disable-next-line @next/next/no-img-element */ }
             <img
               src="/static/bg-lines-right.png"
               style={{

@@ -2,6 +2,7 @@ import { Box, Flex } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import HeroBanner from 'ui/home/HeroBanner';
 import ChainIndicators from 'ui/home/indicators/ChainIndicators';
 import LatestArbitrumL2Batches from 'ui/home/latestBatches/LatestArbitrumL2Batches';
@@ -10,7 +11,6 @@ import LatestBlocks from 'ui/home/LatestBlocks';
 import Stats from 'ui/home/Stats';
 import Transactions from 'ui/home/Transactions';
 import AdBanner from 'ui/shared/ad/AdBanner';
-import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 const rollupFeature = config.features.rollup;
 

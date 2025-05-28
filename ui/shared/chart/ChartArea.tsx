@@ -6,7 +6,6 @@ import type { TimeChartItem } from 'ui/shared/chart/types';
 
 import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
-
 interface Props extends React.SVGProps<SVGPathElement> {
   id?: string;
   xScale: d3.ScaleTime<number, number> | d3.ScaleLinear<number, number>;

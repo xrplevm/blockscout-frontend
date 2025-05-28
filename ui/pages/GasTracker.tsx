@@ -19,7 +19,8 @@ import GasTrackerPrices from 'ui/gasTracker/GasTrackerPrices';
 import GasInfoUpdateTimer from 'ui/shared/gas/GasInfoUpdateTimer';
 import NativeTokenIcon from 'ui/shared/NativeTokenIcon';
 import PageTitle from 'ui/shared/Page/PageTitle';
-import PeersystPageWrapper from "../../theme/components/PeersystPageWrapper";
+
+import PeersystPageWrapper from '../../theme/components/PeersystPageWrapper';
 
 const GasTracker = () => {
   const { data, isPlaceholderData, isError, error, dataUpdatedAt } = useApiQuery('stats', {

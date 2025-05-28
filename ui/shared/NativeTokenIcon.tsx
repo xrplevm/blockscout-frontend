@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports
 import { Image, chakra } from '@chakra-ui/react';
 import React from 'react';
 

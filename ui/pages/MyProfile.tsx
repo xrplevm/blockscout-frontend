@@ -4,8 +4,8 @@ import React from 'react';
 import type { Screen } from 'ui/snippets/auth/types';
 
 import config from 'configs/app';
-import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
+import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import MyProfileEmail from 'ui/myProfile/MyProfileEmail';
 import MyProfileWallet from 'ui/myProfile/MyProfileWallet';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';

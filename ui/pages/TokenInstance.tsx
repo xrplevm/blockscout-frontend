@@ -16,8 +16,8 @@ import {
   getTokenInstanceTransfersStub,
   getTokenInstanceHoldersStub,
 } from 'stubs/token';
-import RoutedTabs from 'toolkit/components/RoutedTabs/RoutedTabs';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
+import RoutedTabs from 'toolkit/components/RoutedTabs/RoutedTabs';
 import TextAd from 'ui/shared/ad/TextAd';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';

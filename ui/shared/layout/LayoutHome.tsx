@@ -23,6 +23,7 @@ const LayoutHome = ({ children }: Props) => {
             <HeaderAlert/>
             <AppErrorBoundary>
               { children }
+              { /* eslint-disable-next-line @next/next/no-img-element */ }
               <img
                 src="/static/bg-lines-left.png"
                 style={{
@@ -36,6 +37,7 @@ const LayoutHome = ({ children }: Props) => {
                 alt="bg-lines-left"
               />
             </AppErrorBoundary>
+            { /* eslint-disable-next-line @next/next/no-img-element */ }
             <img
               src="/static/bg-lines-right.png"
               style={{
