@@ -1,7 +1,9 @@
-import { Link, Skeleton, Box } from '@chakra-ui/react';
+import { chakra } from '@chakra-ui/react';
 import React, { useCallback, useState } from 'react';
 
 import * as mixpanel from 'lib/mixpanel/index';
+import { Link } from 'toolkit/chakra/link';
+import { Skeleton } from 'toolkit/chakra/skeleton';
 
 const IframeBanner = ({ contentUrl, linkUrl }: { contentUrl: string; linkUrl: string }) => {
   const [ isFrameLoading, setIsFrameLoading ] = useState(true);
@@ -16,7 +18,7 @@ const IframeBanner = ({ contentUrl, linkUrl }: { contentUrl: string; linkUrl: st
 
   return (
     <Skeleton
-      isLoaded={ !isFrameLoading }
+      loading={ isFrameLoading }
       position="relative"
       h="136px"
       w="100%"
@@ -27,8 +29,8 @@ const IframeBanner = ({ contentUrl, linkUrl }: { contentUrl: string; linkUrl: st
     >
       <Link
         href={ linkUrl }
-        target="_blank"
-        rel="noopener noreferrer"
+        external
+        noIcon
         onClick={ handleClick }
         position="absolute"
         w="100%"
@@ -37,8 +39,7 @@ const IframeBanner = ({ contentUrl, linkUrl }: { contentUrl: string; linkUrl: st
         left={ 0 }
         zIndex={ 1 }
       />
-      <Box
-        as="iframe"
+      <chakra.iframe
         h="100%"
         w="100%"
         src={ contentUrl }

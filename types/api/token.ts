@@ -5,12 +5,12 @@ export type NFTTokenType = 'ERC-721' | 'ERC-1155' | 'ERC-404';
 export type TokenType = 'ERC-20' | NFTTokenType;
 
 export interface TokenInfo<T extends TokenType = TokenType> {
-  address: string;
+  address_hash: string;
   type: T;
   symbol: string | null;
   name: string | null;
   decimals: string | null;
-  holders: string | null;
+  holders_count: string | null;
   exchange_rate: string | null;
   total_supply: string | null;
   icon_url: string | null;
@@ -51,15 +51,20 @@ export type TokenHoldersPagination = {
   value: string;
 };
 
+export type ThumbnailSize = '60x60' | '250x250' | '500x500' | 'original';
+
 export interface TokenInstance {
   is_unique: boolean;
   id: string;
   holder_address_hash: string | null;
   image_url: string | null;
   animation_url: string | null;
+  media_url?: string | null;
+  media_type?: string | null;
   external_app_url: string | null;
   metadata: Record<string, unknown> | null;
   owner: AddressParam | null;
+  thumbnails: ({ original: string } & Partial<Record<Exclude<ThumbnailSize, 'original'>, string>>) | null;
 }
 
 export interface TokenInstanceMetadataSocketMessage {

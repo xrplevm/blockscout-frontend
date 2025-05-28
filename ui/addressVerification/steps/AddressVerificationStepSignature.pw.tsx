@@ -11,7 +11,7 @@ const VERIFY_ADDRESS_URL = buildUrl('address_verification', { chainId: '1', type
 test('base view', async({ render, page }) => {
   await page.route(VERIFY_ADDRESS_URL, (route) => route.fulfill({
     status: 200,
-    body: JSON.stringify(mocks.ADDRESS_VERIFY_RESPONSE.SUCCESS),
+    json: mocks.ADDRESS_VERIFY_RESPONSE.SUCCESS,
   }));
 
   const props = {
@@ -28,7 +28,7 @@ test('base view', async({ render, page }) => {
 test('INVALID_SIGNER_ERROR view +@mobile', async({ render, page }) => {
   await page.route(VERIFY_ADDRESS_URL, (route) => route.fulfill({
     status: 200,
-    body: JSON.stringify(mocks.ADDRESS_VERIFY_RESPONSE.INVALID_SIGNER_ERROR),
+    json: mocks.ADDRESS_VERIFY_RESPONSE.INVALID_SIGNER_ERROR,
   }));
 
   const props = {
@@ -44,5 +44,5 @@ test('INVALID_SIGNER_ERROR view +@mobile', async({ render, page }) => {
   await signatureInput.fill(mocks.SIGNATURE);
   await page.getByRole('button', { name: /verify/i }).click();
 
-  await expect(page).toHaveScreenshot();
+  await expect(page).toHaveScreenshot({ fullPage: true });
 });

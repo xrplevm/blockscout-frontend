@@ -4,6 +4,18 @@ Thanks for showing interest to contribute to Blockscout. The following steps wil
 
 &nbsp;
 
+## Our guidelines: what we are looking for
+
+We welcome contributions that enhance the project and improve the overall quality of our codebase. While we appreciate the effort that goes into making contributions, we kindly ask that contributors focus on the following types of changes:
+- **Feature Enhancements:** Substantial improvements or new features that add significant value to the project.
+- **Bug Fixes:** Fixes for known bugs or issues that impact functionality.
+- **Documentation Improvements:** Comprehensive updates to documentation that clarify usage, installation, or project structure.
+- **Performance Improvements:** Changes that enhance the performance or efficiency of the application.
+
+Please note that we accept contributions for newly submitted issues or those labeled "Available for contribution" - all other issues are reserved for the core team of the project.
+
+&nbsp;
+
 ## Project setup
 
 1. Fork the repo by clicking <kbd>Fork</kbd> button at the top of the repo main page and name it appropriately
@@ -50,14 +62,14 @@ A. Custom configuration:
 
 1. Create `.env.local` file in the root folder and include all required environment variables from the [list](./ENVS.md)
 2. Optionally, clone `.env.example` and name it `.env.secrets`. Fill it with necessary secrets for integrating with [external services](./ENVS.md#external-services-configuration). Include only secrets you need.
-3. Use `yarn dev` command to start the dev server.
+3. Use `yarn dev` command to start the Dev Server.
 4. Open your browser and navigate to the URL provided in the command line output (by default, it is `http://localhost:3000`).
 
 B. Pre-defined configuration:
 
 1. Optionally, clone `.env.example` file into `configs/envs/.env.secrets`. Fill it with necessary secrets for integrating with [external services](./ENVS.md#external-services-configuration). Include only secrets your need.
 2. Choose one of the predefined configurations located in the `/configs/envs` folder.
-3. Start your local dev server using the `yarn dev:preset <config_preset_name>` command.
+3. Start your local Dev Server using the `yarn dev:preset <config_preset_name>` command.
 4. Open your browser and navigate to the URL provided in the command line output (by default, it is `http://localhost:3000`).
 
 
@@ -174,8 +186,8 @@ We have 3 pre-configured projects. You can run your test with the desired projec
 | Command | Description |
 | --- | --- |
 | **Running and building** |
-| `yarn dev` | run local dev server with user's configuration |
-| `yarn dev:preset <config_preset_name>` | run local dev server with predefined configuration |
+| `yarn dev` | run local Dev Server with user's configuration |
+| `yarn dev:preset <config_preset_name>` | run local Dev Server with predefined configuration |
 | `yarn build:docker` | build a docker image locally |
 | `yarn start:docker:local` | start an application from previously built local docker image with user's configuration |
 | `yarn start:docker:preset <config_preset_name>` | start an application from previously built local docker image with predefined configuration |
@@ -200,7 +212,7 @@ We have 3 pre-configured projects. You can run your test with the desired projec
 
 #### VSCode
 
-There are some predefined tasks for all commands described above. You can see its full list by pressing <kbd>cmd + shift + P</kbd> and using command `Task: Run task`
+There are some predefined tasks for all commands described above. You can see the full list by pressing <kbd>cmd + shift + P</kbd> and using command `Task: Run task`
 
 Also there is a Jest test launch configuration for debugging and running current test file in the watch mode.
 

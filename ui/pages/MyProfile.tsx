@@ -1,9 +1,10 @@
-import { Flex, useDisclosure } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import React from 'react';
 
 import type { Screen } from 'ui/snippets/auth/types';
 
 import config from 'configs/app';
+import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import MyProfileEmail from 'ui/myProfile/MyProfileEmail';
 import MyProfileWallet from 'ui/myProfile/MyProfileWallet';
@@ -32,7 +33,7 @@ const MyProfile = () => {
   useRedirectForInvalidAuthToken();
 
   const handleAddWalletClick = React.useCallback(() => {
-    setAuthInitialScreen({ type: 'connect_wallet', isAuth: true });
+    setAuthInitialScreen({ type: 'connect_wallet', isAuth: true, loginToRewards: true });
     authModal.onOpen();
   }, [ authModal ]);
 
@@ -56,7 +57,7 @@ const MyProfile = () => {
           { config.features.blockchainInteraction.isEnabled &&
             <MyProfileWallet profileQuery={ profileQuery } onAddWallet={ handleAddWalletClick }/> }
         </Flex>
-        { authModal.isOpen && authInitialScreen &&
+        { authModal.open && authInitialScreen &&
           <AuthModal initialScreen={ authInitialScreen } onClose={ authModal.onClose } mixpanelConfig={ MIXPANEL_CONFIG }/> }
       </>
     );

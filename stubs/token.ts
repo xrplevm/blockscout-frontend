@@ -17,11 +17,11 @@ import { generateListStub } from './utils';
 export const BLOCK_HASH = '0x8fa7b9e5e5e79deeb62d608db22ba9a5cb45388c7ebb9223ae77331c6080dc70';
 
 export const TOKEN_INFO_ERC_20: TokenInfo<'ERC-20'> = {
-  address: ADDRESS_HASH,
+  address_hash: ADDRESS_HASH,
   circulating_market_cap: '117629601.61913824',
   decimals: '18',
   exchange_rate: '0.999997',
-  holders: '16026',
+  holders_count: '16026',
   name: 'Stub Token (goerli)',
   symbol: 'STUB',
   total_supply: '60000000000000000000000',
@@ -110,6 +110,7 @@ export const TOKEN_TRANSFER_ERC_721: TokenTransfer = {
   ...TOKEN_TRANSFER_ERC_20,
   total: {
     token_id: '35870',
+    token_instance: null,
   },
   token: TOKEN_INFO_ERC_721,
 };
@@ -120,6 +121,7 @@ export const TOKEN_TRANSFER_ERC_1155: TokenTransfer = {
     token_id: '35870',
     value: '123',
     decimals: '18',
+    token_instance: null,
   },
   token: TOKEN_INFO_ERC_1155,
 };
@@ -130,6 +132,7 @@ export const TOKEN_TRANSFER_ERC_404: TokenTransfer = {
     token_id: '35870',
     value: '123',
     decimals: '18',
+    token_instance: null,
   },
   token: TOKEN_INFO_ERC_404,
 };
@@ -175,4 +178,5 @@ export const TOKEN_INSTANCE: TokenInstance = {
   },
   owner: ADDRESS_PARAMS,
   holder_address_hash: ADDRESS_HASH,
+  thumbnails: null,
 };

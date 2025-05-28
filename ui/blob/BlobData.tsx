@@ -1,4 +1,4 @@
-import { Flex, GridItem, Select, Skeleton, Button } from '@chakra-ui/react';
+import { createListCollection, Flex, GridItem } from '@chakra-ui/react';
 import React from 'react';
 
 import * as blobUtils from 'lib/blob';
@@ -8,14 +8,23 @@ import downloadBlob from 'lib/downloadBlob';
 import hexToBase64 from 'lib/hexToBase64';
 import hexToBytes from 'lib/hexToBytes';
 import hexToUtf8 from 'lib/hexToUtf8';
+import { Button } from 'toolkit/chakra/button';
+import type { SelectOption } from 'toolkit/chakra/select';
+import { Select } from 'toolkit/chakra/select';
+import { Skeleton } from 'toolkit/chakra/skeleton';
 import CopyToClipboard from 'ui/shared/CopyToClipboard';
 import RawDataSnippet from 'ui/shared/RawDataSnippet';
 
 import BlobDataImage from './BlobDataImage';
 
-const FORMATS = [ 'Image', 'Raw', 'UTF-8', 'Base64' ] as const;
+const FORMATS = [
+  { label: 'Image', value: 'Image' as const },
+  { label: 'Raw', value: 'Raw' as const },
+  { label: 'UTF-8', value: 'UTF-8' as const },
+  { label: 'Base64', value: 'Base64' as const },
+];
 
-type Format = typeof FORMATS[number];
+type Format = typeof FORMATS[number]['value'];
 
 interface Props {
   data: string;
@@ -24,7 +33,7 @@ interface Props {
 }
 
 const BlobData = ({ data, isLoading, hash }: Props) => {
-  const [ format, setFormat ] = React.useState<Format>('Raw');
+  const [ format, setFormat ] = React.useState<Array<Format>>([ 'Raw' ]);
 
   const guessedType = React.useMemo(() => {
     if (isLoading) {
@@ -34,21 +43,26 @@ const BlobData = ({ data, isLoading, hash }: Props) => {
   }, [ data, isLoading ]);
 
   const isImage = guessedType?.mime?.startsWith('image/');
-  const formats = isImage ? FORMATS : FORMATS.filter((format) => format !== 'Image');
+  const collection = React.useMemo(() => {
+    const formats = isImage ? FORMATS : FORMATS.filter((format) => format.value !== 'Image');
+    return createListCollection<SelectOption>({
+      items: formats,
+    });
+  }, [ isImage ]);
 
   React.useEffect(() => {
     if (isImage) {
-      setFormat('Image');
+      setFormat([ 'Image' ]);
     }
   }, [ isImage ]);
 
-  const handleSelectChange = React.useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFormat(event.target.value as Format);
+  const handleFormatChange = React.useCallback(({ value }: { value: Array<string> }) => {
+    setFormat(value as Array<Format>);
   }, []);
 
   const handleDownloadButtonClick = React.useCallback(() => {
     const fileBlob = (() => {
-      switch (format) {
+      switch (format[0]) {
         case 'Image': {
           const bytes = hexToBytes(data);
           const filteredBytes = removeNonSignificantZeroBytes(bytes);
@@ -71,7 +85,7 @@ const BlobData = ({ data, isLoading, hash }: Props) => {
   }, [ data, format, guessedType, hash ]);
 
   const content = (() => {
-    switch (format) {
+    switch (format[0]) {
       case 'Image': {
         if (!guessedType?.mime?.startsWith('image/')) {
           return <RawDataSnippet data="Not an image" showCopy={ false } isLoading={ isLoading }/>;
@@ -99,23 +113,19 @@ const BlobData = ({ data, isLoading, hash }: Props) => {
   return (
     <GridItem colSpan={{ base: undefined, lg: 2 }} mt={{ base: 3, lg: 2 }}>
       <Flex alignItems="center" mb={ 3 }>
-        <Skeleton fontWeight={{ base: 700, lg: 500 }} isLoaded={ !isLoading }>
+        <Skeleton fontWeight={{ base: 700, lg: 500 }} loading={ isLoading }>
           Blob data
         </Skeleton>
-        <Skeleton ml={ 5 } isLoaded={ !isLoading }>
-          <Select
-            size="xs"
-            borderRadius="base"
-            value={ format }
-            onChange={ handleSelectChange }
-            w="auto"
-          >
-            { formats.map((format) => (
-              <option key={ format } value={ format }>{ format }</option>
-            )) }
-          </Select>
-        </Skeleton>
-        <Skeleton ml="auto" mr={ 3 } isLoaded={ !isLoading }>
+        <Select
+          collection={ collection }
+          placeholder="Select type"
+          value={ format }
+          onValueChange={ handleFormatChange }
+          ml={ 5 }
+          w="100px"
+          loading={ isLoading }
+        />
+        <Skeleton ml="auto" mr={ 3 } loading={ isLoading }>
           <Button
             variant="outline"
             size="sm"

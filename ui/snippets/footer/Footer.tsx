@@ -1,5 +1,5 @@
 import type { GridProps, HTMLChakraProps } from '@chakra-ui/react';
-import { Image, Box, Grid, Flex, Text, Link, VStack, Skeleton, useColorModeValue } from '@chakra-ui/react';
+import { Image, Box, Grid, Flex, Text, VStack } from '@chakra-ui/react';
 import { useQuery } from '@tanstack/react-query';
 import React from 'react';
 
@@ -10,6 +10,9 @@ import type { ResourceError } from 'lib/api/resources';
 import useApiQuery from 'lib/api/useApiQuery';
 import useFetch from 'lib/hooks/useFetch';
 import useIssueUrl from 'lib/hooks/useIssueUrl';
+import { Link } from 'toolkit/chakra/link';
+import { Skeleton } from 'toolkit/chakra/skeleton';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import { CONTENT_MAX_WIDTH } from 'ui/shared/layout/utils';
 import NetworkAddToWallet from 'ui/shared/NetworkAddToWallet';
 
@@ -23,6 +26,7 @@ const FRONT_VERSION_URL = `https://github.com/blockscout/frontend/tree/${ config
 const FRONT_COMMIT_URL = `https://github.com/blockscout/frontend/commit/${ config.UI.footer.frontendCommit }`;
 
 const Footer = () => {
+
   const { data: backendVersionData } = useApiQuery('config_backend_version', {
     queryOptions: {
       staleTime: Infinity,
@@ -37,12 +41,6 @@ const Footer = () => {
       iconSize: '16px',
       text: 'Submit an issue',
       url: issueUrl,
-    },
-    {
-      icon: 'social/canny' as const,
-      iconSize: '20px',
-      text: 'Feature request',
-      url: 'https://blockscout.canny.io/feature-requests',
     },
     {
       icon: 'social/git' as const,
@@ -78,19 +76,11 @@ const Footer = () => {
 
   const frontendLink = (() => {
     if (config.UI.footer.frontendVersion) {
-      return (
-        <Link href={ FRONT_VERSION_URL } target="_blank">
-          { config.UI.footer.frontendVersion }
-        </Link>
-      );
+      return <Link href={ FRONT_VERSION_URL } target="_blank">{ config.UI.footer.frontendVersion }</Link>;
     }
 
     if (config.UI.footer.frontendCommit) {
-      return (
-        <Link href={ FRONT_COMMIT_URL } target="_blank">
-          { config.UI.footer.frontendCommit }
-        </Link>
-      );
+      return <Link href={ FRONT_COMMIT_URL } target="_blank">{ config.UI.footer.frontendCommit }</Link>;
     }
 
     return null;
@@ -112,7 +102,14 @@ const Footer = () => {
 
   const renderNetworkInfo = React.useCallback((gridArea?: GridProps['gridArea']) => {
     return (
-      <Flex gridArea={ gridArea } flexWrap="wrap" columnGap={ 8 } rowGap={ 6 } mb={{ base: 5, lg: 10 }} _empty={{ display: 'none' }}>
+      <Flex
+        gridArea={ gridArea }
+        flexWrap="wrap"
+        columnGap={ 8 }
+        rowGap={ 6 }
+        mb={{ base: 5, lg: 10 }}
+        _empty={{ display: 'none' }}
+      >
         { !config.UI.indexingAlert.intTxs.isHidden && <IntTxsIndexingStatus/> }
         <NetworkAddToWallet/>
       </Flex>
@@ -150,7 +147,7 @@ const Footer = () => {
   const containerProps: HTMLChakraProps<'div'> = {
     as: 'footer',
     borderTopWidth: '1px',
-    borderTopColor: 'solid',
+    borderTopColor: 'border.divider',
   };
 
   const contentProps: GridProps = {
@@ -163,6 +160,22 @@ const Footer = () => {
     backdropFilter: 'blur(8px)',
   };
 
+  const renderRecaptcha = (gridArea?: GridProps['gridArea']) => {
+    if (!config.services.reCaptchaV2.siteKey) {
+      return <Box gridArea={ gridArea }/>;
+    }
+
+    return (
+      <Box gridArea={ gridArea } textStyle="xs" mt={ 6 }>
+        <span>This site is protected by reCAPTCHA and the Google </span>
+        <Link href="https://policies.google.com/privacy" external noIcon>Privacy Policy</Link>
+        <span> and </span>
+        <Link href="https://policies.google.com/terms" external noIcon>Terms of Service</Link>
+        <span> apply.</span>
+      </Box>
+    );
+  };
+
   if (config.UI.footer.links) {
     return (
       <Box { ...containerProps }>
@@ -170,6 +183,7 @@ const Footer = () => {
           <div>
             { renderNetworkInfo() }
             { renderProjectInfo() }
+            { renderRecaptcha() }
           </div>
 
           <Grid
@@ -182,18 +196,21 @@ const Footer = () => {
             justifyContent={{ lg: 'flex-end' }}
             mt={{ base: 8, lg: 0 }}
           >
-            { [ { title: 'Blockscout', links: BLOCKSCOUT_LINKS }, ...(linksData || []) ].slice(0, colNum).map((linkGroup) => (
-              <Box key={ linkGroup.title }>
-                <Skeleton fontWeight={ 500 } mb={ 3 } display="inline-block" isLoaded={ !isPlaceholderData }>
-                  { linkGroup.title }
-                </Skeleton>
-                <VStack spacing={ 1 } alignItems="start">
-                  { linkGroup.links.map((link) => (
-                    <FooterLinkItem { ...link } key={ link.text } isLoading={ isPlaceholderData }/>
-                  )) }
-                </VStack>
-              </Box>
-            )) }
+            {
+              ([
+                { title: 'Blockscout', links: BLOCKSCOUT_LINKS },
+                ...(linksData || []),
+              ])
+                .slice(0, colNum)
+                .map(linkGroup => (
+                  <Box key={ linkGroup.title }>
+                    <Skeleton fontWeight={ 500 } mb={ 3 } display="inline-block" loading={ isPlaceholderData }>{ linkGroup.title }</Skeleton>
+                    <VStack gap={ 1 } alignItems="start">
+                      { linkGroup.links.map(link => <FooterLinkItem { ...link } key={ link.text } isLoading={ isPlaceholderData }/>) }
+                    </VStack>
+                  </Box>
+                ))
+            }
           </Grid>
         </Grid>
       </Box>
@@ -208,19 +225,22 @@ const Footer = () => {
           lg: `
           "network links-top"
           "info links-bottom"
+          "recaptcha links-bottom"
         `,
         }}
       >
+
         { renderNetworkInfo({ lg: 'network' }) }
         { renderProjectInfo({ lg: 'info' }) }
+        { renderRecaptcha({ lg: 'recaptcha' }) }
 
         <Grid
           gridArea={{ lg: 'links-bottom' }}
           gap={ 1 }
           gridTemplateColumns={{
             base: 'repeat(auto-fill, 160px)',
-            lg: 'repeat(3, 160px)',
-            xl: 'repeat(4, 160px)',
+            lg: 'repeat(2, 160px)',
+            xl: 'repeat(3, 160px)',
           }}
           gridTemplateRows={{
             base: 'auto',
@@ -232,9 +252,7 @@ const Footer = () => {
           justifyContent={{ lg: 'flex-end' }}
           mt={{ base: 8, lg: 0 }}
         >
-          { BLOCKSCOUT_LINKS.map((link) => (
-            <FooterLinkItem { ...link } key={ link.text }/>
-          )) }
+          { BLOCKSCOUT_LINKS.map(link => <FooterLinkItem { ...link } key={ link.text }/>) }
         </Grid>
       </Grid>
     </Box>

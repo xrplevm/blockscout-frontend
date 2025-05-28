@@ -58,8 +58,14 @@ else
 fi
 echo
 
+# Generate OG image
+node --no-warnings ./og_image_generator.js
+
 # Create envs.js file with run-time environment variables for the client app
 ./make_envs_script.sh
+
+# Generate sitemap.xml and robots.txt files
+./sitemap_generator.sh
 
 # Print list of enabled features
 node ./feature-reporter.js

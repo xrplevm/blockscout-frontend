@@ -1,4 +1,4 @@
-import { chakra, Flex, Hide, Show, Skeleton } from '@chakra-ui/react';
+import { Box, chakra, Flex } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -7,6 +7,7 @@ import type { EntityTag as TEntityTag, EntityTagType } from 'ui/shared/EntityTag
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { TOP_ADDRESS } from 'stubs/address';
 import { generateListStub } from 'stubs/utils';
+import { Skeleton } from 'toolkit/chakra/skeleton';
 import AddressesLabelSearchListItem from 'ui/addressesLabelSearch/AddressesLabelSearchListItem';
 import AddressesLabelSearchTable from 'ui/addressesLabelSearch/AddressesLabelSearchTable';
 import { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
@@ -42,14 +43,14 @@ const AccountsLabelSearch = () => {
 
   const content = data?.items ? (
     <>
-      <Hide below="lg" ssr={ false }>
+      <Box hideBelow="lg">
         <AddressesLabelSearchTable
           top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }
           items={ data.items }
           isLoading={ isPlaceholderData }
         />
-      </Hide>
-      <Show below="lg" ssr={ false }>
+      </Box>
+      <Box hideFrom="lg">
         { data.items.map((item, index) => {
           return (
             <AddressesLabelSearchListItem
@@ -59,7 +60,7 @@ const AccountsLabelSearch = () => {
             />
           );
         }) }
-      </Show>
+      </Box>
     </>
   ) : null;
 
@@ -79,10 +80,7 @@ const AccountsLabelSearch = () => {
 
     return (
       <Flex alignItems="center" columnGap={ 2 } flexWrap="wrap" rowGap={ 1 }>
-        <Skeleton
-          isLoaded={ !isPlaceholderData }
-          display="inline-block"
-        >
+        <Skeleton loading={ isPlaceholderData } display="inline-block">
           Found{ ' ' }
           <chakra.span fontWeight={ 700 }>
             { num }{ data?.next_page_params || pagination.page > 1 ? '+' : '' }
@@ -101,11 +99,12 @@ const AccountsLabelSearch = () => {
       <PageTitle title="Search result" withTextAd/>
       <DataListDisplay
         isError={ isError }
-        items={ data?.items }
+        itemsNum={ data?.items.length }
         emptyText={ text }
-        content={ content }
         actionBar={ actionBar }
-      />
+      >
+        { content }
+      </DataListDisplay>
     </>
   );
 };

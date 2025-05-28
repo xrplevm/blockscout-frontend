@@ -27,17 +27,28 @@ const RESTRICTED_MODULES = {
     { name: 'playwright/TestApp', message: 'Please use render() fixture from test() function of playwright/lib module' },
     {
       name: '@chakra-ui/react',
-      importNames: [ 'Popover', 'Menu', 'PinInput', 'useToast' ],
-      message: 'Please use corresponding component or hook from ui/shared/chakra component instead',
+      importNames: [
+        'Menu', 'useToast', 'useDisclosure', 'useClipboard', 'Tooltip', 'Skeleton', 'IconButton', 'Button', 'ButtonGroup', 'Link', 'LinkBox', 'LinkOverlay',
+        'Dialog', 'DialogRoot', 'DialogContent', 'DialogHeader', 'DialogCloseTrigger', 'DialogBody',
+        'Tag', 'Switch', 'Image', 'Popover', 'PopoverTrigger', 'PopoverContent', 'PopoverBody', 'PopoverFooter',
+        'DrawerRoot', 'DrawerBody', 'DrawerContent', 'DrawerOverlay', 'DrawerBackdrop', 'DrawerTrigger', 'Drawer',
+        'Alert', 'AlertIcon', 'AlertTitle', 'AlertDescription',
+        'Select', 'SelectRoot', 'SelectControl', 'SelectContent', 'SelectItem', 'SelectValueText',
+        'Heading', 'Badge', 'Tabs', 'Show', 'Hide', 'Checkbox', 'CheckboxGroup',
+        'Table', 'TableRoot', 'TableBody', 'TableHeader', 'TableRow', 'TableCell',
+        'Menu', 'MenuRoot', 'MenuTrigger', 'MenuContent', 'MenuItem', 'MenuTriggerItem', 'MenuRadioItemGroup', 'MenuContextTrigger',
+        'Rating', 'RatingGroup', 'Textarea',
+      ],
+      message: 'Please use corresponding component or hook from "toolkit" instead',
     },
     {
-      name: 'lodash',
-      message: 'Please use `import [package] from \'lodash/[package]\'` instead.',
+      name: 'next/link',
+      importNames: [ 'default' ],
+      message: 'Please use toolkit/chakra/link component instead',
     },
   ],
   patterns: [
     'icons/*',
-    '!lodash/*',
   ],
 };
 
@@ -54,9 +65,7 @@ export default tseslint.config(
   { ignores: [
     'deploy/tools/',
     'public/',
-    'theme/dist/',
     '.git/',
-    'theme/webpack.config.js',
     'next.config.js',
   ] },
 
@@ -230,16 +239,13 @@ export default tseslint.config(
 
   {
     plugins: { '@tanstack/query': reactQueryPlugin },
-    rules: {
-      '@tanstack/query/no-unstable-deps': 'off', // TODO @tom2drum turn on this rule
-    },
   },
 
   {
-    plugins: { playwright: playwrightPlugin },
+    ...playwrightPlugin.configs['flat/recommended'],
     files: [ '**/*.pw.tsx' ],
     rules: {
-      'playwright/valid-title': 'warn', // TODO @tom2drum turn on this rule
+      ...playwrightPlugin.configs['flat/recommended'].rules,
       'playwright/no-standalone-expect': 'off', // this rules does not work correctly with extended test functions
     },
   },
@@ -297,6 +303,7 @@ export default tseslint.config(
               '/^playwright/',
               '/^stubs/',
               '/^theme/',
+              '/^toolkit/',
               '/^ui/',
             ],
             [ 'parent', 'sibling', 'index' ],
@@ -431,6 +438,7 @@ export default tseslint.config(
       'pages/**',
       'nextjs/**',
       'playwright/**',
+      'deploy/scripts/**',
       'deploy/tools/**',
       'middleware.ts',
       'instrumentation*.ts',
@@ -440,6 +448,17 @@ export default tseslint.config(
     rules: {
       // for configs allow to consume env variables from process.env directly
       'no-restricted-properties': 'off',
+    },
+  },
+  {
+    files: [
+      'toolkit/chakra/**',
+      'toolkit/components/**',
+      'toolkit/package/**',
+    ],
+    rules: {
+      // for toolkit components allow to import @chakra-ui/react directly
+      'no-restricted-imports': 'off',
     },
   },
 );

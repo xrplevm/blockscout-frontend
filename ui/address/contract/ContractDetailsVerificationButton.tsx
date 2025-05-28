@@ -1,7 +1,9 @@
-import { Button, Skeleton } from '@chakra-ui/react';
 import React from 'react';
 
 import { route } from 'nextjs-routes';
+
+import { Button } from 'toolkit/chakra/button';
+import { Link } from 'toolkit/chakra/link';
 
 interface Props {
   isLoading: boolean;
@@ -10,29 +12,21 @@ interface Props {
 }
 
 const ContractDetailsVerificationButton = ({ isLoading, addressHash, isPartiallyVerified }: Props) => {
-  if (isLoading) {
-    return (
-      <Skeleton
-        w="130px"
-        h={ 8 }
-        mr={ isPartiallyVerified ? 0 : 3 }
-        ml={ isPartiallyVerified ? 0 : 'auto' }
-        borderRadius="base"
-        flexShrink={ 0 }
-      />
-    );
-  }
   return (
-    <Button
-      size="sm"
+    <Link
+      href={ route({ pathname: '/address/[hash]/contract-verification', query: { hash: addressHash } }) }
       mr={ isPartiallyVerified ? 0 : 3 }
       ml={ isPartiallyVerified ? 0 : 'auto' }
       flexShrink={ 0 }
-      as="a"
-      href={ route({ pathname: '/address/[hash]/contract-verification', query: { hash: addressHash } }) }
+      asChild
     >
-      Verify & publish
-    </Button>
+      <Button
+        size="sm"
+        loadingSkeleton={ isLoading }
+      >
+        Verify & publish
+      </Button>
+    </Link>
   );
 };
 

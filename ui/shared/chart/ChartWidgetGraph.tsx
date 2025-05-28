@@ -41,7 +41,7 @@ const ChartWidgetGraph = ({
   zoomRange,
 }: Props) => {
   const isMobile = useIsMobile();
-  const color = useToken('colors', 'purple.200');
+  const [ color ] = useToken('colors', 'purple.200');
   const chartId = `chart-${ title.split(' ').join('') }-${ isEnlarged ? 'fullscreen' : 'small' }`;
 
   const overlayRef = React.useRef<SVGRectElement>(null);
@@ -63,14 +63,14 @@ const ChartWidgetGraph = ({
   const axesConfig = React.useMemo(() => {
     return {
       x: {
-        ticks: isEnlarged ? 8 : 4,
+        ticks: isEnlarged && !isMobile ? 8 : 4,
       },
       y: {
         ticks: isEnlarged ? 6 : 3,
         nice: true,
       },
     };
-  }, [ isEnlarged ]);
+  }, [ isEnlarged, isMobile ]);
 
   const {
     ref,

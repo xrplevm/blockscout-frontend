@@ -5,6 +5,7 @@ import type { AddressTokensResponse } from 'types/api/address';
 
 import * as addressMock from 'mocks/address/address';
 import * as tokensMock from 'mocks/address/tokens';
+import * as tokenInstance from 'mocks/tokens/tokenInstance';
 import * as socketServer from 'playwright/fixtures/socketServer';
 import { test, expect, devices } from 'playwright/lib';
 
@@ -83,7 +84,9 @@ test('collections +@dark-mode', async({ render }) => {
   await expect(component).toHaveScreenshot();
 });
 
-test('nfts +@dark-mode', async({ render }) => {
+test('nfts +@dark-mode', async({ render, mockAssetResponse }) => {
+  await mockAssetResponse(tokenInstance.base.image_url as string, './playwright/mocks/image_s.jpg');
+
   const hooksConfig = {
     router: {
       query: { hash: ADDRESS_HASH, tab: 'tokens_nfts' },
@@ -124,7 +127,9 @@ test.describe('mobile', () => {
     await expect(component).toHaveScreenshot();
   });
 
-  test('nfts', async({ render }) => {
+  test('nfts', async({ render, mockAssetResponse }) => {
+    await mockAssetResponse(tokenInstance.base.image_url as string, './playwright/mocks/image_s.jpg');
+
     const hooksConfig = {
       router: {
         query: { hash: ADDRESS_HASH, tab: 'tokens_nfts' },
@@ -139,7 +144,7 @@ test.describe('mobile', () => {
       { hooksConfig },
     );
 
-    await component.getByLabel('list').click();
+    await component.locator('button').filter({ hasText: 'List' }).click();
 
     await expect(component).toHaveScreenshot();
   });
@@ -166,7 +171,7 @@ test.describe('mobile', () => {
 test.describe('update balances via socket', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('', async({ render, page, createSocket, mockApiResponse }) => {
+  test('base flow', async({ render, page, createSocket, mockApiResponse }) => {
     test.slow();
 
     const hooksConfig = {
@@ -230,7 +235,7 @@ test.describe('update balances via socket', () => {
           value: '9852000000000000',
           token: {
             ...tokensMock.erc20c.token,
-            address: '0xE2cf36D00C57e01371b94B4206ae2CF841931Adc',
+            address_hash: '0xE2cf36D00C57e01371b94B4206ae2CF841931Adc',
             name: 'Tether USD',
             symbol: 'USDT',
           },

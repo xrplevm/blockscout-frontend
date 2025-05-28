@@ -1,4 +1,4 @@
-import { OrderedList, ListItem, chakra, Button, useDisclosure, Show, Hide, Skeleton, Link } from '@chakra-ui/react';
+import { List, chakra, Box } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -10,6 +10,9 @@ import useApiQuery, { getResourceKey } from 'lib/api/useApiQuery';
 import { PAGE_TYPE_DICT } from 'lib/mixpanel/getPageType';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { TOKEN_INFO_APPLICATION, VERIFIED_ADDRESS } from 'stubs/account';
+import { Button } from 'toolkit/chakra/button';
+import { Link } from 'toolkit/chakra/link';
+import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import AddressVerificationModal from 'ui/addressVerification/AddressVerificationModal';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';
@@ -111,18 +114,16 @@ const VerifiedAddresses = () => {
   const addButton = (() => {
     if (userWithoutEmail) {
       return (
-        <Button size="lg" isDisabled mt={ 8 }>
+        <Button disabled mt={ 8 }>
           Add address
         </Button>
       );
     }
 
     return (
-      <Skeleton mt={ 8 } isLoaded={ !isLoading } display="inline-block">
-        <Button size="lg" onClick={ modalProps.onOpen }>
-          Add address
-        </Button>
-      </Skeleton>
+      <Button onClick={ modalProps.onOpen } loadingSkeleton={ isLoading } mt={ 8 }>
+        Add address
+      </Button>
     );
   })();
 
@@ -161,7 +162,7 @@ const VerifiedAddresses = () => {
     if (addressesQuery.data?.verifiedAddresses) {
       return (
         <>
-          <Show below="lg" key="content-mobile" ssr={ false }>
+          <Box hideFrom="lg" key="content-mobile">
             { addressesQuery.data.verifiedAddresses.map((item, index) => (
               <VerifiedAddressesListItem
                 key={ item.contractAddress + (isLoading ? index : '') }
@@ -175,8 +176,8 @@ const VerifiedAddresses = () => {
                 isLoading={ isLoading }
               />
             )) }
-          </Show>
-          <Hide below="lg" key="content-desktop" ssr={ false }>
+          </Box>
+          <Box hideBelow="lg" key="content-desktop">
             <VerifiedAddressesTable
               data={ addressesQuery.data.verifiedAddresses }
               applications={ applicationsQuery.data?.submissions }
@@ -184,7 +185,7 @@ const VerifiedAddresses = () => {
               onItemAdd={ handleItemAdd }
               isLoading={ isLoading }
             />
-          </Hide>
+          </Box>
         </>
       );
     }
@@ -206,14 +207,14 @@ const VerifiedAddresses = () => {
         <chakra.p fontWeight={ 600 } mt={ 5 }>
           Before starting, make sure that:
         </chakra.p>
-        <OrderedList ml={ 6 }>
-          <ListItem>The source code for the smart contract is deployed on “{ config.chain.name }”.</ListItem>
-          <ListItem>
+        <List.Root pl={ 5 } as="ol">
+          <List.Item>The source code for the smart contract is deployed on “{ config.chain.name }”.</List.Item>
+          <List.Item>
             <span>The source code is verified (if not yet verified, you can use </span>
             <Link href="https://docs.blockscout.com/for-users/verifying-a-smart-contract" target="_blank">this tool</Link>
             <span>).</span>
-          </ListItem>
-        </OrderedList>
+          </List.Item>
+        </List.Root>
         <chakra.div mt={ 5 }>
           Once these steps are complete, click the Add address button below to get started.
         </chakra.div>
@@ -221,15 +222,16 @@ const VerifiedAddresses = () => {
       </AccountPageDescription>
       <DataListDisplay
         isError={ profileQuery.isError || addressesQuery.isError || applicationsQuery.isError }
-        items={ addressesQuery.data?.verifiedAddresses }
-        content={ content }
+        itemsNum={ addressesQuery.data?.verifiedAddresses.length }
         emptyText=""
-      />
+      >
+        { content }
+      </DataListDisplay>
       { addButton }
       <AddressVerificationModal
         pageType={ PAGE_TYPE_DICT['/account/verified-addresses'] }
-        isOpen={ modalProps.isOpen }
-        onClose={ modalProps.onClose }
+        open={ modalProps.open }
+        onOpenChange={ modalProps.onOpenChange }
         onSubmit={ handleAddressSubmit }
         onAddTokenInfoClick={ handleItemAdd }
         onShowListClick={ modalProps.onClose }

@@ -1,35 +1,49 @@
-import { useColorMode } from '@chakra-ui/react';
-import { createWeb3Modal, useWeb3ModalTheme } from '@web3modal/wagmi/react';
+import type { AppKitNetwork } from '@reown/appkit/networks';
+import { createAppKit, useAppKitTheme } from '@reown/appkit/react';
 import React from 'react';
 import { WagmiProvider } from 'wagmi';
 
 import config from 'configs/app';
+import { currentChain, parentChain } from 'lib/web3/chains';
 import wagmiConfig from 'lib/web3/wagmiConfig';
-import colors from 'theme/foundations/colors';
-import { BODY_TYPEFACE } from 'theme/foundations/typography';
-import zIndices from 'theme/foundations/zIndices';
+import { useColorMode } from 'toolkit/chakra/color-mode';
+import colors from 'toolkit/theme/foundations/colors';
+import { BODY_TYPEFACE } from 'toolkit/theme/foundations/typography';
+import zIndex from 'toolkit/theme/foundations/zIndex';
 
 const feature = config.features.blockchainInteraction;
 
 const init = () => {
   try {
-    if (!feature.isEnabled) {
+    if (!feature.isEnabled || !wagmiConfig.adapter) {
       return;
     }
 
-    createWeb3Modal({
-      wagmiConfig,
+    createAppKit({
+      adapters: [ wagmiConfig.adapter ],
+      networks: [ currentChain, parentChain ].filter(Boolean) as [AppKitNetwork, ...Array<AppKitNetwork>],
+      metadata: {
+        name: `${ config.chain.name } explorer`,
+        description: `${ config.chain.name } explorer`,
+        url: config.app.baseUrl,
+        icons: [ config.UI.navigation.icon.default ].filter(Boolean),
+      },
       projectId: feature.walletConnect.projectId,
+      features: {
+        analytics: false,
+        email: false,
+        socials: [],
+        onramp: false,
+        swaps: false,
+      },
       themeVariables: {
         '--w3m-font-family': `${ BODY_TYPEFACE }, sans-serif`,
-        '--w3m-accent': colors.blue[600],
+        '--w3m-accent': colors.blue[600].value,
         '--w3m-border-radius-master': '2px',
-        '--w3m-z-index': zIndices.popover,
+        '--w3m-z-index': zIndex?.modal2?.value,
       },
       featuredWalletIds: [],
       allowUnsupportedChain: true,
-      enableOnramp: false,
-      enableSwaps: false,
     });
   } catch (error) {}
 };
@@ -42,7 +56,7 @@ interface Props {
 
 const DefaultProvider = ({ children }: Props) => {
   return (
-    <WagmiProvider config={ wagmiConfig }>
+    <WagmiProvider config={ wagmiConfig.config }>
       { children }
     </WagmiProvider>
   );
@@ -50,10 +64,10 @@ const DefaultProvider = ({ children }: Props) => {
 
 const Web3ModalProvider = ({ children }: Props) => {
   const { colorMode } = useColorMode();
-  const { setThemeMode } = useWeb3ModalTheme();
+  const { setThemeMode } = useAppKitTheme();
 
   React.useEffect(() => {
-    setThemeMode(colorMode);
+    setThemeMode(colorMode ?? 'light');
   }, [ colorMode, setThemeMode ]);
 
   return (

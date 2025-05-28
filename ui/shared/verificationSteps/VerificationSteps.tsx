@@ -1,7 +1,9 @@
-import { Skeleton, chakra } from '@chakra-ui/react';
+import { chakra } from '@chakra-ui/react';
 import React from 'react';
 
 import type { Step } from './types';
+
+import { Skeleton } from 'toolkit/chakra/skeleton';
 
 import VerificationStep from './VerificationStep';
 
@@ -23,7 +25,7 @@ const VerificationSteps = ({ currentStep, currentStepPending, steps, isLoading, 
   return (
     <Skeleton
       className={ className }
-      isLoaded={ !isLoading }
+      loading={ isLoading }
       display="flex"
       gap={ 2 }
       alignItems="center"
@@ -36,6 +38,7 @@ const VerificationSteps = ({ currentStep, currentStepPending, steps, isLoading, 
           isLast={ index === steps.length - 1 && !rightSlot }
           isPassed={ index <= currentStepIndex }
           isPending={ index === currentStepIndex && currentStepPending }
+          noIcon={ typeof step !== 'string' && index === currentStepIndex }
         />
       )) }
       { rightSlot }

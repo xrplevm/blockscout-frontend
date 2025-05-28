@@ -1,4 +1,4 @@
-import { Button, Image, Text, useColorModeValue, chakra } from '@chakra-ui/react';
+import { Text, chakra } from '@chakra-ui/react';
 import React from 'react';
 
 import type { AddressMetadataTagFormatted } from 'types/client/addressMetadata';
@@ -7,8 +7,9 @@ import { route } from 'nextjs-routes';
 
 import config from 'configs/app';
 import * as mixpanel from 'lib/mixpanel/index';
-
-import LinkExternal from '../links/LinkExternal';
+import { Image } from 'toolkit/chakra/image';
+import { Link } from 'toolkit/chakra/link';
+import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 type Props = {
   data: NonNullable<AddressMetadataTagFormatted['meta']>;
@@ -47,44 +48,29 @@ const AppActionButton = ({ data, className, txHash, source }: Props) => {
           mr={ 2 }
         />
       ) }
-      <Text fontSize="sm" fontWeight="500" color="currentColor">
+      <Text textStyle="sm" fontWeight="500" color="currentColor">
         { appActionButtonText }
       </Text>
     </>
   );
 
-  return appID ? (
-    <Button
+  const isExternal = !appID;
+
+  return (
+    <Link
       className={ className }
-      as="a"
-      href={ route({ pathname: '/apps/[id]', query: { id: appID, action: 'connect', ...(actionURL ? { url: actionURL } : {}) } }) }
+      href={ isExternal ? actionURL : route({ pathname: '/apps/[id]', query: { id: appID, action: 'connect', ...(actionURL ? { url: actionURL } : {}) } }) }
+      external={ isExternal }
       onClick={ handleClick }
-      display="flex"
-      size="sm"
-      px={ 2 }
+      variant="underlaid"
+      iconColor={ textColor }
       color={ textColor || defaultTextColor }
       bg={ bgColor || defaultBg }
-      _hover={{ bg: bgColor, opacity: 0.9 }}
-      _active={{ bg: bgColor, opacity: 0.9 }}
+      _hover={{ color: textColor, opacity: textColor || bgColor ? 0.9 : 1 }}
+      _active={{ color: textColor, opacity: textColor || bgColor ? 0.9 : 1 }}
     >
       { content }
-    </Button>
-  ) : (
-    <LinkExternal
-      className={ className }
-      href={ actionURL }
-      onClick={ handleClick }
-      variant="subtle"
-      display="flex"
-      px={ 2 }
-      iconColor={ textColor }
-      color={ textColor }
-      bg={ bgColor }
-      _hover={{ color: textColor }}
-      _active={{ color: textColor }}
-    >
-      { content }
-    </LinkExternal>
+    </Link>
   );
 };
 

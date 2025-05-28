@@ -1,9 +1,9 @@
-import { Box, Flex, HStack, useColorModeValue } from '@chakra-ui/react';
+import { Box, Flex, HStack } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
+import type { TabItemRegular } from 'toolkit/components/AdaptiveTabs/types';
 import type { EntityTag } from 'ui/shared/EntityTags/types';
-import type { RoutedTab } from 'ui/shared/Tabs/types';
 
 import config from 'configs/app';
 import getCheckedSummedAddress from 'lib/address/getCheckedSummedAddress';
@@ -19,6 +19,7 @@ import useSocketMessage from 'lib/socket/useSocketMessage';
 import useFetchXStarScore from 'lib/xStarScore/useFetchXStarScore';
 import { ADDRESS_TABS_COUNTERS } from 'stubs/address';
 import { USER_OPS_ACCOUNT } from 'stubs/userOps';
+import RoutedTabs from 'toolkit/components/RoutedTabs/RoutedTabs';
 import AddressAccountHistory from 'ui/address/AddressAccountHistory';
 import AddressBlocksValidated from 'ui/address/AddressBlocksValidated';
 import AddressCoinBalance from 'ui/address/AddressCoinBalance';
@@ -54,9 +55,9 @@ import sortEntityTags from 'ui/shared/EntityTags/sortEntityTags';
 import IconSvg from 'ui/shared/IconSvg';
 import NetworkExplorers from 'ui/shared/NetworkExplorers';
 import PageTitle from 'ui/shared/Page/PageTitle';
-import RoutedTabs from 'ui/shared/Tabs/RoutedTabs';
 
 const TOKEN_TABS = [ 'tokens_erc20', 'tokens_nfts', 'tokens_nfts_collection', 'tokens_nfts_list' ];
+const PREDEFINED_TAG_PRIORITY = 100;
 
 const txInterpretation = config.features.txInterpretation;
 const addressProfileAPIFeature = config.features.addressProfileAPI;
@@ -67,9 +68,7 @@ const AddressPageContent = () => {
   const appProps = useAppContext();
   const bgColor = useColorModeValue('white', 'gray.800');
 
-  const tabsScrollRef = React.useRef<HTMLDivElement>(null);
   const hash = getQueryParamString(router.query.hash);
-  const checkSummedHash = React.useMemo(() => getCheckedSummedAddress(hash), [ hash ]);
 
   const checkDomainName = useCheckDomainNameParam(hash);
   const checkAddressFormat = useCheckAddressFormat(hash);
@@ -143,7 +142,6 @@ const AddressPageContent = () => {
   });
 
   const isSafeAddress = useIsSafeAddress(!addressQuery.isPlaceholderData && addressQuery.data?.is_contract ? hash : undefined);
-  const safeIconColor = useColorModeValue('black', 'white');
 
   const xStarQuery = useFetchXStarScore({ hash });
 
@@ -155,27 +153,57 @@ const AddressPageContent = () => {
     Boolean(config.features.mudFramework.isEnabled && mudTablesCountQuery.data && mudTablesCountQuery.data > 0),
   );
 
-  const tabs: Array<RoutedTab> = React.useMemo(() => {
+  const tabs: Array<TabItemRegular> = React.useMemo(() => {
     return [
+      {
+        id: 'index',
+        title: 'Details',
+        component: <AddressDetails addressQuery={ addressQuery }/>,
+      },
+      addressQuery.data?.is_contract ? {
+        id: 'contract',
+        title: () => {
+          const tabName = addressQuery.data.proxy_type === 'eip7702' ? 'Code' : 'Contract';
+
+          if (addressQuery.data.is_verified) {
+            return (
+              <>
+                <span>{ tabName }</span>
+                <IconSvg name="status/success" boxSize="14px" color="green.500"/>
+              </>
+            );
+          }
+
+          return tabName;
+        },
+        component: (
+          <AddressContract
+            tabs={ contractTabs.tabs }
+            shouldRender={ !isTabsLoading }
+            isLoading={ contractTabs.isLoading }
+          />
+        ),
+        subTabs: CONTRACT_TAB_IDS,
+      } : undefined,
       config.features.mudFramework.isEnabled &&
         mudTablesCountQuery.data &&
         mudTablesCountQuery.data > 0 && {
         id: 'mud',
         title: 'MUD',
         count: mudTablesCountQuery.data,
-        component: <AddressMud scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+        component: <AddressMud shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
       },
       {
         id: 'txs',
         title: 'Transactions',
         count: addressTabsCountersQuery.data?.transactions_count,
-        component: <AddressTxs scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+        component: <AddressTxs shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
       },
       txInterpretation.isEnabled && txInterpretation.provider === 'noves' ?
         {
           id: 'account_history',
           title: 'Account history',
-          component: <AddressAccountHistory scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+          component: <AddressAccountHistory shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
         } :
         undefined,
       config.features.userOps.isEnabled && Boolean(userOpsAccountQuery.data?.total_ops) ?
@@ -191,14 +219,14 @@ const AddressPageContent = () => {
           id: 'withdrawals',
           title: 'Withdrawals',
           count: addressTabsCountersQuery.data?.withdrawals_count,
-          component: <AddressWithdrawals scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+          component: <AddressWithdrawals shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
         } :
         undefined,
       {
         id: 'token_transfers',
         title: 'Token transfers',
         count: addressTabsCountersQuery.data?.token_transfers_count,
-        component: <AddressTokenTransfers scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+        component: <AddressTokenTransfers shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
       },
       {
         id: 'tokens',
@@ -210,15 +238,15 @@ const AddressPageContent = () => {
       {
         id: 'internal_txns',
         title: 'Internal txns',
-        count: addressTabsCountersQuery.data?.internal_txs_count,
-        component: <AddressInternalTxs scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+        count: addressTabsCountersQuery.data?.internal_transactions_count,
+        component: <AddressInternalTxs shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
       },
       addressTabsCountersQuery.data?.celo_election_rewards_count ?
         {
           id: 'epoch_rewards',
           title: 'Epoch rewards',
           count: addressTabsCountersQuery.data?.celo_election_rewards_count,
-          component: <AddressEpochRewards scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
+          component: <AddressEpochRewards shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
         } :
         undefined,
       {
@@ -232,7 +260,7 @@ const AddressPageContent = () => {
           title: `Blocks ${ getNetworkValidationActionText() }`,
           count: addressTabsCountersQuery.data?.validations_count,
           component: (
-            <AddressBlocksValidated scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>
+            <AddressBlocksValidated shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>
           ),
         } :
         undefined,
@@ -241,32 +269,12 @@ const AddressPageContent = () => {
           id: 'logs',
           title: 'Logs',
           count: addressTabsCountersQuery.data?.logs_count,
-          component: <AddressLogs scrollRef={ tabsScrollRef } shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
-        } :
-        undefined,
-
-      addressQuery.data?.is_contract ?
-        {
-          id: 'contract',
-          title: () => {
-            if (addressQuery.data.is_verified) {
-              return (
-                <>
-                  <span>Contract</span>
-                  <IconSvg name="status/success" boxSize="14px" color="green.500" ml={ 1 }/>
-                </>
-              );
-            }
-
-            return 'Contract';
-          },
-          component: <AddressContract tabs={ contractTabs.tabs } shouldRender={ !isTabsLoading } isLoading={ contractTabs.isLoading }/>,
-          subTabs: CONTRACT_TAB_IDS,
+          component: <AddressLogs shouldRender={ !isTabsLoading } isQueryEnabled={ areQueriesEnabled }/>,
         } :
         undefined,
     ].filter(Boolean);
   }, [
-    addressQuery.data,
+    addressQuery,
     contractTabs,
     addressTabsCountersQuery.data,
     userOpsAccountQuery.data,
@@ -285,12 +293,17 @@ const AddressPageContent = () => {
         tagType: 'custom' as const,
         ordinal: -1,
       })) || []),
-      !addressQuery.data?.is_contract ? { slug: 'eoa', name: 'EOA', tagType: 'custom' as const, ordinal: -1 } : undefined,
+      !addressQuery.data?.is_contract ? { slug: 'eoa', name: 'EOA', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } : undefined,
       config.features.validators.isEnabled && addressQuery.data?.has_validated_blocks ?
-        { slug: 'validator', name: 'Validator', tagType: 'custom' as const, ordinal: 10 } :
+        { slug: 'validator', name: 'Validator', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } :
         undefined,
-      addressQuery.data?.implementations?.length ? { slug: 'proxy', name: 'Proxy', tagType: 'custom' as const, ordinal: -1 } : undefined,
-      addressQuery.data?.token ? { slug: 'token', name: 'Token', tagType: 'custom' as const, ordinal: -1 } : undefined,
+      addressQuery.data?.implementations?.length && addressQuery.data?.proxy_type !== 'eip7702' ?
+        { slug: 'proxy', name: 'Proxy', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } :
+        undefined,
+      addressQuery.data?.implementations?.length && addressQuery.data?.proxy_type === 'eip7702' ?
+        { slug: 'eip7702', name: 'EOA+code', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } :
+        undefined,
+      addressQuery.data?.token ? { slug: 'token', name: 'Token', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } : undefined,
       isSafeAddress ? { slug: 'safe', name: 'Multisig: Safe', tagType: 'custom' as const, ordinal: -10 } : undefined,
       addressProfileAPIFeature.isEnabled && usernameApiTag ?
         {
@@ -309,10 +322,10 @@ const AddressPageContent = () => {
         } :
         undefined,
       config.features.userOps.isEnabled && userOpsAccountQuery.data ?
-        { slug: 'user_ops_acc', name: 'Smart contract wallet', tagType: 'custom' as const, ordinal: -10 } :
+        { slug: 'user_ops_acc', name: 'Smart contract wallet', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } :
         undefined,
       config.features.mudFramework.isEnabled && mudTablesCountQuery.data ?
-        { slug: 'mud', name: 'MUD World', tagType: 'custom' as const, ordinal: -10 } :
+        { slug: 'mud', name: 'MUD World', tagType: 'custom' as const, ordinal: PREDEFINED_TAG_PRIORITY } :
         undefined,
       ...formatUserTags(addressQuery.data),
       ...(addressMetadataQuery.data?.addresses?.[hash.toLowerCase()]?.tags.filter((tag) => tag.tagType !== 'note') || []),
@@ -357,11 +370,6 @@ const AddressPageContent = () => {
     />
   );
 
-  const content =
-    addressQuery.isError || addressQuery.isDegradedData ? null : (
-      <RoutedTabs tabs={ tabs } tabListProps={{ mt: 6 }} isLoading={ isTabsLoading }/>
-    );
-
   const backLink = React.useMemo(() => {
     if (appProps.referrer && appProps.referrer.includes('/accounts')) {
       return {
@@ -380,15 +388,17 @@ const AddressPageContent = () => {
     return;
   }, [ appProps.referrer ]);
 
+  // API always returns hash in check-summed format except for addresses that are not in the database
+  // In this case it returns 404 with empty payload, so we calculate check-summed hash on the client
+  const checkSummedHash = React.useMemo(() => addressQuery.data?.hash ?? getCheckedSummedAddress(hash), [ hash, addressQuery.data?.hash ]);
+
   const titleSecondRow = (
     <Flex alignItems="center" w="100%" columnGap={ 2 } rowGap={ 2 } flexWrap={{ base: 'wrap', lg: 'nowrap' }}>
       { addressQuery.data?.ens_domain_name && (
         <EnsEntity
           domain={ addressQuery.data?.ens_domain_name }
           protocol={ !addressEnsDomainsQuery.isPending ? addressMainDomain?.protocol : null }
-          fontFamily="heading"
-          fontSize="lg"
-          fontWeight={ 500 }
+          variant="subheading"
           mr={ 1 }
           maxW="300px"
         />
@@ -402,13 +412,10 @@ const AddressPageContent = () => {
           implementations: null,
         }}
         isLoading={ isLoading }
-        fontFamily="heading"
-        fontSize="lg"
-        fontWeight={ 500 }
+        variant="subheading"
         noLink
         isSafeAddress={ isSafeAddress }
-        icon={{ color: isSafeAddress ? safeIconColor : undefined }}
-        mr={ 4 }
+        icon={{ color: isSafeAddress ? { _light: 'black', _dark: 'white' } : undefined }}
       />
       { !isLoading && addressQuery.data?.is_contract && addressQuery.data.token && (
         <AddressAddToWallet token={ addressQuery.data.token } variant="button"/>
@@ -416,7 +423,7 @@ const AddressPageContent = () => {
       { !isLoading && !addressQuery.data?.is_contract && config.features.account.isEnabled && (
         <AddressFavoriteButton hash={ hash } watchListId={ addressQuery.data?.watchlist_address_id }/>
       ) }
-      <AddressQrCode address={{ hash: addressQuery.data?.filecoin?.robust ?? checkSummedHash }} isLoading={ isLoading }/>
+      <AddressQrCode hash={ addressQuery.data?.filecoin?.robust ?? checkSummedHash } isLoading={ isLoading }/>
       <AccountActionsMenu isLoading={ isLoading }/>
       <HStack ml="auto" gap={ 2 }/>
       { !isLoading && addressQuery.data?.is_contract && addressQuery.data?.is_verified && config.UI.views.address.solidityscanEnabled && (
@@ -425,7 +432,7 @@ const AddressPageContent = () => {
       { !isLoading && addressEnsDomainsQuery.data && config.features.nameService.isEnabled && (
         <AddressEnsDomains query={ addressEnsDomainsQuery } addressHash={ hash } mainDomainName={ addressQuery.data?.ens_domain_name }/>
       ) }
-      <NetworkExplorers type="address" pathParam={ hash }/>
+      <NetworkExplorers type="address" pathParam={ hash.toLowerCase() }/>
     </Flex>
   );
 
@@ -433,7 +440,7 @@ const AddressPageContent = () => {
     <Box backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
       <TextAd mb={ 6 }/>
       <PageTitle
-        title={ `${ addressQuery.data?.is_contract ? 'Contract' : 'Address' } details` }
+        title={ `${ addressQuery.data?.is_contract && addressQuery.data?.proxy_type !== 'eip7702' ? 'Contract' : 'Address' } details` }
         backLink={ backLink }
         contentAfter={ titleContentAfter }
         secondRow={ titleSecondRow }
@@ -443,10 +450,7 @@ const AddressPageContent = () => {
         <AddressMetadataAlert tags={ addressMetadataQuery.data?.addresses?.[hash.toLowerCase()]?.tags } mt="-4px" mb={ 6 }/>
       ) }
       { config.features.metasuites.isEnabled && <Box display="none" id="meta-suites__address" data-ready={ !isLoading }/> }
-      <AddressDetails addressQuery={ addressQuery } scrollRef={ tabsScrollRef }/>
-      { /* should stay before tabs to scroll up with pagination */ }
-      <Box ref={ tabsScrollRef }></Box>
-      { content }
+      <RoutedTabs tabs={ tabs } isLoading={ isTabsLoading }/>
     </Box>
   );
 };

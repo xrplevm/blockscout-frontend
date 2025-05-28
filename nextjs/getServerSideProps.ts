@@ -9,6 +9,7 @@ import config from 'configs/app';
 const rollupFeature = config.features.rollup;
 const adBannerFeature = config.features.adsBanner;
 import isNeedProxy from 'lib/api/isNeedProxy';
+import * as cookies from 'lib/cookies';
 import type * as metadata from 'lib/metadata';
 
 export interface Props<Pathname extends Route['pathname'] = never> {
@@ -19,9 +20,10 @@ export interface Props<Pathname extends Route['pathname'] = never> {
   // if apiData is undefined, Next.js will complain that it is not serializable
   // so we force it to be always present in the props but it can be null
   apiData: metadata.ApiData<Pathname> | null;
+  uuid: string;
 }
 
-export const base = async <Pathname extends Route['pathname'] = never>({ req, query }: GetServerSidePropsContext):
+export const base = async <Pathname extends Route['pathname'] = never>({ req, res, query }: GetServerSidePropsContext):
 Promise<GetServerSidePropsResult<Props<Pathname>>> => {
   const adBannerProvider = (() => {
     if (adBannerFeature.isEnabled) {
@@ -36,6 +38,36 @@ Promise<GetServerSidePropsResult<Props<Pathname>>> => {
     return null;
   })();
 
+  let uuid = cookies.getFromCookieString(req.headers.cookie || '', cookies.NAMES.UUID);
+  if (!uuid) {
+    uuid = crypto.randomUUID();
+    res.setHeader('Set-Cookie', `${ cookies.NAMES.UUID }=${ uuid }`);
+  }
+
+  const isTrackingDisabled = process.env.DISABLE_TRACKING === 'true';
+
+  if (!isTrackingDisabled) {
+    // log pageview
+    const hostname = req.headers.host;
+    const timestamp = new Date().toISOString();
+    const chainId = process.env.NEXT_PUBLIC_NETWORK_ID;
+    const chainName = process.env.NEXT_PUBLIC_NETWORK_NAME;
+    const publicRPC = process.env.NEXT_PUBLIC_NETWORK_RPC_URL;
+
+    fetch('https://monitor.blockscout.com/count', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        hostname,
+        timestamp,
+        chainId,
+        chainName,
+        publicRPC,
+        uuid,
+      }),
+    });
+  }
+
   return {
     props: {
       query,
@@ -43,6 +75,7 @@ Promise<GetServerSidePropsResult<Props<Pathname>>> => {
       referrer: req.headers.referer || '',
       adBannerProvider: adBannerProvider,
       apiData: null,
+      uuid,
     },
   };
 };
@@ -67,7 +100,7 @@ export const verifiedAddresses: GetServerSideProps<Props> = async(context) => {
   return account(context);
 };
 
-const DEPOSITS_ROLLUP_TYPES: Array<RollupType> = [ 'optimistic', 'shibarium', 'zkEvm', 'arbitrum' ];
+const DEPOSITS_ROLLUP_TYPES: Array<RollupType> = [ 'optimistic', 'shibarium', 'zkEvm', 'arbitrum', 'scroll' ];
 export const deposits: GetServerSideProps<Props> = async(context) => {
   if (!(rollupFeature.isEnabled && DEPOSITS_ROLLUP_TYPES.includes(rollupFeature.type))) {
     return {
@@ -78,12 +111,22 @@ export const deposits: GetServerSideProps<Props> = async(context) => {
   return base(context);
 };
 
-const WITHDRAWALS_ROLLUP_TYPES: Array<RollupType> = [ 'optimistic', 'shibarium', 'zkEvm', 'arbitrum' ];
+const WITHDRAWALS_ROLLUP_TYPES: Array<RollupType> = [ 'optimistic', 'shibarium', 'zkEvm', 'arbitrum', 'scroll' ];
 export const withdrawals: GetServerSideProps<Props> = async(context) => {
   if (
     !config.features.beaconChain.isEnabled &&
     !(rollupFeature.isEnabled && WITHDRAWALS_ROLLUP_TYPES.includes(rollupFeature.type))
   ) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return base(context);
+};
+
+export const txnWithdrawals: GetServerSideProps<Props> = async(context) => {
+  if (!(rollupFeature.isEnabled && rollupFeature.type === 'arbitrum')) {
     return {
       notFound: true,
     };
@@ -102,8 +145,8 @@ export const rollup: GetServerSideProps<Props> = async(context) => {
   return base(context);
 };
 
-export const optimisticRollup: GetServerSideProps<Props> = async(context) => {
-  if (!(rollupFeature.isEnabled && rollupFeature.type === 'optimistic')) {
+export const outputRoots: GetServerSideProps<Props> = async(context) => {
+  if (!(rollupFeature.isEnabled && rollupFeature.outputRootsEnabled)) {
     return {
       notFound: true,
     };
@@ -112,9 +155,19 @@ export const optimisticRollup: GetServerSideProps<Props> = async(context) => {
   return base(context);
 };
 
-const BATCH_ROLLUP_TYPES: Array<RollupType> = [ 'zkEvm', 'zkSync', 'arbitrum', 'optimistic' ];
+const BATCH_ROLLUP_TYPES: Array<RollupType> = [ 'zkEvm', 'zkSync', 'arbitrum', 'optimistic', 'scroll' ];
 export const batch: GetServerSideProps<Props> = async(context) => {
   if (!(rollupFeature.isEnabled && BATCH_ROLLUP_TYPES.includes(rollupFeature.type))) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return base(context);
+};
+
+export const batchCelestia: GetServerSideProps<Props> = async(context) => {
+  if (!(rollupFeature.isEnabled && (rollupFeature.type === 'arbitrum' || rollupFeature.type === 'optimistic'))) {
     return {
       notFound: true,
     };
@@ -234,8 +287,29 @@ export const validators: GetServerSideProps<Props> = async(context) => {
   return base(context);
 };
 
+export const validatorDetails: GetServerSideProps<Props> = async(context) => {
+  const feature = config.features.validators;
+  if (!feature.isEnabled || feature.chainType !== 'zilliqa') {
+    return {
+      notFound: true,
+    };
+  }
+
+  return base(context);
+};
+
 export const gasTracker: GetServerSideProps<Props> = async(context) => {
   if (!config.features.gasTracker.isEnabled) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return base(context);
+};
+
+export const advancedFilter: GetServerSideProps<Props> = async(context) => {
+  if (!config.features.advancedFilter.isEnabled) {
     return {
       notFound: true,
     };
@@ -298,6 +372,27 @@ export const disputeGames: GetServerSideProps<Props> = async(context) => {
 
 export const mud: GetServerSideProps<Props> = async(context) => {
   if (!config.features.mudFramework.isEnabled) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return base(context);
+};
+
+export const interopMessages: GetServerSideProps<Props> = async(context) => {
+  const rollupFeature = config.features.rollup;
+  if (!rollupFeature.isEnabled || !rollupFeature.interopEnabled) {
+    return {
+      notFound: true,
+    };
+  }
+
+  return base(context);
+};
+
+export const pools: GetServerSideProps<Props> = async(context) => {
+  if (!config.features.pools.isEnabled) {
     return {
       notFound: true,
     };

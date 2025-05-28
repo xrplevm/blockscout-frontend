@@ -1,4 +1,4 @@
-import _set from 'lodash/set';
+import { set } from 'es-toolkit/compat';
 
 import type { ContractAbiItemInput } from '../types';
 
@@ -78,12 +78,25 @@ export function transformFormDataToMethodArgs(formData: ContractMethodFormFields
 
   for (const field in formData) {
     const value = formData[field];
-    _set(result, field.replaceAll(':', '.'), value);
+    const castedValue = castValue(value);
+    set(result, field.replaceAll(':', '.'), castedValue);
   }
 
   const filteredResult = filterOutEmptyItems(result);
   const mappedResult = mapEmptyNestedArrays(filteredResult);
   return mappedResult;
+}
+
+function castValue(value: unknown): unknown {
+  if (typeof value === 'string') {
+    return value === '""' ? '' : value;
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(castValue);
+  }
+
+  return value;
 }
 
 function filterOutEmptyItems(array: Array<unknown>): Array<unknown> {

@@ -1,7 +1,6 @@
-import { Button, chakra, Grid, GridItem } from '@chakra-ui/react';
+import { chakra, Grid, GridItem } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
-import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import type { SubmitHandler } from 'react-hook-form';
 import { useForm, FormProvider } from 'react-hook-form';
 
@@ -14,11 +13,14 @@ import useApiFetch from 'lib/api/useApiFetch';
 import getErrorObj from 'lib/errors/getErrorObj';
 import getErrorObjPayload from 'lib/errors/getErrorObjPayload';
 import useIsMobile from 'lib/hooks/useIsMobile';
-import FormFieldEmail from 'ui/shared/forms/fields/FormFieldEmail';
-import FormFieldReCaptcha from 'ui/shared/forms/fields/FormFieldReCaptcha';
-import FormFieldText from 'ui/shared/forms/fields/FormFieldText';
-import FormFieldUrl from 'ui/shared/forms/fields/FormFieldUrl';
-import Hint from 'ui/shared/Hint';
+import { Button } from 'toolkit/chakra/button';
+import { Heading } from 'toolkit/chakra/heading';
+import { FormFieldEmail } from 'toolkit/components/forms/fields/FormFieldEmail';
+import { FormFieldText } from 'toolkit/components/forms/fields/FormFieldText';
+import { FormFieldUrl } from 'toolkit/components/forms/fields/FormFieldUrl';
+import { Hint } from 'toolkit/components/Hint/Hint';
+import ReCaptcha from 'ui/shared/reCaptcha/ReCaptcha';
+import useReCaptcha from 'ui/shared/reCaptcha/useReCaptcha';
 
 import PublicTagsSubmitFieldAddresses from './fields/PublicTagsSubmitFieldAddresses';
 import PublicTagsSubmitFieldTags from './fields/PublicTagsSubmitFieldTags';
@@ -34,6 +36,7 @@ const PublicTagsSubmitForm = ({ config, userInfo, onSubmitResult }: Props) => {
   const isMobile = useIsMobile();
   const router = useRouter();
   const apiFetch = useApiFetch();
+  const recaptcha = useReCaptcha();
 
   const formApi = useForm<FormFields>({
     mode: 'onBlur',
@@ -56,13 +59,16 @@ const PublicTagsSubmitForm = ({ config, userInfo, onSubmitResult }: Props) => {
     const requestsBody = convertFormDataToRequestsBody(data);
 
     const result = await Promise.all(requestsBody.map(async(body) => {
-      return apiFetch<'public_tag_application', unknown, { message: string }>('public_tag_application', {
-        pathParams: { chainId: appConfig.chain.id },
-        fetchParams: {
-          method: 'POST',
-          body: { submission: body },
-        },
-      })
+      return recaptcha.executeAsync()
+        .then(() => {
+          return apiFetch<'public_tag_application', unknown, { message: string }>('public_tag_application', {
+            pathParams: { chainId: appConfig.chain.id },
+            fetchParams: {
+              method: 'POST',
+              body: { submission: body },
+            },
+          });
+        })
         .then(() => ({ error: null, payload: body }))
         .catch((error: unknown) => {
           const errorObj = getErrorObj(error);
@@ -74,80 +80,79 @@ const PublicTagsSubmitForm = ({ config, userInfo, onSubmitResult }: Props) => {
     }));
 
     onSubmitResult(result);
-  }, [ apiFetch, onSubmitResult ]);
+  }, [ apiFetch, onSubmitResult, recaptcha ]);
 
-  if (!appConfig.services.reCaptchaV3.siteKey) {
+  if (!appConfig.services.reCaptchaV2.siteKey) {
     return null;
   }
 
-  const fieldProps = {
-    size: { base: 'md', lg: 'lg' },
-  };
-
   return (
-    <GoogleReCaptchaProvider reCaptchaKey={ appConfig.services.reCaptchaV3.siteKey }>
-      <FormProvider { ...formApi }>
-        <chakra.form
-          noValidate
-          onSubmit={ formApi.handleSubmit(onFormSubmit) }
+    <FormProvider { ...formApi }>
+      <chakra.form
+        noValidate
+        onSubmit={ formApi.handleSubmit(onFormSubmit) }
+      >
+        <Grid
+          columnGap={ 3 }
+          rowGap={ 3 }
+          templateColumns={{ base: '1fr', lg: '1fr 1fr minmax(0, 200px)', xl: '1fr 1fr minmax(0, 250px)' }}
         >
-          <Grid
-            columnGap={ 3 }
-            rowGap={ 3 }
-            templateColumns={{ base: '1fr', lg: '1fr 1fr minmax(0, 200px)', xl: '1fr 1fr minmax(0, 250px)' }}
-          >
-            <GridItem colSpan={{ base: 1, lg: 3 }} as="h2" textStyle="h4">
+          <GridItem colSpan={{ base: 1, lg: 3 }}>
+            <Heading level="2">
               Company info
-            </GridItem>
-            <FormFieldText<FormFields> name="requesterName" isRequired placeholder="Your name" { ...fieldProps }/>
-            <FormFieldEmail<FormFields> name="requesterEmail" isRequired { ...fieldProps }/>
+            </Heading>
+          </GridItem>
+          <FormFieldText<FormFields> name="requesterName" required placeholder="Your name"/>
+          <FormFieldEmail<FormFields> name="requesterEmail" required/>
 
-            { !isMobile && <div/> }
-            <FormFieldText<FormFields> name="companyName" placeholder="Company name" { ...fieldProps }/>
-            <FormFieldUrl<FormFields> name="companyWebsite" placeholder="Company website" { ...fieldProps }/>
-            { !isMobile && <div/> }
+          { !isMobile && <div/> }
+          <FormFieldText<FormFields> name="companyName" placeholder="Company name"/>
+          <FormFieldUrl<FormFields> name="companyWebsite" placeholder="Company website"/>
+          { !isMobile && <div/> }
 
-            <GridItem colSpan={{ base: 1, lg: 3 }} as="h2" textStyle="h4" mt={{ base: 3, lg: 5 }}>
+          <GridItem colSpan={{ base: 1, lg: 3 }} mt={{ base: 3, lg: 5 }}>
+            <Heading level="2" display="flex" alignItems="center" columnGap={ 1 }>
               Public tags/labels
-              <Hint label="Submit a public tag proposal for our moderation team to review" ml={ 1 } color="link"/>
-            </GridItem>
-            <PublicTagsSubmitFieldAddresses/>
-            <PublicTagsSubmitFieldTags tagTypes={ config?.tagTypes }/>
-            <GridItem colSpan={{ base: 1, lg: 2 }}>
-              <FormFieldText<FormFields>
-                name="description"
-                isRequired
-                placeholder={
-                  isMobile ?
-                    'Confirm the connection between addresses and tags.' :
-                    'Provide a comment to confirm the connection between addresses and tags.'
-                }
-                maxH="160px"
-                rules={{ maxLength: 80 }}
-                asComponent="Textarea"
-                { ...fieldProps }
-              />
-            </GridItem>
+              <Hint label="Submit a public tag proposal for our moderation team to review"/>
+            </Heading>
+          </GridItem>
+          <PublicTagsSubmitFieldAddresses/>
+          <PublicTagsSubmitFieldTags tagTypes={ config?.tagTypes }/>
+          <GridItem colSpan={{ base: 1, lg: 2 }}>
+            <FormFieldText<FormFields>
+              name="description"
+              required
+              placeholder={
+                isMobile ?
+                  'Confirm the connection between addresses and tags.' :
+                  'Provide a comment to confirm the connection between addresses and tags.'
+              }
+              maxH="160px"
+              rules={{ maxLength: 80 }}
+              asComponent="Textarea"
+              size="2xl"
+            />
+          </GridItem>
 
-            <GridItem colSpan={{ base: 1, lg: 3 }}>
-              <FormFieldReCaptcha/>
-            </GridItem>
+          <GridItem colSpan={{ base: 1, lg: 2 }}>
+            <ReCaptcha { ...recaptcha }/>
+          </GridItem>
+          { !isMobile && <div/> }
 
-            <Button
-              variant="solid"
-              size="lg"
-              type="submit"
-              mt={ 3 }
-              isLoading={ formApi.formState.isSubmitting }
-              loadingText="Send request"
-              w="min-content"
-            >
-              Send request
-            </Button>
-          </Grid>
-        </chakra.form>
-      </FormProvider>
-    </GoogleReCaptchaProvider>
+          <Button
+            variant="solid"
+            type="submit"
+            mt={ 3 }
+            loading={ formApi.formState.isSubmitting }
+            loadingText="Send request"
+            w="min-content"
+            disabled={ recaptcha.isInitError }
+          >
+            Send request
+          </Button>
+        </Grid>
+      </chakra.form>
+    </FormProvider>
   );
 };
 

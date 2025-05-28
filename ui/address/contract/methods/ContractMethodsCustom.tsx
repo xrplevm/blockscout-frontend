@@ -1,4 +1,4 @@
-import { Button, Flex, Skeleton, useDisclosure } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -7,18 +7,21 @@ import type { SmartContract } from 'types/api/contract';
 
 import useApiQuery, { getResourceKey } from 'lib/api/useApiQuery';
 import getQueryParamString from 'lib/router/getQueryParamString';
+import { Button } from 'toolkit/chakra/button';
+import { Skeleton } from 'toolkit/chakra/skeleton';
+import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import CustomAbiModal from 'ui/customAbi/CustomAbiModal/CustomAbiModal';
+import ConnectWalletAlert from 'ui/shared/ConnectWalletAlert';
 import RawDataSnippet from 'ui/shared/RawDataSnippet';
 import AuthGuard from 'ui/snippets/auth/AuthGuard';
 import useIsAuth from 'ui/snippets/auth/useIsAuth';
 
 import ContractAbi from './ContractAbi';
-import ContractConnectWallet from './ContractConnectWallet';
 import ContractCustomAbiAlert from './ContractCustomAbiAlert';
 import ContractMethodsContainer from './ContractMethodsContainer';
 import ContractMethodsFilters from './ContractMethodsFilters';
 import useMethodsFilters from './useMethodsFilters';
-import { enrichWithMethodId, isMethod } from './utils';
+import { formatAbi } from './utils';
 
 interface Props {
   isLoading?: boolean;
@@ -52,17 +55,12 @@ const ContractMethodsCustom = ({ isLoading: isLoadingProp }: Props) => {
     contract_address_hash: addressHash,
   } : undefined);
 
-  const abi = React.useMemo(() => {
-    return currentInfo?.abi
-      .filter(isMethod)
-      .map(enrichWithMethodId) ?? [];
-  }, [ currentInfo ]);
-
+  const abi = React.useMemo(() => formatAbi(currentInfo?.abi || []), [ currentInfo ]);
   const filters = useMethodsFilters({ abi });
 
   const updateButton = React.useMemo(() => {
     return (
-      <Skeleton isLoaded={ !isLoading } ml="auto" mr="3" borderRadius="base">
+      <Skeleton loading={ isLoading } ml="auto" mr="3" borderRadius="base">
         <Button
           size="sm"
           variant="outline"
@@ -79,7 +77,7 @@ const ContractMethodsCustom = ({ isLoading: isLoadingProp }: Props) => {
       { currentInfo ? (
         <>
           <Flex flexDir="column" rowGap={ 2 }>
-            <ContractConnectWallet isLoading={ isLoading }/>
+            <ConnectWalletAlert isLoading={ isLoading }/>
             <ContractCustomAbiAlert isLoading={ isLoading }/>
           </Flex>
           <RawDataSnippet
@@ -101,13 +99,13 @@ const ContractMethodsCustom = ({ isLoading: isLoadingProp }: Props) => {
         </>
       ) : (
         <>
-          <Skeleton isLoaded={ !isLoading }>
+          <Skeleton loading={ isLoading }>
             Add custom ABIs for this contract and access when logged into your account. Helpful for debugging,
             functional testing and contract interaction.
           </Skeleton>
           <AuthGuard onAuthSuccess={ modal.onOpen }>
             { ({ onClick }) => (
-              <Skeleton isLoaded={ !isLoading } w="fit-content">
+              <Skeleton loading={ isLoading } w="fit-content">
                 <Button
                   size="sm"
                   onClick={ onClick }

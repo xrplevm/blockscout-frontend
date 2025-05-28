@@ -20,7 +20,7 @@ export interface BlockBaseFeeCelo {
 export interface Block {
   height: number;
   timestamp: string;
-  transaction_count: number;
+  transactions_count: number;
   miner: AddressParam;
   size: number;
   hash: string;
@@ -54,9 +54,9 @@ export interface Block {
   blob_gas_used?: string;
   burnt_blob_fees?: string;
   excess_blob_gas?: string;
-  blob_tx_count?: number;
+  blob_transaction_count?: number;
   // ZKSYNC FIELDS
-  zksync?: Omit<ZkSyncBatchesItem, 'number' | 'transaction_count' | 'timestamp'> & {
+  zksync?: Omit<ZkSyncBatchesItem, 'number' | 'transactions_count' | 'timestamp'> & {
     batch_number: number | null;
   };
   arbitrum?: ArbitrumBlockData;
@@ -67,6 +67,8 @@ export interface Block {
     is_epoch_block: boolean;
     base_fee?: BlockBaseFeeCelo;
   };
+  // ZILLIQA FIELDS
+  zilliqa?: ZilliqaBlockData;
 }
 
 type ArbitrumBlockData = {
@@ -74,7 +76,7 @@ type ArbitrumBlockData = {
   commitment_transaction: ArbitrumL2TxData;
   confirmation_transaction: ArbitrumL2TxData;
   delayed_messages: number;
-  l1_block_height: number;
+  l1_block_number: number;
   send_count: number;
   send_root: string;
   status: ArbitrumBatchStatus;
@@ -82,10 +84,28 @@ type ArbitrumBlockData = {
 
 export interface OptimismBlockData {
   batch_data_container: OptimisticL2BatchDataContainer;
-  internal_id: number;
+  number: number;
   blobs: Array<OptimisticL2BlobTypeEip4844> | Array<OptimisticL2BlobTypeCelestia> | null;
   l1_timestamp: string;
   l1_transaction_hashes: Array<string>;
+}
+
+export interface ZilliqaBlockData {
+  view: number;
+  quorum_certificate: ZilliqaQuorumCertificate;
+  aggregate_quorum_certificate: (ZilliqaQuorumCertificate & {
+    nested_quorum_certificates: Array<ZilliqaNestedQuorumCertificate>;
+  }) | null;
+}
+
+export interface ZilliqaQuorumCertificate {
+  view: number;
+  signature: string;
+  signers: Array<number>;
+}
+
+export interface ZilliqaNestedQuorumCertificate extends ZilliqaQuorumCertificate {
+  proposed_by_validator_index: number;
 }
 
 export interface BlocksResponse {
@@ -152,8 +172,8 @@ export interface BlockEpoch {
     carbon_offsetting_transfer: TokenTransfer | null;
     community_transfer: TokenTransfer | null;
     reserve_bolster_transfer: TokenTransfer | null;
-  };
-  aggregated_election_rewards: Record<EpochRewardsType, BlockEpochElectionReward | null>;
+  } | null;
+  aggregated_election_rewards: Record<EpochRewardsType, BlockEpochElectionReward | null> | null;
 }
 
 export interface BlockEpochElectionRewardDetails {

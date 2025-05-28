@@ -19,25 +19,29 @@ test.beforeEach(async({ mockConfigResponse, mockEnvs, mockAssetResponse, page })
     [ 'NEXT_PUBLIC_MARKETPLACE_RATING_AIRTABLE_API_KEY', 'test' ],
     [ 'NEXT_PUBLIC_MARKETPLACE_RATING_AIRTABLE_BASE_ID', 'test' ],
   ]);
-  await mockConfigResponse('NEXT_PUBLIC_MARKETPLACE_CONFIG_URL', MARKETPLACE_CONFIG_URL, JSON.stringify(appsMock));
-  await mockConfigResponse('NEXT_PUBLIC_MARKETPLACE_SECURITY_REPORTS_URL', MARKETPLACE_SECURITY_REPORTS_URL, JSON.stringify(securityReportsMock));
+  await mockConfigResponse('NEXT_PUBLIC_MARKETPLACE_CONFIG_URL', MARKETPLACE_CONFIG_URL, appsMock);
+  await mockConfigResponse('NEXT_PUBLIC_MARKETPLACE_SECURITY_REPORTS_URL', MARKETPLACE_SECURITY_REPORTS_URL, securityReportsMock);
   await Promise.all(appsMock.map(app => mockAssetResponse(app.logo, './playwright/mocks/image_s.jpg')));
   await page.route('https://api.airtable.com/v0/test/apps_ratings?fields%5B%5D=appId&fields%5B%5D=rating&fields%5B%5D=count', (route) => route.fulfill({
     status: 200,
-    body: JSON.stringify(ratingsMock),
+    json: ratingsMock,
   }));
 });
 
-test('base view +@dark-mode', async({ render }) => {
+test('base view +@dark-mode', async({ render, page }) => {
+  await page.evaluate(() => window.localStorage.setItem('favoriteApps', '["hop-exchange"]'));
+
   const component = await render(<Marketplace/>);
 
   await expect(component).toHaveScreenshot();
 });
 
-test('with featured app +@dark-mode', async({ render, mockEnvs }) => {
+test('with featured app +@dark-mode', async({ render, mockEnvs, page }) => {
   await mockEnvs([
     [ 'NEXT_PUBLIC_MARKETPLACE_FEATURED_APP', 'hop-exchange' ],
   ]);
+  await page.evaluate(() => window.localStorage.setItem('favoriteApps', '["hop-exchange"]'));
+
   const component = await render(<Marketplace/>);
 
   await expect(component).toHaveScreenshot();
@@ -62,7 +66,8 @@ test('with banner +@dark-mode', async({ render, mockEnvs, mockConfigResponse }) 
 test.describe('mobile', () => {
   test.use({ viewport: devices['iPhone 13 Pro'].viewport });
 
-  test('base view', async({ render }) => {
+  test('base view', async({ render, page }) => {
+    await page.evaluate(() => window.localStorage.setItem('favoriteApps', '["hop-exchange"]'));
     const component = await render(
       <Box>
         { /* Added a fake header because without the ActionBar works incorrectly without it */ }
@@ -76,10 +81,11 @@ test.describe('mobile', () => {
     await expect(component).toHaveScreenshot();
   });
 
-  test('with featured app', async({ render, mockEnvs }) => {
+  test('with featured app', async({ render, mockEnvs, page }) => {
     await mockEnvs([
       [ 'NEXT_PUBLIC_MARKETPLACE_FEATURED_APP', 'hop-exchange' ],
     ]);
+    await page.evaluate(() => window.localStorage.setItem('favoriteApps', '["hop-exchange"]'));
     const component = await render(<Marketplace/>);
 
     await expect(component).toHaveScreenshot();

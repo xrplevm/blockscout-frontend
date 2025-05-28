@@ -1,4 +1,4 @@
-import { useWeb3Modal, useWeb3ModalState } from '@web3modal/wagmi/react';
+import { useAppKit, useAppKitState } from '@reown/appkit/react';
 import React from 'react';
 import { useDisconnect, useAccountEffect } from 'wagmi';
 
@@ -7,11 +7,12 @@ import useAccount from 'lib/web3/useAccount';
 
 interface Params {
   source: mixpanel.EventPayload<mixpanel.EventTypes.WALLET_CONNECT>['Source'];
+  onConnect?: () => void;
 }
 
-export default function useWeb3Wallet({ source }: Params) {
-  const { open: openModal } = useWeb3Modal();
-  const { open: isOpen } = useWeb3ModalState();
+export default function useWeb3Wallet({ source, onConnect }: Params) {
+  const { open: openModal } = useAppKit();
+  const { open: isOpen } = useAppKitState();
   const { disconnect } = useDisconnect();
   const [ isOpening, setIsOpening ] = React.useState(false);
   const [ isClientLoaded, setIsClientLoaded ] = React.useState(false);
@@ -35,9 +36,10 @@ export default function useWeb3Wallet({ source }: Params) {
       mixpanel.userProfile.setOnce({
         'With Connected Wallet': true,
       });
+      onConnect?.();
     }
     isConnectionStarted.current = false;
-  }, [ source ]);
+  }, [ source, onConnect ]);
 
   const handleDisconnect = React.useCallback(() => {
     disconnect();

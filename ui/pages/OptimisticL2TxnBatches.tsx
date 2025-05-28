@@ -1,9 +1,10 @@
-import { Hide, Show, Skeleton, Text } from '@chakra-ui/react';
+import { Box, Text } from '@chakra-ui/react';
 import React from 'react';
 
 import useApiQuery from 'lib/api/useApiQuery';
 import { L2_TXN_BATCHES_ITEM } from 'stubs/L2';
 import { generateListStub } from 'stubs/utils';
+import { Skeleton } from 'toolkit/chakra/skeleton';
 import { ACTION_BAR_HEIGHT_DESKTOP } from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
 import PageTitle from 'ui/shared/Page/PageTitle';
@@ -37,18 +38,18 @@ const OptimisticL2TxnBatches = () => {
 
   const content = data?.items ? (
     <>
-      <Show below="lg" ssr={ false }>
+      <Box hideFrom="lg">
         { data.items.map(((item, index) => (
           <OptimisticL2TxnBatchesListItem
-            key={ item.internal_id + (isPlaceholderData ? String(index) : '') }
+            key={ item.number + (isPlaceholderData ? String(index) : '') }
             item={ item }
             isLoading={ isPlaceholderData }
           />
         ))) }
-      </Show>
-      <Hide below="lg" ssr={ false }>
+      </Box>
+      <Box hideBelow="lg">
         <OptimisticL2TxnBatchesTable items={ data.items } top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 } isLoading={ isPlaceholderData }/>
-      </Hide>
+      </Box>
     </>
   ) : null;
 
@@ -58,10 +59,10 @@ const OptimisticL2TxnBatches = () => {
     }
 
     return (
-      <Skeleton isLoaded={ !countersQuery.isPlaceholderData && !isPlaceholderData } display="flex" flexWrap="wrap">
+      <Skeleton loading={ countersQuery.isPlaceholderData || isPlaceholderData } display="flex" flexWrap="wrap">
         Txn batch
-        <Text fontWeight={ 600 } whiteSpace="pre"> #{ data.items[0].internal_id } </Text>to
-        <Text fontWeight={ 600 } whiteSpace="pre"> #{ data.items[data.items.length - 1].internal_id } </Text>
+        <Text fontWeight={ 600 } whiteSpace="pre"> #{ data.items[0].number } </Text>to
+        <Text fontWeight={ 600 } whiteSpace="pre"> #{ data.items[data.items.length - 1].number } </Text>
         (total of { countersQuery.data?.toLocaleString() } batches)
       </Skeleton>
     );
@@ -74,11 +75,12 @@ const OptimisticL2TxnBatches = () => {
       <PageTitle title="Txn batches" withTextAd/>
       <DataListDisplay
         isError={ isError }
-        items={ data?.items }
+        itemsNum={ data?.items?.length }
         emptyText="There are no txn batches."
-        content={ content }
         actionBar={ actionBar }
-      />
+      >
+        { content }
+      </DataListDisplay>
     </>
   );
 };

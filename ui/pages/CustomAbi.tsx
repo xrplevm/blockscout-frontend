@@ -1,10 +1,13 @@
-import { Box, Button, Skeleton, useDisclosure } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import React, { useCallback, useState } from 'react';
 
 import type { CustomAbi } from 'types/api/account';
 
 import useApiQuery from 'lib/api/useApiQuery';
 import { CUSTOM_ABI } from 'stubs/account';
+import { Button } from 'toolkit/chakra/button';
+import { Skeleton } from 'toolkit/chakra/skeleton';
+import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import CustomAbiModal from 'ui/customAbi/CustomAbiModal/CustomAbiModal';
 import CustomAbiListItem from 'ui/customAbi/CustomAbiTable/CustomAbiListItem';
@@ -29,36 +32,29 @@ const CustomAbiPage: React.FC = () => {
     },
   });
 
-  const onEditClick = useCallback(
-    (data: CustomAbi) => {
-      setCustomAbiModalData(data);
-      customAbiModalProps.onOpen();
-    },
-    [ customAbiModalProps ],
-  );
-
-  const onCustomAbiModalClose = useCallback(() => {
-    setCustomAbiModalData(undefined);
-    customAbiModalProps.onClose();
+  const onEditClick = useCallback((data: CustomAbi) => {
+    setCustomAbiModalData(data);
+    customAbiModalProps.onOpen();
   }, [ customAbiModalProps ]);
 
-  const onDeleteClick = useCallback(
-    (data: CustomAbi) => {
-      setDeleteModalData(data);
-      deleteModalProps.onOpen();
-    },
-    [ deleteModalProps ],
-  );
+  const onCustomAbiModalOpenChange = useCallback(({ open }: { open: boolean }) => {
+    !open && setCustomAbiModalData(undefined);
+    customAbiModalProps.onOpenChange({ open });
+  }, [ customAbiModalProps ]);
 
-  const onDeleteModalClose = useCallback(() => {
-    setDeleteModalData(undefined);
-    deleteModalProps.onClose();
+  const onDeleteClick = useCallback((data: CustomAbi) => {
+    setDeleteModalData(data);
+    deleteModalProps.onOpen();
+  }, [ deleteModalProps ]);
+
+  const onDeleteModalOpenChange = useCallback(({ open }: { open: boolean }) => {
+    !open && setDeleteModalData(undefined);
+    deleteModalProps.onOpenChange({ open });
   }, [ deleteModalProps ]);
 
   const description = (
     <AccountPageDescription>
-      Add custom ABIs for any contract and access when logged into your account. Helpful for debugging, functional testing and contract
-      interaction.
+      Add custom ABIs for any contract and access when logged into your account. Helpful for debugging, functional testing and contract interaction.
     </AccountPageDescription>
   );
 
@@ -81,7 +77,12 @@ const CustomAbiPage: React.FC = () => {
           )) }
         </Box>
         <Box display={{ base: 'none', lg: 'block' }}>
-          <CustomAbiTable data={ data } isLoading={ isPlaceholderData } onDeleteClick={ onDeleteClick } onEditClick={ onEditClick }/>
+          <CustomAbiTable
+            data={ data }
+            isLoading={ isPlaceholderData }
+            onDeleteClick={ onDeleteClick }
+            onEditClick={ onEditClick }
+          />
         </Box>
       </>
     );
@@ -90,13 +91,15 @@ const CustomAbiPage: React.FC = () => {
       <>
         { description }
         { Boolean(data?.length) && list }
-        <Skeleton mt={ 8 } isLoaded={ !isPlaceholderData } display="inline-block">
-          <Button size="lg" onClick={ customAbiModalProps.onOpen }>
+        <Skeleton mt={ 8 } loading={ isPlaceholderData } display="inline-block">
+          <Button
+            onClick={ customAbiModalProps.onOpen }
+          >
             Add custom ABI
           </Button>
         </Skeleton>
-        <CustomAbiModal { ...customAbiModalProps } onClose={ onCustomAbiModalClose } data={ customAbiModalData }/>
-        { deleteModalData && <DeleteCustomAbiModal { ...deleteModalProps } onClose={ onDeleteModalClose } data={ deleteModalData }/> }
+        <CustomAbiModal open={ customAbiModalProps.open } onOpenChange={ onCustomAbiModalOpenChange } data={ customAbiModalData }/>
+        { deleteModalData && <DeleteCustomAbiModal open={ deleteModalProps.open } onOpenChange={ onDeleteModalOpenChange } data={ deleteModalData }/> }
       </>
     );
   })();

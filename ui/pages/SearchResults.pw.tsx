@@ -20,6 +20,7 @@ test.describe('search by name', () => {
         searchMock.token2,
         searchMock.contract1,
         searchMock.address2,
+        searchMock.metatag1,
         searchMock.label1,
       ],
       next_page_params: null,
@@ -38,14 +39,31 @@ test.describe('search by name', () => {
 test('search by address hash +@mobile', async({ render, mockApiResponse }) => {
   const hooksConfig = {
     router: {
-      query: { q: searchMock.address1.address },
+      query: { q: searchMock.address1.address_hash },
     },
   };
   const data = {
     items: [ searchMock.address1, searchMock.contract2 ],
     next_page_params: null,
   };
-  await mockApiResponse('search', data, { queryParams: { q: searchMock.address1.address } });
+  await mockApiResponse('search', data, { queryParams: { q: searchMock.address1.address_hash } });
+
+  const component = await render(<SearchResults/>, { hooksConfig });
+
+  await expect(component.locator('main')).toHaveScreenshot();
+});
+
+test('search by meta tag +@mobile', async({ render, mockApiResponse }) => {
+  const hooksConfig = {
+    router: {
+      query: { q: 'utko' },
+    },
+  };
+  const data = {
+    items: [ searchMock.metatag1, searchMock.metatag2, searchMock.metatag3 ],
+    next_page_params: null,
+  };
+  await mockApiResponse('search', data, { queryParams: { q: 'utko' } });
 
   const component = await render(<SearchResults/>, { hooksConfig });
 
@@ -163,7 +181,7 @@ test.describe('with apps', () => {
       next_page_params: {
         address_hash: null,
         block_hash: null,
-        holder_count: null,
+        holders_count: null,
         inserted_at: null,
         item_type: 'token' as const,
         items_count: 1,
@@ -177,7 +195,7 @@ test.describe('with apps', () => {
       [ 'NEXT_PUBLIC_MARKETPLACE_CONFIG_URL', MARKETPLACE_CONFIG_URL ],
     ]);
     await mockApiResponse('search', data, { queryParams: { q: 'o' } });
-    await mockConfigResponse('NEXT_PUBLIC_MARKETPLACE_CONFIG_URL', MARKETPLACE_CONFIG_URL, JSON.stringify(appsMock));
+    await mockConfigResponse('NEXT_PUBLIC_MARKETPLACE_CONFIG_URL', MARKETPLACE_CONFIG_URL, appsMock);
     await mockAssetResponse(appsMock[0].logo, './playwright/mocks/image_s.jpg');
     await mockAssetResponse(appsMock[1].logo, './playwright/mocks/image_s.jpg');
     const component = await render(<SearchResults/>, { hooksConfig });

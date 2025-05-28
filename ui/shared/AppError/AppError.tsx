@@ -1,4 +1,4 @@
-import { Box, Button, Text } from '@chakra-ui/react';
+import { Box, Text } from '@chakra-ui/react';
 import React from 'react';
 
 import { route } from 'nextjs-routes';
@@ -8,6 +8,8 @@ import getErrorCause from 'lib/errors/getErrorCause';
 import getErrorCauseStatusCode from 'lib/errors/getErrorCauseStatusCode';
 import getErrorObjStatusCode from 'lib/errors/getErrorObjStatusCode';
 import getResourceErrorPayload from 'lib/errors/getResourceErrorPayload';
+import { Button } from 'toolkit/chakra/button';
+import { Link } from 'toolkit/chakra/link';
 import AdBannerContent from 'ui/shared/ad/AdBannerContent';
 
 import AppErrorIcon from './AppErrorIcon';
@@ -24,6 +26,10 @@ interface Props {
 }
 
 const ERROR_TEXTS: Record<string, { title: string; text: string }> = {
+  '403': {
+    title: 'Alert',
+    text: 'Access to this resource is restricted.',
+  },
   '404': {
     title: 'Page not found',
     text: 'This page is no longer explorable! If you are lost, use the search bar to find what you are looking for.',
@@ -83,16 +89,18 @@ const AppError = ({ error, className }: Props) => {
           <>
             <AppErrorIcon statusCode={ statusCode }/>
             <AppErrorTitle title={ title }/>
-            <Text variant="secondary" mt={ 3 }>{ text }</Text>
-            <Button
-              mt={ 8 }
-              size="lg"
-              variant="outline"
-              as="a"
+            <Text color="text.secondary" mt={ 3 }>{ text }</Text>
+            <Link
               href={ route({ pathname: '/' }) }
+              asChild
             >
-              Back to home
-            </Button>
+              <Button
+                mt={ 8 }
+                variant="outline"
+              >
+                Back to home
+              </Button>
+            </Link>
             { statusCode === 404 && adBannerProvider && <AdBannerContent mt={ 12 } provider={ adBannerProvider }/> }
           </>
         );

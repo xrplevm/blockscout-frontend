@@ -41,17 +41,42 @@ test.describe('base view', () => {
     );
   });
 
-  test('+@mobile', async() => {
+  test('desktop', async() => {
     await expect(component).toHaveScreenshot();
   });
 
   test.describe('screen xl', () => {
     test.use({ viewport: pwConfig.viewport.xl });
 
-    test('', async() => {
+    test('base view', async() => {
       test.slow();
       await expect(component).toHaveScreenshot();
     });
+  });
+});
+
+test.describe('base view', () => {
+  test.use({ viewport: pwConfig.viewport.mobile });
+
+  test('mobile', async({ render, mockApiResponse }) => {
+    await mockApiResponse(
+      'address_txs',
+      {
+        items: [
+          txMock.base,
+          { ...txMock.base, hash: '0x62d597ebcf3e8d60096dd0363bc2f0f5e2df27ba1dacd696c51aa7c9409f3194' },
+        ],
+        next_page_params: DEFAULT_PAGINATION,
+      },
+      { pathParams: { hash: CURRENT_ADDRESS } },
+    );
+    const component = await render(
+      <Box pt={{ base: '134px', lg: 6 }}>
+        <AddressTxs/>
+      </Box>,
+      { hooksConfig },
+    );
+    await expect(component).toHaveScreenshot();
   });
 });
 
@@ -59,35 +84,6 @@ test.describe('socket', () => {
   // FIXME
   // test cases which use socket cannot run in parallel since the socket server always run on the same port
   test.describe.configure({ mode: 'serial' });
-
-  test('without overload', async({ render, mockApiResponse, page, createSocket }) => {
-    await mockApiResponse(
-      'address_txs',
-      { items: [ txMock.base ], next_page_params: DEFAULT_PAGINATION },
-      { pathParams: { hash: CURRENT_ADDRESS } },
-    );
-
-    await render(
-      <Box pt={{ base: '134px', lg: 6 }}>
-        <AddressTxs/>
-      </Box>,
-      { hooksConfig },
-      { withSocket: true },
-    );
-
-    const socket = await createSocket();
-    const channel = await socketServer.joinChannel(socket, `addresses:${ CURRENT_ADDRESS.toLowerCase() }`);
-
-    const itemsCount = await page.locator('tbody tr').count();
-    expect(itemsCount).toBe(2);
-
-    socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base2, txMock.base4 ] });
-
-    await page.waitForSelector('tbody tr:nth-child(3)');
-
-    const itemsCountNew = await page.locator('tbody tr').count();
-    expect(itemsCountNew).toBe(4);
-  });
 
   test('with update', async({ render, mockApiResponse, page, createSocket }) => {
     await mockApiResponse(
@@ -110,12 +106,13 @@ test.describe('socket', () => {
     const itemsCount = await page.locator('tbody tr').count();
     expect(itemsCount).toBe(2);
 
-    socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base, txMock.base2 ] });
+    socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base ] });
 
-    await page.waitForSelector('tbody tr:nth-child(3)');
+    const secondRow = page.locator('tbody tr:nth-child(2)');
+    await secondRow.waitFor();
 
     const itemsCountNew = await page.locator('tbody tr').count();
-    expect(itemsCountNew).toBe(3);
+    expect(itemsCountNew).toBe(2);
   });
 
   test('with overload', async({ render, mockApiResponse, page, createSocket }) => {
@@ -127,7 +124,7 @@ test.describe('socket', () => {
 
     await render(
       <Box pt={{ base: '134px', lg: 6 }}>
-        <AddressTxs overloadCount={ 2 }/>
+        <AddressTxs/>
       </Box>,
       { hooksConfig },
       { withSocket: true },
@@ -141,7 +138,8 @@ test.describe('socket', () => {
 
     socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base2, txMock.base3, txMock.base4 ] });
 
-    await page.waitForSelector('tbody tr:nth-child(3)');
+    const thirdRow = page.locator('tbody tr:nth-child(3)');
+    await thirdRow.waitFor();
 
     const itemsCountNew = await page.locator('tbody tr').count();
     expect(itemsCountNew).toBe(3);
@@ -177,9 +175,10 @@ test.describe('socket', () => {
     const itemsCount = await page.locator('tbody tr').count();
     expect(itemsCount).toBe(2);
 
-    socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base2, txMock.base4 ] });
+    socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base2 ] });
 
-    await page.waitForSelector('tbody tr:nth-child(3)');
+    const secondRow = page.locator('tbody tr:nth-child(2)');
+    await secondRow.waitFor();
 
     const itemsCountNew = await page.locator('tbody tr').count();
     expect(itemsCountNew).toBe(3);
@@ -200,7 +199,7 @@ test.describe('socket', () => {
 
     await render(
       <Box pt={{ base: '134px', lg: 6 }}>
-        <AddressTxs overloadCount={ 2 }/>
+        <AddressTxs/>
       </Box>,
       { hooksConfig: hooksConfigWithFilter },
       { withSocket: true },
@@ -214,7 +213,8 @@ test.describe('socket', () => {
 
     socketServer.sendMessage(socket, channel, 'transaction', { transactions: [ txMock.base2, txMock.base3, txMock.base4 ] });
 
-    await page.waitForSelector('tbody tr:nth-child(3)');
+    const thirdRow = page.locator('tbody tr:nth-child(3)');
+    await thirdRow.waitFor();
 
     const itemsCountNew = await page.locator('tbody tr').count();
     expect(itemsCountNew).toBe(3);

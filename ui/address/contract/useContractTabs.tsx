@@ -13,7 +13,6 @@ import ContractMethodsCustom from 'ui/address/contract/methods/ContractMethodsCu
 import ContractMethodsMudSystem from 'ui/address/contract/methods/ContractMethodsMudSystem';
 import ContractMethodsProxy from 'ui/address/contract/methods/ContractMethodsProxy';
 import ContractMethodsRegular from 'ui/address/contract/methods/ContractMethodsRegular';
-import { enrichWithMethodId, isMethod } from 'ui/address/contract/methods/utils';
 import ContentLoader from 'ui/shared/ContentLoader';
 
 import type { CONTRACT_MAIN_TAB_IDS } from './utils';
@@ -31,7 +30,7 @@ interface ReturnType {
   isLoading: boolean;
 }
 
-export default function useContractTabs(data: Address | undefined, isPlaceholderData: boolean, hasMudTab?: boolean): ReturnType {
+export default function useContractTabs(data: Address | undefined, isPlaceholderData: boolean, hasMudTab: boolean = false): ReturnType {
   const [ isQueryEnabled, setIsQueryEnabled ] = React.useState(false);
 
   const router = useRouter();
@@ -68,30 +67,34 @@ export default function useContractTabs(data: Address | undefined, isPlaceholder
     onSocketError: enableQuery,
   });
 
-  const methods = React.useMemo(() => contractQuery.data?.abi?.filter(isMethod).map(enrichWithMethodId) ?? [], [ contractQuery.data?.abi ]);
-
   const verifiedImplementations = React.useMemo(() => {
-    return data?.implementations?.filter(({ name, address }) => name && address && address !== data?.hash) || [];
+    return data?.implementations?.filter(({ name, address_hash: addressHash }) => name && addressHash && addressHash !== data?.hash) || [];
   }, [ data?.hash, data?.implementations ]);
 
   return React.useMemo(() => {
     return {
       tabs: [
-        data?.hash && {
+        data && {
           id: 'contract_code' as const,
           title: 'Code',
-          component: <ContractDetails mainContractQuery={ contractQuery } channel={ channel } addressHash={ data.hash }/>,
+          component: <ContractDetails mainContractQuery={ contractQuery } channel={ channel } addressData={ data }/>,
           subTabs: CONTRACT_DETAILS_TAB_IDS as unknown as Array<string>,
         },
-        methods.length > 0 && {
+        contractQuery.data?.abi && {
           id: [ 'read_write_contract' as const, 'read_contract' as const, 'write_contract' as const ],
           title: 'Read/Write contract',
-          component: <ContractMethodsRegular abi={ methods } isLoading={ contractQuery.isPlaceholderData }/>,
+          component: <ContractMethodsRegular abi={ contractQuery.data.abi } isLoading={ contractQuery.isPlaceholderData }/>,
         },
         verifiedImplementations.length > 0 && {
           id: [ 'read_write_proxy' as const, 'read_proxy' as const, 'write_proxy' as const ],
           title: 'Read/Write proxy',
-          component: <ContractMethodsProxy implementations={ verifiedImplementations } isLoading={ contractQuery.isPlaceholderData }/>,
+          component: (
+            <ContractMethodsProxy
+              implementations={ verifiedImplementations }
+              isLoading={ contractQuery.isPlaceholderData }
+              proxyType={ data?.proxy_type }
+            />
+          ),
         },
         config.features.account.isEnabled && {
           id: [ 'read_write_custom_methods' as const, 'read_custom_methods' as const, 'write_custom_methods' as const ],
@@ -109,10 +112,9 @@ export default function useContractTabs(data: Address | undefined, isPlaceholder
       isLoading: contractQuery.isPlaceholderData,
     };
   }, [
-    data?.hash,
+    data,
     contractQuery,
     channel,
-    methods,
     verifiedImplementations,
     hasMudTab,
     mudSystemsQuery.isPlaceholderData,

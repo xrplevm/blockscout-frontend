@@ -8,12 +8,12 @@ import type { BlockWithdrawalsResponse } from 'types/api/block';
 import config from 'configs/app';
 import type { ResourceError } from 'lib/api/resources';
 import { retry } from 'lib/api/useQueryClientConfig';
-import { SECOND } from 'lib/consts';
 import hexToDecimal from 'lib/hexToDecimal';
 import { publicClient } from 'lib/web3/client';
 import { GET_BLOCK } from 'stubs/RPC';
 import { generateListStub } from 'stubs/utils';
 import { WITHDRAWAL } from 'stubs/withdrawals';
+import { SECOND } from 'toolkit/utils/consts';
 import { unknownAddress } from 'ui/shared/address/utils';
 import type { QueryWithPagesResult } from 'ui/shared/pagination/useQueryWithPages';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
@@ -124,14 +124,12 @@ export default function useBlockWithdrawalsQuery({ heightOrHash, blockQuery, tab
     ((apiQuery.isError || apiQuery.isPlaceholderData) && apiQuery.errorUpdateCount > 0)
   ) && rpcQuery.data && publicClient);
 
-  const rpcQueryWithPages: QueryWithPagesResult<'block_withdrawals'> = React.useMemo(() => {
-    return {
-      ...rpcQuery as UseQueryResult<BlockWithdrawalsResponse, ResourceError>,
-      pagination: emptyPagination,
-      onFilterChange: () => {},
-      onSortingChange: () => {},
-    };
-  }, [ rpcQuery ]);
+  const rpcQueryWithPages: QueryWithPagesResult<'block_withdrawals'> = {
+    ...rpcQuery as UseQueryResult<BlockWithdrawalsResponse, ResourceError>,
+    pagination: emptyPagination,
+    onFilterChange: () => {},
+    onSortingChange: () => {},
+  };
 
   const query = isRpcQuery ? rpcQueryWithPages : apiQuery;
 

@@ -21,10 +21,14 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
     [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
     [ 'NEXT_PUBLIC_ROLLUP_L2_WITHDRAWAL_URL', 'https://localhost:3102' ],
     [ 'NEXT_PUBLIC_FAULT_PROOF_ENABLED', 'true' ],
+    [ 'NEXT_PUBLIC_ROLLUP_DA_CELESTIA_CELENIUM_URL', 'https://mocha.celenium.io/blob' ],
   ],
   arbitrumRollup: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'arbitrum' ],
     [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_PARENT_CHAIN_NAME', 'DuckChain' ],
+    [ 'NEXT_PUBLIC_ROLLUP_DA_CELESTIA_NAMESPACE', '0x1234' ],
+    [ 'NEXT_PUBLIC_ROLLUP_DA_CELESTIA_CELENIUM_URL', 'https://mocha.celenium.io/blob' ],
   ],
   shibariumRollup: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'shibarium' ],
@@ -38,6 +42,10 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'zkSync' ],
     [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
     [ 'NEXT_PUBLIC_VIEWS_CONTRACT_EXTRA_VERIFICATION_METHODS', 'none' ],
+  ],
+  scrollRollup: [
+    [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'scroll' ],
+    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
   ],
   bridgedTokens: [
     [ 'NEXT_PUBLIC_BRIDGED_TOKENS_CHAINS', '[{"id":"1","title":"Ethereum","short_title":"ETH","base_url":"https://eth.blockscout.com/token/"},{"id":"56","title":"Binance Smart Chain","short_title":"BSC","base_url":"https://bscscan.com/token/"},{"id":"99","title":"POA","short_title":"POA","base_url":"https://blockscout.com/poa/core/token/"}]' ],
@@ -87,5 +95,14 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
   addressBech32Format: [
     [ 'NEXT_PUBLIC_ADDRESS_FORMAT', '["bech32","base16"]' ],
     [ 'NEXT_PUBLIC_VIEWS_ADDRESS_BECH_32_PREFIX', 'tom' ],
+  ],
+  externalTxs: [
+    [ 'NEXT_PUBLIC_TX_EXTERNAL_TRANSACTIONS_CONFIG', '{"chain_name": "Solana", "chain_logo_url": "http://example.url", "explorer_url_template": "https://scan.io/tx/{hash}"}' ],
+  ],
+  interop: [
+    [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'optimistic' ],
+    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_L2_WITHDRAWAL_URL', 'https://localhost:3102' ],
+    [ 'NEXT_PUBLIC_INTEROP_ENABLED', 'true' ],
   ],
 };

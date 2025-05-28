@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FEATURED_NETWORKS_MOCK } from 'mocks/config/network';
+import { FEATURED_NETWORKS } from 'mocks/config/network';
 import { test, expect } from 'playwright/lib';
 
 import NetworkMenu from './NetworkMenu';
@@ -14,7 +14,7 @@ test('base view +@dark-mode', async({ render, page, mockConfigResponse, mockAsse
   await mockEnvs([
     [ 'NEXT_PUBLIC_FEATURED_NETWORKS', FEATURED_NETWORKS_URL ],
   ]);
-  await mockConfigResponse('NEXT_PUBLIC_FEATURED_NETWORKS', FEATURED_NETWORKS_URL, FEATURED_NETWORKS_MOCK);
+  await mockConfigResponse('NEXT_PUBLIC_FEATURED_NETWORKS', FEATURED_NETWORKS_URL, FEATURED_NETWORKS);
   await mockAssetResponse(LOGO_URL, './playwright/mocks/image_s.jpg');
 
   const component = await render(<NetworkMenu/>);
@@ -27,6 +27,6 @@ test('base view +@dark-mode', async({ render, page, mockConfigResponse, mockAsse
   await component.locator('button[aria-label="Network menu"]').click();
   await expect(page).toHaveScreenshot({ clip: { x: 0, y: 0, width: 450, height: 550 } });
 
-  await component.getByText(/poa/i).hover();
+  await page.getByRole('link', { name: 'POA' }).hover();
   await expect(page).toHaveScreenshot({ clip: { x: 0, y: 0, width: 450, height: 550 } });
 });

@@ -1,4 +1,3 @@
-import { Skeleton } from '@chakra-ui/react';
 import React from 'react';
 
 import StatusTag from 'ui/shared/statusTag/StatusTag';
@@ -14,9 +13,7 @@ const UserOpStatus = ({ status, isLoading }: Props) => {
   }
 
   return (
-    <Skeleton isLoaded={ !isLoading } display="inline-block">
-      <StatusTag type={ status === true ? 'ok' : 'error' } text={ status === true ? 'Success' : 'Failed' }/>
-    </Skeleton>
+    <StatusTag isLoading={ isLoading } type={ status === true ? 'ok' : 'error' } text={ status === true ? 'Success' : 'Failed' }/>
   );
 };
 

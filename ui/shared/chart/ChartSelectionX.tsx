@@ -17,30 +17,34 @@ interface Props {
 }
 
 const ChartSelectionX = ({ anchorEl, height, scale, data, onSelect }: Props) => {
-  const borderColor = useToken('colors', 'purple.200');
+  const [ borderColor ] = useToken('colors', 'purple.200');
 
   const ref = React.useRef(null);
   const isActive = React.useRef(false);
   const startX = React.useRef<number>();
   const endX = React.useRef<number>();
 
-  const getIndexByX = React.useCallback(
-    (x: number) => {
-      const xDate = scale.invert(x);
-      const bisectDate = d3.bisector<TimeChartItem, unknown>((d) => d.date).left;
-      return bisectDate(data[0].items, xDate, 1);
-    },
-    [ data, scale ],
-  );
+  const getIndexByX = React.useCallback((x: number) => {
+    const xDate = scale.invert(x);
+    const bisectDate = d3.bisector<TimeChartItem, unknown>((d) => d.date).left;
+    return bisectDate(data[0].items, xDate, 1);
+  }, [ data, scale ]);
 
   const drawSelection = React.useCallback((x0: number, x1: number) => {
     const diffX = x1 - x0;
 
-    d3.select(ref.current).attr('opacity', 1);
+    d3.select(ref.current)
+      .attr('opacity', 1);
 
-    d3.select(ref.current).select('.ChartSelectionX__line_left').attr('x1', x0).attr('x2', x0);
+    d3.select(ref.current)
+      .select('.ChartSelectionX__line_left')
+      .attr('x1', x0)
+      .attr('x2', x0);
 
-    d3.select(ref.current).select('.ChartSelectionX__line_right').attr('x1', x1).attr('x2', x1);
+    d3.select(ref.current)
+      .select('.ChartSelectionX__line_right')
+      .attr('x1', x1)
+      .attr('x2', x1);
 
     d3.select(ref.current)
       .select('.ChartSelectionX__rect')
@@ -48,24 +52,21 @@ const ChartSelectionX = ({ anchorEl, height, scale, data, onSelect }: Props) => 
       .attr('width', Math.abs(diffX));
   }, []);
 
-  const handleSelect = React.useCallback(
-    (x0: number, x1: number) => {
-      const startDate = scale.invert(x0);
-      const endDate = scale.invert(x1);
+  const handleSelect = React.useCallback((x0: number, x1: number) => {
+    const startDate = scale.invert(x0);
+    const endDate = scale.invert(x1);
 
-      if (Math.abs(dayjs(startDate).diff(endDate, 'day')) > SELECTION_THRESHOLD) {
-        onSelect([ dayjs.min(dayjs(startDate), dayjs(endDate)).toDate(), dayjs.max(dayjs(startDate), dayjs(endDate)).toDate() ]);
-      }
-    },
-    [ onSelect, scale ],
-  );
+    if (Math.abs(dayjs(startDate).diff(endDate, 'day')) > SELECTION_THRESHOLD) {
+      onSelect([ dayjs.min(dayjs(startDate), dayjs(endDate)).toDate(), dayjs.max(dayjs(startDate), dayjs(endDate)).toDate() ]);
+    }
+  }, [ onSelect, scale ]);
 
   const cleanUp = React.useCallback(() => {
     isActive.current = false;
     startX.current = undefined;
     endX.current = undefined;
     d3.select(ref.current).attr('opacity', 0);
-  }, []);
+  }, [ ]);
 
   const handelMouseUp = React.useCallback(() => {
     if (!isActive.current) {

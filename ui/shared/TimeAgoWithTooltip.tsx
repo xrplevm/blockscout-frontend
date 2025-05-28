@@ -1,8 +1,10 @@
-import { Skeleton, Tooltip, chakra } from '@chakra-ui/react';
+import { chakra } from '@chakra-ui/react';
 import React from 'react';
 
 import dayjs from 'lib/date/dayjs';
 import useTimeAgoIncrement from 'lib/hooks/useTimeAgoIncrement';
+import { Skeleton } from 'toolkit/chakra/skeleton';
+import { Tooltip } from 'toolkit/chakra/tooltip';
 
 type Props = {
   timestamp?: string | number | null;
@@ -19,11 +21,11 @@ const TimeAgoWithTooltip = ({ timestamp, fallbackText, isLoading, enableIncremen
   }
 
   const content = timestamp ?
-    <Tooltip label={ dayjs(timestamp).format('llll') }><span>{ timeAgo }</span></Tooltip> :
+    <Tooltip content={ dayjs(timestamp).format('llll') }><span>{ timeAgo }</span></Tooltip> :
     <span>{ fallbackText }</span>;
 
   return (
-    <Skeleton isLoaded={ !isLoading } className={ className }>
+    <Skeleton loading={ isLoading } className={ className }>
       { content }
     </Skeleton>
   );

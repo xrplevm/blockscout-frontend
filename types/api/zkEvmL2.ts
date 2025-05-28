@@ -42,7 +42,7 @@ export type ZkEvmL2TxnBatchesItem = {
   sequence_transaction_hash: string | null;
   status: string;
   timestamp: string | null;
-  transaction_count: number;
+  transactions_count: number;
 };
 
 export type ZkEvmL2TxnBatchesResponse = {
@@ -69,7 +69,7 @@ export type ZkEvmL2TxnBatch = {
 
 export type ZkEvmL2TxnBatchTxs = {
   items: Array<Transaction>;
-  // API responce doesn't have next_page_params option, but we need to add it to the type for consistency
+  // API response doesn't have next_page_params option, but we need to add it to the type for consistency
   next_page_params: null;
 };
 

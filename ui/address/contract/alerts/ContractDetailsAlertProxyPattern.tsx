@@ -1,19 +1,20 @@
-import { Alert } from '@chakra-ui/react';
 import React from 'react';
 
 import type { SmartContractProxyType } from 'types/api/contract';
 
-import LinkExternal from 'ui/shared/links/LinkExternal';
+import { Alert } from 'toolkit/chakra/alert';
+import { Link } from 'toolkit/chakra/link';
 
 interface Props {
   type: NonNullable<SmartContractProxyType>;
+  isLoading: boolean;
 }
 
-const PROXY_TYPES: Record<NonNullable<SmartContractProxyType>, {
+const PROXY_TYPES: Partial<Record<NonNullable<SmartContractProxyType>, {
   name: string;
   link?: string;
   description?: string;
-}> = {
+}>> = {
   eip1167: {
     name: 'EIP-1167',
     link: 'https://eips.ethereum.org/EIPS/eip-1167',
@@ -62,7 +63,7 @@ const PROXY_TYPES: Record<NonNullable<SmartContractProxyType>, {
   },
 };
 
-const ContractCodeProxyPattern = ({ type }: Props) => {
+const ContractCodeProxyPattern = ({ type, isLoading }: Props) => {
   const proxyInfo = PROXY_TYPES[type];
 
   if (!proxyInfo || type === 'unknown') {
@@ -70,10 +71,10 @@ const ContractCodeProxyPattern = ({ type }: Props) => {
   }
 
   return (
-    <Alert status="warning" flexWrap="wrap" whiteSpace="pre-wrap">
+    <Alert status="warning" whiteSpace="pre-wrap" loading={ isLoading }>
       { proxyInfo.link ? (
         <>
-          This proxy smart-contract is detected via <LinkExternal href={ proxyInfo.link }>{ proxyInfo.name }</LinkExternal>
+          This proxy smart-contract is detected via <Link href={ proxyInfo.link } external>{ proxyInfo.name }</Link>
           { proxyInfo.description && ` - ${ proxyInfo.description }` }
         </>
       ) : (

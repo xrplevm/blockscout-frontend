@@ -3,17 +3,18 @@ import type { NextRouter } from 'next/router';
 import config from 'configs/app';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import removeQueryParam from 'lib/router/removeQueryParam';
-import type { TOption } from 'ui/shared/sort/Option';
+import type { SelectOption } from 'toolkit/chakra/select';
 
 const feature = config.features.marketplace;
 
-export type SortValue = 'rating' | 'security_score';
+export type SortValue = 'default' | 'rating_score' | 'rating_count' | 'security_score';
 
-export const SORT_OPTIONS: Array<TOption<SortValue>> = [
-  { title: 'Default', id: undefined },
-  (feature.isEnabled && feature.rating) && { title: 'Rating', id: 'rating' },
-  (feature.isEnabled && feature.securityReportsUrl) && { title: 'Security score', id: 'security_score' },
-].filter(Boolean) as Array<TOption<SortValue>>;
+export const SORT_OPTIONS: Array<SelectOption<SortValue>> = [
+  { label: 'Default', value: 'default' },
+  (feature.isEnabled && feature.rating) && { label: 'Top rated', value: 'rating_score' },
+  (feature.isEnabled && feature.rating) && { label: 'Most rated', value: 'rating_count' },
+  (feature.isEnabled && feature.securityReportsUrl) && { label: 'Security score', value: 'security_score' },
+].filter(Boolean) as Array<SelectOption<SortValue>>;
 
 export function getAppUrl(url: string | undefined, router: NextRouter) {
   if (!url) {

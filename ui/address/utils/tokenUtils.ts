@@ -1,11 +1,10 @@
 import BigNumber from 'bignumber.js';
-import fpAdd from 'lodash/fp/add';
 
 import type { AddressTokenBalance } from 'types/api/address';
 import type { TokenType } from 'types/api/token';
 
 import sumBnReducer from 'lib/bigint/sumBnReducer';
-import { ZERO } from 'lib/consts';
+import { ZERO } from 'toolkit/utils/consts';
 
 export type TokenEnhancedData = AddressTokenBalance & {
   usd?: BigNumber ;
@@ -70,7 +69,7 @@ export const sortingFns = {
 
 export const filterTokens = (searchTerm: string) => ({ token }: AddressTokenBalance) => {
   if (!token.name) {
-    return !searchTerm ? true : token.address.toLowerCase().includes(searchTerm);
+    return !searchTerm ? true : token.address_hash.toLowerCase().includes(searchTerm);
   }
 
   return token.name?.toLowerCase().includes(searchTerm);
@@ -100,7 +99,7 @@ export const getTokensTotalInfo = (data: TokenSelectData) => {
 
   const num = Object.values(data)
     .map(({ items }) => items.length)
-    .reduce(fpAdd, 0);
+    .reduce((result, item) => result + item, 0);
 
   const isOverflow = Object.values(data).some(({ isOverflow }) => isOverflow);
 

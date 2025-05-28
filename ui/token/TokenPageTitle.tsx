@@ -1,4 +1,4 @@
-import { Box, Flex, Tooltip, useToken } from '@chakra-ui/react';
+import { Flex, useToken } from '@chakra-ui/react';
 import type { UseQueryResult } from '@tanstack/react-query';
 import React from 'react';
 
@@ -12,6 +12,7 @@ import type { ResourceError } from 'lib/api/resources';
 import useApiQuery from 'lib/api/useApiQuery';
 import { useAppContext } from 'lib/contexts/app';
 import { getTokenTypeName } from 'lib/token/tokenTypes';
+import { Tooltip } from 'toolkit/chakra/tooltip';
 import AddressMetadataAlert from 'ui/address/details/AddressMetadataAlert';
 import AddressQrCode from 'ui/address/details/AddressQrCode';
 import AccountActionsMenu from 'ui/shared/AccountActionsMenu/AccountActionsMenu';
@@ -27,6 +28,8 @@ import PageTitle from 'ui/shared/Page/PageTitle';
 
 import TokenVerifiedInfo from './TokenVerifiedInfo';
 
+const PREDEFINED_TAG_PRIORITY = 100;
+
 interface Props {
   tokenQuery: UseQueryResult<TokenInfo, ResourceError<unknown>>;
   addressQuery: UseQueryResult<Address, ResourceError<unknown>>;
@@ -35,7 +38,7 @@ interface Props {
 
 const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
   const appProps = useAppContext();
-  const addressHash = !tokenQuery.isPlaceholderData ? (tokenQuery.data?.address || '') : '';
+  const addressHash = !tokenQuery.isPlaceholderData ? (tokenQuery.data?.address_hash || '') : '';
 
   const verifiedInfoQuery = useApiQuery('token_verified_info', {
     pathParams: { hash: addressHash, chainId: config.chain.id },
@@ -64,18 +67,23 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
     };
   }, [ appProps.referrer ]);
 
-  const bridgedTokenTagBgColor = useToken('colors', 'blue.500');
-  const bridgedTokenTagTextColor = useToken('colors', 'white');
+  const [ bridgedTokenTagBgColor ] = useToken('colors', 'blue.500');
+  const [ bridgedTokenTagTextColor ] = useToken('colors', 'white');
 
   const tags: Array<EntityTag> = React.useMemo(() => {
     return [
-      tokenQuery.data ? { slug: tokenQuery.data?.type, name: getTokenTypeName(tokenQuery.data.type), tagType: 'custom' as const, ordinal: -20 } : undefined,
+      tokenQuery.data ? {
+        slug: tokenQuery.data?.type,
+        name: getTokenTypeName(tokenQuery.data.type),
+        tagType: 'custom' as const,
+        ordinal: PREDEFINED_TAG_PRIORITY,
+      } : undefined,
       config.features.bridgedTokens.isEnabled && tokenQuery.data?.is_bridged ?
         {
           slug: 'bridged',
           name: 'Bridged',
           tagType: 'custom' as const,
-          ordinal: -10,
+          ordinal: PREDEFINED_TAG_PRIORITY,
           meta: { bgColor: bridgedTokenTagBgColor, textColor: bridgedTokenTagTextColor },
         } :
         undefined,
@@ -98,10 +106,8 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
   const contentAfter = (
     <>
       { verifiedInfoQuery.data?.tokenAddress && (
-        <Tooltip label={ `Information on this token has been verified by ${ config.chain.name }` }>
-          <Box boxSize={ 6 }>
-            <IconSvg name="certified" color="green.500" boxSize={ 6 } cursor="pointer"/>
-          </Box>
+        <Tooltip content={ `Information on this token has been verified by ${ config.chain.name }` }>
+          <IconSvg name="certified" color="green.500" boxSize={ 6 } cursor="pointer"/>
         </Tooltip>
       ) }
       <EntityTags
@@ -118,17 +124,15 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
         <AddressEntity
           address={{ ...addressQuery.data, name: '' }}
           isLoading={ isLoading }
-          fontFamily="heading"
-          fontSize="lg"
-          fontWeight={ 500 }
+          variant="subheading"
         />
       ) }
       { !isLoading && tokenQuery.data && <AddressAddToWallet token={ tokenQuery.data } variant="button"/> }
-      <AddressQrCode address={ addressQuery.data } isLoading={ isLoading }/>
+      { addressQuery.data && <AddressQrCode hash={ addressQuery.data.hash } isLoading={ isLoading }/> }
       <AccountActionsMenu isLoading={ isLoading }/>
       <Flex ml={{ base: 0, lg: 'auto' }} columnGap={ 2 } flexGrow={{ base: 1, lg: 0 }}>
         <TokenVerifiedInfo verifiedInfoQuery={ verifiedInfoQuery }/>
-        <NetworkExplorers type="token" pathParam={ addressHash } ml={{ base: 'auto', lg: 0 }}/>
+        <NetworkExplorers type="token" pathParam={ addressHash.toLowerCase() } ml={{ base: 'auto', lg: 0 }}/>
       </Flex>
     </Flex>
   );
@@ -143,7 +147,7 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
           <TokenEntity.Icon
             token={ tokenQuery.data }
             isLoading={ tokenQuery.isPlaceholderData }
-            size="lg"
+            variant="heading"
           />
         ) : null }
         contentAfter={ contentAfter }
