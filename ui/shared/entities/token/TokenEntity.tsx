@@ -46,6 +46,25 @@ const Icon = (props: IconProps) => {
     return <Skeleton { ...styles } loading className={ props.className }/>;
   }
 
+  if (
+    props.token.address_hash.toLocaleLowerCase() ===
+    '0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+  ) {
+    return (
+      <Image
+        { ...styles }
+        className={ props.className }
+        style={{
+          backgroundColor: 'white',
+          padding: '2px',
+        }}
+        src="static/xrp-logo.png"
+        alt={ `${ props.token.name || 'token' } logo` }
+        fallback={ <TokenLogoPlaceholder { ...styles }/> }
+      />
+    );
+  }
+
   return (
     <Image
       { ...styles }
