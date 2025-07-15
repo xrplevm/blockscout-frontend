@@ -1,7 +1,6 @@
 import { Flex, Box, VStack } from '@chakra-ui/react';
 import React from 'react';
 
-import config from 'configs/app';
 import { useAppContext } from 'lib/contexts/app';
 import * as cookies from 'lib/cookies';
 import useNavItems, { isGroupItem } from 'lib/hooks/useNavItems';
@@ -9,8 +8,8 @@ import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import IconSvg from 'ui/shared/IconSvg';
 import useIsAuth from 'ui/snippets/auth/useIsAuth';
 import NetworkLogo from 'ui/snippets/networkMenu/NetworkLogo';
-import NetworkMenu from 'ui/snippets/networkMenu/NetworkMenu';
 
+import RollupStageBadge from '../RollupStageBadge';
 import TestnetBadge from '../TestnetBadge';
 import NavLink from './NavLink';
 import NavLinkGroup from './NavLinkGroup';
@@ -70,6 +69,7 @@ const NavigationDesktop = () => {
       zIndex={ 1 }
     >
       <TestnetBadge position="absolute" pl={ 3 } w="49px" top="34px"/>
+      <RollupStageBadge position="absolute" ml={{ lg: isExpanded ? 3 : '10px', xl: isCollapsed ? '10px' : 3 }} top="34px"/>
       <Box
         as="header"
         display="flex"
@@ -85,7 +85,6 @@ const NavigationDesktop = () => {
         transitionTimingFunction="ease"
       >
         <NetworkLogo isCollapsed={ isCollapsed }/>
-        { Boolean(config.UI.navigation.featuredNetworks) && <NetworkMenu isCollapsed={ isCollapsed }/> }
       </Box>
       <Box as="nav" mt={ 6 } w="100%">
         <VStack as="ul" gap="1" alignItems="flex-start">

@@ -50,7 +50,7 @@ const NameDomains = () => {
   const sortParams = getSortParamsFromValue<Sort, EnsLookupSorting['sort'], EnsLookupSorting['order']>(sort);
 
   const addressesLookupQuery = useQueryWithPages({
-    resourceName: 'addresses_lookup',
+    resourceName: 'bens:addresses_lookup',
     pathParams: { chainId: config.chain.id },
     filters: {
       address: debouncedSearchTerm,
@@ -62,12 +62,12 @@ const NameDomains = () => {
     sorting: sortParams,
     options: {
       enabled: isAddressSearch,
-      placeholderData: generateListStub<'addresses_lookup'>(ENS_DOMAIN, 50, { next_page_params: undefined }),
+      placeholderData: generateListStub<'bens:addresses_lookup'>(ENS_DOMAIN, 50, { next_page_params: undefined }),
     },
   });
 
   const domainsLookupQuery = useQueryWithPages({
-    resourceName: 'domains_lookup',
+    resourceName: 'bens:domains_lookup',
     pathParams: { chainId: config.chain.id },
     filters: {
       name: debouncedSearchTerm,
@@ -77,11 +77,11 @@ const NameDomains = () => {
     sorting: sortParams,
     options: {
       enabled: !isAddressSearch,
-      placeholderData: generateListStub<'domains_lookup'>(ENS_DOMAIN, 50, { next_page_params: undefined }),
+      placeholderData: generateListStub<'bens:domains_lookup'>(ENS_DOMAIN, 50, { next_page_params: undefined }),
     },
   });
 
-  const protocolsQuery = useApiQuery('domain_protocols', {
+  const protocolsQuery = useApiQuery('bens:domain_protocols', {
     pathParams: { chainId: config.chain.id },
   });
 
@@ -92,7 +92,7 @@ const NameDomains = () => {
     const hasInactiveFilter = filterValue.some((value) => value === 'with_inactive');
     if (isAddressSearch) {
       setFilterValue([ 'owned_by' as const, 'resolved_to' as const, hasInactiveFilter ? 'with_inactive' as const : undefined ].filter(Boolean));
-      onFilterChange<'addresses_lookup'>({
+      onFilterChange<'bens:addresses_lookup'>({
         address: debouncedSearchTerm,
         resolved_to: true,
         owned_by: true,
@@ -101,7 +101,7 @@ const NameDomains = () => {
       });
     } else {
       setFilterValue([ hasInactiveFilter ? 'with_inactive' as const : undefined ].filter(Boolean));
-      onFilterChange<'domains_lookup'>({
+      onFilterChange<'bens:domains_lookup'>({
         name: debouncedSearchTerm,
         only_active: !hasInactiveFilter,
         protocols: protocolsFilter,
@@ -129,7 +129,7 @@ const NameDomains = () => {
     setSearchTerm(value);
     const isAddressSearch = ADDRESS_REGEXP.test(value);
     if (isAddressSearch) {
-      onFilterChange<'addresses_lookup'>({
+      onFilterChange<'bens:addresses_lookup'>({
         address: value,
         resolved_to: filterValue.includes('resolved_to'),
         owned_by: filterValue.includes('owned_by'),
@@ -137,7 +137,7 @@ const NameDomains = () => {
         protocols: protocolsFilter,
       });
     } else {
-      onFilterChange<'domains_lookup'>({
+      onFilterChange<'bens:domains_lookup'>({
         name: value,
         only_active: !filterValue.includes('with_inactive'),
         protocols: protocolsFilter,
@@ -150,7 +150,7 @@ const NameDomains = () => {
 
     const isAddressSearch = ADDRESS_REGEXP.test(debouncedSearchTerm);
     if (isAddressSearch) {
-      onFilterChange<'addresses_lookup'>({
+      onFilterChange<'bens:addresses_lookup'>({
         address: debouncedSearchTerm,
         resolved_to: value.includes('resolved_to'),
         owned_by: value.includes('owned_by'),
@@ -158,7 +158,7 @@ const NameDomains = () => {
         protocols: protocolsFilter,
       });
     } else {
-      onFilterChange<'domains_lookup'>({
+      onFilterChange<'bens:domains_lookup'>({
         name: debouncedSearchTerm,
         only_active: !value.includes('with_inactive'),
         protocols: protocolsFilter,
@@ -171,7 +171,7 @@ const NameDomains = () => {
 
     const isAddressSearch = ADDRESS_REGEXP.test(debouncedSearchTerm);
     if (isAddressSearch) {
-      onFilterChange<'addresses_lookup'>({
+      onFilterChange<'bens:addresses_lookup'>({
         address: debouncedSearchTerm,
         resolved_to: filterValue.includes('resolved_to'),
         owned_by: filterValue.includes('owned_by'),
@@ -179,7 +179,7 @@ const NameDomains = () => {
         protocols: nextValue,
       });
     } else {
-      onFilterChange<'domains_lookup'>({
+      onFilterChange<'bens:domains_lookup'>({
         name: debouncedSearchTerm,
         only_active: !filterValue.includes('with_inactive'),
         protocols: nextValue,

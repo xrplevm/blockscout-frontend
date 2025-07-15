@@ -5,6 +5,7 @@ import type { TabItemRegular } from 'toolkit/components/AdaptiveTabs/types';
 import type { EntityTag as TEntityTag } from 'ui/shared/EntityTags/types';
 
 import config from 'configs/app';
+import useApiQuery from 'lib/api/useApiQuery';
 import { useAppContext } from 'lib/contexts/app';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import getQueryParamString from 'lib/router/getQueryParamString';
@@ -32,6 +33,7 @@ import useTxQuery from 'ui/tx/useTxQuery';
 
 const txInterpretation = config.features.txInterpretation;
 const rollupFeature = config.features.rollup;
+const tacFeature = config.features.tac;
 
 const TransactionPageContent = () => {
   const router = useRouter();
@@ -39,6 +41,14 @@ const TransactionPageContent = () => {
 
   const hash = getQueryParamString(router.query.hash);
   const txQuery = useTxQuery();
+
+  const tacOperationQuery = useApiQuery('tac:operation_by_tx_hash', {
+    pathParams: { tx_hash: hash },
+    queryOptions: {
+      enabled: tacFeature.isEnabled,
+    },
+  });
+
   const { data, isPlaceholderData, isError, error, errorUpdateCount } = txQuery;
 
   const showDegradedView = publicClient && ((isError && error.status !== 422) || isPlaceholderData) && errorUpdateCount > 0;
@@ -46,7 +56,7 @@ const TransactionPageContent = () => {
   const tabs: Array<TabItemRegular> = (() => {
     const detailsComponent = showDegradedView ?
       <TxDetailsDegraded hash={ hash } txQuery={ txQuery }/> :
-      <TxDetails txQuery={ txQuery }/>;
+      <TxDetails txQuery={ txQuery } tacOperationQuery={ tacFeature.isEnabled ? tacOperationQuery : undefined }/>;
 
     return [
       {
@@ -90,7 +100,7 @@ const TransactionPageContent = () => {
 
   const tags = (
     <EntityTags
-      isLoading={ isPlaceholderData }
+      isLoading={ isPlaceholderData || (tacFeature.isEnabled && tacOperationQuery.isPlaceholderData) }
       tags={ txTags }
     />
   );
@@ -112,7 +122,7 @@ const TransactionPageContent = () => {
 
   if (isError && !showDegradedView) {
     if (isCustomAppError(error)) {
-      throwOnResourceLoadError({ resource: 'tx', error, isError: true });
+      throwOnResourceLoadError({ resource: 'general:tx', error, isError: true });
     }
   }
 

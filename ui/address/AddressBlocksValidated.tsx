@@ -20,6 +20,7 @@ import DataListDisplay from 'ui/shared/DataListDisplay';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
 import * as SocketNewItemsNotice from 'ui/shared/SocketNewItemsNotice';
+import TimeFormatToggle from 'ui/shared/time/TimeFormatToggle';
 
 import AddressBlocksValidatedListItem from './blocksValidated/AddressBlocksValidatedListItem';
 import AddressBlocksValidatedTableItem from './blocksValidated/AddressBlocksValidatedTableItem';
@@ -41,11 +42,11 @@ const AddressBlocksValidated = ({ shouldRender = true, isQueryEnabled = true }: 
 
   const addressHash = String(router.query.hash);
   const query = useQueryWithPages({
-    resourceName: 'address_blocks_validated',
+    resourceName: 'general:address_blocks_validated',
     pathParams: { hash: addressHash },
     options: {
       enabled: isQueryEnabled,
-      placeholderData: generateListStub<'address_blocks_validated'>(
+      placeholderData: generateListStub<'general:address_blocks_validated'>(
         BLOCK,
         50,
         {
@@ -66,7 +67,7 @@ const AddressBlocksValidated = ({ shouldRender = true, isQueryEnabled = true }: 
     setSocketAlert('');
 
     queryClient.setQueryData(
-      getResourceKey('address_blocks_validated', { pathParams: { hash: addressHash } }),
+      getResourceKey('general:address_blocks_validated', { pathParams: { hash: addressHash } }),
       (prevData: AddressBlocksValidatedResponse | undefined) => {
         if (!prevData) {
           return;
@@ -103,11 +104,14 @@ const AddressBlocksValidated = ({ shouldRender = true, isQueryEnabled = true }: 
   const content = query.data?.items ? (
     <>
       <Box hideBelow="lg">
-        <TableRoot style={{ tableLayout: 'auto' }}>
+        <TableRoot tableLayout="auto">
           <TableHeaderSticky top={ query.pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }>
             <TableRow>
               <TableColumnHeader>Block</TableColumnHeader>
-              <TableColumnHeader>Age</TableColumnHeader>
+              <TableColumnHeader>
+                Timestamp
+                <TimeFormatToggle/>
+              </TableColumnHeader>
               <TableColumnHeader>Txn</TableColumnHeader>
               <TableColumnHeader>Gas used</TableColumnHeader>
               { !config.UI.views.block.hiddenFields?.total_reward && !config.features.rollup.isEnabled &&

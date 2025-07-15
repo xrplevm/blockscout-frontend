@@ -15,7 +15,7 @@ import NativeTokenIcon from 'ui/shared/NativeTokenIcon';
 
 interface Props {
   data: Pick<Address, 'block_number_balance_updated_at' | 'coin_balance' | 'hash' | 'exchange_rate'>;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 const AddressBalance = ({ data, isLoading }: Props) => {
@@ -28,7 +28,7 @@ const AddressBalance = ({ data, isLoading }: Props) => {
     }
 
     setLastBlockNumber(blockNumber);
-    const queryKey = getResourceKey('address', { pathParams: { hash: data.hash } });
+    const queryKey = getResourceKey('general:address', { pathParams: { hash: data.hash } });
     queryClient.setQueryData(queryKey, (prevData: Address | undefined) => {
       if (!prevData) {
         return;

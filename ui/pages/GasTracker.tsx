@@ -23,7 +23,7 @@ import PageTitle from 'ui/shared/Page/PageTitle';
 import PeersystPageWrapper from '../../theme/components/PeersystPageWrapper';
 
 const GasTracker = () => {
-  const { data, isPlaceholderData, isError, error, dataUpdatedAt } = useApiQuery('stats', {
+  const { data, isPlaceholderData, isError, error, dataUpdatedAt } = useApiQuery('general:stats', {
     queryOptions: {
       placeholderData: HOMEPAGE_STATS,
       refetchOnMount: false,

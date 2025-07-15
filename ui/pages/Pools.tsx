@@ -24,7 +24,7 @@ const Pools = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const poolsQuery = useQueryWithPages({
-    resourceName: 'pools',
+    resourceName: 'contractInfo:pools',
     pathParams: { chainId: config.chain.id },
     filters: { query: debouncedSearchTerm },
     options: {
@@ -42,7 +42,7 @@ const Pools = () => {
       <Box hideFrom="lg">
         { poolsQuery.data?.items.map((item, index) => (
           <PoolsListItem
-            key={ item.contract_address + (poolsQuery.isPlaceholderData ? index : '') }
+            key={ item.pool_id + (poolsQuery.isPlaceholderData ? index : '') }
             isLoading={ poolsQuery.isPlaceholderData }
             item={ item }
           />

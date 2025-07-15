@@ -37,6 +37,7 @@ import IconSvg from 'ui/shared/IconSvg';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
 import useQueryWithPages from 'ui/shared/pagination/useQueryWithPages';
+import TimeFormatToggle from 'ui/shared/time/TimeFormatToggle';
 
 import PeersystPageWrapper from '../../theme/components/PeersystPageWrapper';
 
@@ -70,10 +71,10 @@ const AdvancedFilter = () => {
 
   const [ columns, setColumns ] = React.useState<Record<ColumnsIds, boolean>>(COLUMNS_CHECKED);
   const { data, isError, isLoading, pagination, onFilterChange, isPlaceholderData } = useQueryWithPages({
-    resourceName: 'advanced_filter',
+    resourceName: 'general:advanced_filter',
     filters,
     options: {
-      placeholderData: generateListStub<'advanced_filter'>(
+      placeholderData: generateListStub<'general:advanced_filter'>(
         ADVANCED_FILTER_ITEM,
         50,
         {
@@ -94,8 +95,8 @@ const AdvancedFilter = () => {
   });
 
   // maybe don't need to prefetch, but on dev sepolia those requests take several seconds.
-  useApiQuery('tokens', { queryParams: { limit: '7', q: '' }, queryOptions: { refetchOnMount: false } });
-  useApiQuery('advanced_filter_methods', { queryParams: { q: '' }, queryOptions: { refetchOnMount: false } });
+  useApiQuery('general:tokens', { queryParams: { limit: '7', q: '' }, queryOptions: { refetchOnMount: false } });
+  useApiQuery('general:advanced_filter_methods', { queryParams: { q: '' }, queryOptions: { refetchOnMount: false } });
 
   const handleFilterChange = React.useCallback(<T extends keyof AdvancedFilterParams>(field: T, val: AdvancedFilterParams[T]) => {
     setFilters(prevState => {
@@ -153,7 +154,12 @@ const AdvancedFilter = () => {
                     wordBreak="break-word"
                     whiteSpace="normal"
                   >
-                    { Boolean(column.name) && <chakra.span mr={ 2 } lineHeight="24px">{ column.name }</chakra.span> }
+                    { Boolean(column.name) && (
+                      <chakra.span mr={ 2 } lineHeight="24px" verticalAlign="middle">
+                        { column.id === 'age' ? 'Timestamp' : column.name }
+                      </chakra.span>
+                    ) }
+                    { column.id === 'age' && <TimeFormatToggle ml={ 0 } mr={ 1 } verticalAlign="middle"/> }
                     <FilterByColumn
                       column={ column.id }
                       columnName={ column.name }

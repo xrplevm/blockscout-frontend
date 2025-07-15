@@ -40,7 +40,7 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
   const appProps = useAppContext();
   const addressHash = !tokenQuery.isPlaceholderData ? (tokenQuery.data?.address_hash || '') : '';
 
-  const verifiedInfoQuery = useApiQuery('token_verified_info', {
+  const verifiedInfoQuery = useApiQuery('contractInfo:token_verified_info', {
     pathParams: { hash: addressHash, chainId: config.chain.id },
     queryOptions: { enabled: Boolean(tokenQuery.data) && !tokenQuery.isPlaceholderData && config.features.verifiedTokens.isEnabled },
   });
@@ -132,7 +132,7 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
       <AccountActionsMenu isLoading={ isLoading }/>
       <Flex ml={{ base: 0, lg: 'auto' }} columnGap={ 2 } flexGrow={{ base: 1, lg: 0 }}>
         <TokenVerifiedInfo verifiedInfoQuery={ verifiedInfoQuery }/>
-        <NetworkExplorers type="token" pathParam={ addressHash.toLowerCase() } ml={{ base: 'auto', lg: 0 }}/>
+        <NetworkExplorers type="token" pathParam={ addressHash } ml={{ base: 'auto', lg: 0 }}/>
       </Flex>
     </Flex>
   );

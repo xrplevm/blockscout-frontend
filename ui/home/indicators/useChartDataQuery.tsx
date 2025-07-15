@@ -6,6 +6,10 @@ import useApiQuery from 'lib/api/useApiQuery';
 
 import prepareChartItems from './utils/prepareChartItems';
 
+const rollupFeature = config.features.rollup;
+const isOptimisticRollup = rollupFeature.isEnabled && rollupFeature.type === 'optimistic';
+const isArbitrumRollup = rollupFeature.isEnabled && rollupFeature.type === 'arbitrum';
+
 const CHART_ITEMS: Record<ChainIndicatorId, Pick<TimeChartDataItem, 'name' | 'valueFormatter'>> = {
   daily_txs: {
     name: 'Tx/day',
@@ -50,7 +54,7 @@ function getChartData(indicatorId: ChainIndicatorId, data: Array<TimeChartItemRa
 }
 
 export default function useChartDataQuery(indicatorId: ChainIndicatorId): UseFetchChartDataResult {
-  const statsDailyTxsQuery = useApiQuery('stats_main', {
+  const statsDailyTxsQuery = useApiQuery('stats:pages_main', {
     queryOptions: {
       refetchOnMount: false,
       enabled: isStatsFeatureEnabled && indicatorId === 'daily_txs',
@@ -58,15 +62,22 @@ export default function useChartDataQuery(indicatorId: ChainIndicatorId): UseFet
     },
   });
 
-  const statsDailyOperationalTxsQuery = useApiQuery('stats_main', {
+  const statsDailyOperationalTxsQuery = useApiQuery('stats:pages_main', {
     queryOptions: {
       refetchOnMount: false,
       enabled: isStatsFeatureEnabled && indicatorId === 'daily_operational_txs',
-      select: (data) => data.daily_new_operational_transactions?.chart.map((item) => ({ date: new Date(item.date), value: Number(item.value) })) || [],
+      select: (data) => {
+        if (isArbitrumRollup) {
+          return data.daily_new_operational_transactions?.chart.map((item) => ({ date: new Date(item.date), value: Number(item.value) })) || [];
+        } else if (isOptimisticRollup) {
+          return data.op_stack_daily_new_operational_transactions?.chart.map((item) => ({ date: new Date(item.date), value: Number(item.value) })) || [];
+        }
+        return [];
+      },
     },
   });
 
-  const apiDailyTxsQuery = useApiQuery('stats_charts_txs', {
+  const apiDailyTxsQuery = useApiQuery('general:stats_charts_txs', {
     queryOptions: {
       refetchOnMount: false,
       enabled: !isStatsFeatureEnabled && indicatorId === 'daily_txs',
@@ -74,7 +85,7 @@ export default function useChartDataQuery(indicatorId: ChainIndicatorId): UseFet
     },
   });
 
-  const coinPriceQuery = useApiQuery('stats_charts_market', {
+  const coinPriceQuery = useApiQuery('general:stats_charts_market', {
     queryOptions: {
       refetchOnMount: false,
       enabled: indicatorId === 'coin_price',
@@ -82,7 +93,7 @@ export default function useChartDataQuery(indicatorId: ChainIndicatorId): UseFet
     },
   });
 
-  const secondaryCoinPriceQuery = useApiQuery('stats_charts_secondary_coin_price', {
+  const secondaryCoinPriceQuery = useApiQuery('general:stats_charts_secondary_coin_price', {
     queryOptions: {
       refetchOnMount: false,
       enabled: indicatorId === 'secondary_coin_price',
@@ -90,7 +101,7 @@ export default function useChartDataQuery(indicatorId: ChainIndicatorId): UseFet
     },
   });
 
-  const marketCapQuery = useApiQuery('stats_charts_market', {
+  const marketCapQuery = useApiQuery('general:stats_charts_market', {
     queryOptions: {
       refetchOnMount: false,
       enabled: indicatorId === 'market_cap',
@@ -112,7 +123,7 @@ export default function useChartDataQuery(indicatorId: ChainIndicatorId): UseFet
     },
   });
 
-  const tvlQuery = useApiQuery('stats_charts_market', {
+  const tvlQuery = useApiQuery('general:stats_charts_market', {
     queryOptions: {
       refetchOnMount: false,
       enabled: indicatorId === 'tvl',

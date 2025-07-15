@@ -30,6 +30,7 @@ import Web3ModalProvider from 'ui/shared/Web3ModalProvider';
 
 import 'lib/setLocale';
 // import 'focus-visible/dist/focus-visible';
+import 'nextjs/global.css';
 
 type AppPropsWithLayout = AppProps & {
   Component: NextPageWithLayout;
@@ -83,7 +84,7 @@ function MyApp({ Component, pageProps }: AppPropsWithLayout) {
               <QueryClientProvider client={ queryClient }>
                 <GrowthBookProvider growthbook={ growthBook }>
                   <ScrollDirectionProvider>
-                    <SocketProvider url={ `${ config.api.socket }${ config.api.basePath }/socket/v2` }>
+                    <SocketProvider url={ `${ config.apis.general.socketEndpoint }${ config.apis.general.basePath ?? '' }/socket/v2` }>
                       <RewardsContextProvider>
                         <MarketplaceContextProvider>
                           <SettingsContextProvider>

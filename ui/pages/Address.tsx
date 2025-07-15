@@ -76,7 +76,7 @@ const AddressPageContent = () => {
   const areQueriesEnabled = !checkDomainName && !checkAddressFormat;
   const addressQuery = useAddressQuery({ hash, isEnabled: areQueriesEnabled });
 
-  const addressTabsCountersQuery = useApiQuery('address_tabs_counters', {
+  const addressTabsCountersQuery = useApiQuery('general:address_tabs_counters', {
     pathParams: { hash },
     queryOptions: {
       enabled: areQueriesEnabled && Boolean(hash),
@@ -84,7 +84,7 @@ const AddressPageContent = () => {
     },
   });
 
-  const userOpsAccountQuery = useApiQuery('user_ops_account', {
+  const userOpsAccountQuery = useApiQuery('general:user_ops_account', {
     pathParams: { hash },
     queryOptions: {
       enabled: areQueriesEnabled && Boolean(hash) && config.features.userOps.isEnabled,
@@ -92,7 +92,7 @@ const AddressPageContent = () => {
     },
   });
 
-  const mudTablesCountQuery = useApiQuery('address_mud_tables_count', {
+  const mudTablesCountQuery = useApiQuery('general:mud_tables_count', {
     pathParams: { hash },
     queryOptions: {
       enabled: config.features.mudFramework.isEnabled && areQueriesEnabled && Boolean(hash),
@@ -104,7 +104,7 @@ const AddressPageContent = () => {
   const addressMetadataQuery = useAddressMetadataInfoQuery(addressesForMetadataQuery, areQueriesEnabled);
   const userPropfileApiQuery = useAddressProfileApiQuery(hash, addressProfileAPIFeature.isEnabled && areQueriesEnabled);
 
-  const addressEnsDomainsQuery = useApiQuery('addresses_lookup', {
+  const addressEnsDomainsQuery = useApiQuery('bens:addresses_lookup', {
     pathParams: { chainId: config.chain.id },
     queryParams: {
       address: hash,
@@ -159,7 +159,7 @@ const AddressPageContent = () => {
       {
         id: 'index',
         title: 'Details',
-        component: <AddressDetails addressQuery={ addressQuery }/>,
+        component: <AddressDetails addressQuery={ addressQuery } isLoading={ isTabsLoading }/>,
       },
       addressQuery.data?.is_contract ? {
         id: 'contract',
@@ -391,7 +391,13 @@ const AddressPageContent = () => {
 
   // API always returns hash in check-summed format except for addresses that are not in the database
   // In this case it returns 404 with empty payload, so we calculate check-summed hash on the client
-  const checkSummedHash = React.useMemo(() => addressQuery.data?.hash ?? getCheckedSummedAddress(hash), [ hash, addressQuery.data?.hash ]);
+  const checkSummedHash = React.useMemo(() => {
+    if (isLoading) {
+      return getCheckedSummedAddress(hash);
+    }
+
+    return addressQuery.data?.hash ?? getCheckedSummedAddress(hash);
+  }, [ hash, addressQuery.data?.hash, isLoading ]);
 
   const titleSecondRow = (
     <Flex alignItems="center" w="100%" columnGap={ 2 } rowGap={ 2 } flexWrap={{ base: 'wrap', lg: 'nowrap' }}>
@@ -427,13 +433,11 @@ const AddressPageContent = () => {
       <AddressQrCode hash={ addressQuery.data?.filecoin?.robust ?? checkSummedHash } isLoading={ isLoading }/>
       <AccountActionsMenu isLoading={ isLoading }/>
       <HStack ml="auto" gap={ 2 }/>
-      { !isLoading && addressQuery.data?.is_contract && addressQuery.data?.is_verified && config.UI.views.address.solidityscanEnabled && (
-        <SolidityscanReport hash={ hash }/>
-      ) }
-      { !isLoading && addressEnsDomainsQuery.data && config.features.nameService.isEnabled && (
-        <AddressEnsDomains query={ addressEnsDomainsQuery } addressHash={ hash } mainDomainName={ addressQuery.data?.ens_domain_name }/>
-      ) }
-      <NetworkExplorers type="address" pathParam={ hash.toLowerCase() }/>
+      { !isLoading && addressQuery.data?.is_contract && addressQuery.data?.is_verified && config.UI.views.address.solidityscanEnabled &&
+        <SolidityscanReport hash={ hash }/> }
+      { !isLoading && addressEnsDomainsQuery.data && config.features.nameService.isEnabled &&
+        <AddressEnsDomains query={ addressEnsDomainsQuery } addressHash={ hash } mainDomainName={ addressQuery.data?.ens_domain_name }/> }
+      <NetworkExplorers type="address" pathParam={ hash }/>
     </Flex>
   );
 

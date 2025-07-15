@@ -29,42 +29,36 @@ const BlocksPageContent = () => {
   const bgColor = useColorModeValue('white', 'gray.800');
 
   const blocksQuery = useQueryWithPages({
-    resourceName: 'blocks',
+    resourceName: 'general:blocks',
     filters: { type: 'block' },
     options: {
       enabled: tab === 'blocks' || !tab,
-      placeholderData: generateListStub<'blocks'>(BLOCK, 50, {
-        next_page_params: {
-          block_number: 8988686,
-          items_count: 50,
-        },
-      }),
+      placeholderData: generateListStub<'general:blocks'>(BLOCK, 50, { next_page_params: {
+        block_number: 8988686,
+        items_count: 50,
+      } }),
     },
   });
   const reorgsQuery = useQueryWithPages({
-    resourceName: 'blocks',
+    resourceName: 'general:blocks',
     filters: { type: 'reorg' },
     options: {
       enabled: tab === 'reorgs',
-      placeholderData: generateListStub<'blocks'>(BLOCK, 50, {
-        next_page_params: {
-          block_number: 8988686,
-          items_count: 50,
-        },
-      }),
+      placeholderData: generateListStub<'general:blocks'>(BLOCK, 50, { next_page_params: {
+        block_number: 8988686,
+        items_count: 50,
+      } }),
     },
   });
   const unclesQuery = useQueryWithPages({
-    resourceName: 'blocks',
+    resourceName: 'general:blocks',
     filters: { type: 'uncle' },
     options: {
       enabled: tab === 'uncles',
-      placeholderData: generateListStub<'blocks'>(BLOCK, 50, {
-        next_page_params: {
-          block_number: 8988686,
-          items_count: 50,
-        },
-      }),
+      placeholderData: generateListStub<'general:blocks'>(BLOCK, 50, { next_page_params: {
+        block_number: 8988686,
+        items_count: 50,
+      } }),
     },
   });
 
