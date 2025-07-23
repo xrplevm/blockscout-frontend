@@ -50,7 +50,7 @@ const UserProfileButton = ({ profileQuery, size, variant, onClick, isPending, ..
       return (
         <HStack gap={ 2 }>
           <UserIdenticon address={ web3AccountWithDomain.address } isAutoConnectDisabled={ isAutoConnectDisabled }/>
-          <Box display={{ base: 'none', md: 'block' }}>
+          <Box display={{ base: 'none', md: 'block' }} color="white">
             { web3AccountWithDomain.domain || shortenString(web3AccountWithDomain.address) }
           </Box>
         </HStack>
