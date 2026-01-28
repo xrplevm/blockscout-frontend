@@ -3,17 +3,16 @@ import type { UseQueryResult } from '@tanstack/react-query';
 import React from 'react';
 
 import type { Address } from 'types/api/address';
-import type { TokenInfo } from 'types/api/token';
+import type { TokenInfo, TokenVerifiedInfo as TTokenVerifiedInfo } from 'types/api/token';
 import type { EntityTag } from 'ui/shared/EntityTags/types';
 
 import config from 'configs/app';
 import useAddressMetadataInfoQuery from 'lib/address/useAddressMetadataInfoQuery';
 import type { ResourceError } from 'lib/api/resources';
-import useApiQuery from 'lib/api/useApiQuery';
-import { useAppContext } from 'lib/contexts/app';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import { getTokenTypeName } from 'lib/token/tokenTypes';
 import { Tooltip } from 'toolkit/chakra/tooltip';
-import AddressMetadataAlert from 'ui/address/details/AddressMetadataAlert';
+import AddressAlerts from 'ui/address/details/AddressAlerts';
 import AddressQrCode from 'ui/address/details/AddressQrCode';
 import AccountActionsMenu from 'ui/shared/AccountActionsMenu/AccountActionsMenu';
 import AddressAddToWallet from 'ui/shared/address/AddressAddToWallet';
@@ -33,17 +32,13 @@ const PREDEFINED_TAG_PRIORITY = 100;
 interface Props {
   tokenQuery: UseQueryResult<TokenInfo, ResourceError<unknown>>;
   addressQuery: UseQueryResult<Address, ResourceError<unknown>>;
+  verifiedInfoQuery: UseQueryResult<TTokenVerifiedInfo, ResourceError<unknown>>;
   hash: string;
 }
 
-const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
-  const appProps = useAppContext();
+const TokenPageTitle = ({ tokenQuery, addressQuery, verifiedInfoQuery, hash }: Props) => {
+  const multichainContext = useMultichainContext();
   const addressHash = !tokenQuery.isPlaceholderData ? (tokenQuery.data?.address_hash || '') : '';
-
-  const verifiedInfoQuery = useApiQuery('contractInfo:token_verified_info', {
-    pathParams: { hash: addressHash, chainId: config.chain.id },
-    queryOptions: { enabled: Boolean(tokenQuery.data) && !tokenQuery.isPlaceholderData && config.features.verifiedTokens.isEnabled },
-  });
 
   const addressesForMetadataQuery = React.useMemo(() => ([ hash ].filter(Boolean)), [ hash ]);
   const addressMetadataQuery = useAddressMetadataInfoQuery(addressesForMetadataQuery);
@@ -53,19 +48,6 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
     (config.features.verifiedTokens.isEnabled && verifiedInfoQuery.isPending);
 
   const tokenSymbolText = tokenQuery.data?.symbol ? ` (${ tokenQuery.data.symbol })` : '';
-
-  const backLink = React.useMemo(() => {
-    const hasGoBackLink = appProps.referrer && appProps.referrer.includes('/tokens');
-
-    if (!hasGoBackLink) {
-      return;
-    }
-
-    return {
-      label: 'Back to tokens list',
-      url: appProps.referrer,
-    };
-  }, [ appProps.referrer ]);
 
   const [ bridgedTokenTagBgColor ] = useToken('colors', 'blue.500');
   const [ bridgedTokenTagTextColor ] = useToken('colors', 'white');
@@ -105,6 +87,7 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
 
   const contentAfter = (
     <>
+      { tokenQuery.data && <TokenEntity.Reputation value={ tokenQuery.data.reputation } ml={ 0 }/> }
       { verifiedInfoQuery.data?.tokenAddress && (
         <Tooltip content={ `Information on this token has been verified by ${ config.chain.name }` }>
           <IconSvg name="certified" color="green.500" boxSize={ 6 } cursor="pointer"/>
@@ -113,6 +96,7 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
       <EntityTags
         isLoading={ isLoading || (config.features.addressMetadata.isEnabled && addressMetadataQuery.isPending) }
         tags={ tags }
+        addressHash={ addressQuery.data?.hash }
         flexGrow={ 1 }
       />
     </>
@@ -125,6 +109,9 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
           address={{ ...addressQuery.data, name: '' }}
           isLoading={ isLoading }
           variant="subheading"
+          icon={ multichainContext?.chain ? {
+            shield: { name: 'pie_chart', isLoading },
+          } : undefined }
         />
       ) }
       { !isLoading && tokenQuery.data && <AddressAddToWallet token={ tokenQuery.data } variant="button"/> }
@@ -142,19 +129,23 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, hash }: Props) => {
       <PageTitle
         title={ `${ tokenQuery.data?.name || 'Unnamed token' }${ tokenSymbolText }` }
         isLoading={ tokenQuery.isPlaceholderData }
-        backLink={ backLink }
         beforeTitle={ tokenQuery.data ? (
           <TokenEntity.Icon
             token={ tokenQuery.data }
             isLoading={ tokenQuery.isPlaceholderData }
             variant="heading"
+            chain={ multichainContext?.chain }
           />
         ) : null }
         contentAfter={ contentAfter }
         secondRow={ secondRow }
       />
-      { !addressMetadataQuery.isPending &&
-        <AddressMetadataAlert tags={ addressMetadataQuery.data?.addresses?.[hash.toLowerCase()]?.tags } mt="-4px" mb={ 6 }/> }
+      { !addressMetadataQuery.isPending && (
+        <AddressAlerts
+          tags={ addressMetadataQuery.data?.addresses?.[hash.toLowerCase()]?.tags }
+          isScamToken={ tokenQuery.data?.reputation === 'scam' }
+        />
+      ) }
     </>
   );
 };

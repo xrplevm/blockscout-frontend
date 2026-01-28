@@ -2,7 +2,7 @@ import Head from 'next/head';
 import React from 'react';
 
 import type { Route } from 'nextjs-routes';
-import type { Props as PageProps } from 'nextjs/getServerSideProps';
+import type { Props as PageProps } from 'nextjs/getServerSideProps/handlers';
 
 import config from 'configs/app';
 import * as metadata from 'lib/metadata';
@@ -34,6 +34,9 @@ const PageMetadata = <Pathname extends Route['pathname']>(props: Props<Pathname>
       <meta name="twitter:title" content={ opengraph.title }/>
       { opengraph.description && <meta name="twitter:description" content={ opengraph.description }/> }
       <meta property="twitter:image" content={ opengraph.imageUrl }/>
+
+      { /* Prevent auto zoom in inputs on mobile */ }
+      <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
     </Head>
   );
 };

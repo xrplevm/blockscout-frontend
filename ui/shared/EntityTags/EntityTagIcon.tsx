@@ -13,14 +13,14 @@ interface Props {
 
 const EntityTagIcon = ({ data, ignoreColor }: Props) => {
 
-  const iconColor = data.meta?.textColor && !ignoreColor ? data.meta.textColor : 'gray.400';
+  const iconColor = data.meta?.textColor && !ignoreColor ? data.meta.textColor : 'icon.secondary';
 
   if (data.meta?.tagIcon) {
     return <Image boxSize={ 3 } src={ data.meta.tagIcon } alt={ `${ data.name } icon` }/>;
   }
 
   if (data.tagType === 'name') {
-    return <IconSvg name="publictags_slim" boxSize={ 3 } color={ iconColor }/>;
+    return <IconSvg name="publictags" boxSize={ 3 } color={ iconColor }/>;
   }
 
   if (data.tagType === 'protocol' || data.tagType === 'generic') {

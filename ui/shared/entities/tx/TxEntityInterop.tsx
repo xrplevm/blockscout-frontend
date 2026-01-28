@@ -15,9 +15,9 @@ import { distributeEntityProps } from '../base/utils';
 import * as TxEntity from './TxEntity';
 
 type Props = {
-  chain: ChainInfo | null;
+  chain?: ChainInfo | null;
   hash?: string | null;
-} & Omit<TxEntity.EntityProps, 'hash'>;
+} & Omit<TxEntity.EntityProps, 'hash' | 'chain'>;
 
 const IconStub = ({ isLoading }: { isLoading?: boolean }) => {
   return (
@@ -36,7 +36,7 @@ const IconStub = ({ isLoading }: { isLoading?: boolean }) => {
         name="networks/icon-placeholder"
         width="16px"
         height="16px"
-        color="text.secondary"
+        color="icon.primary"
         display="block"
       />
     </Skeleton>
@@ -56,7 +56,7 @@ const TxEntityInterop = ({ chain, hash, ...props }: Props) => {
 
   return (
     <TxEntity.Container { ...partsProps.container }>
-      { chain && (
+      { chain && !props.noIcon && (
         <Tooltip content={ `${ chain.chain_name ? chain.chain_name : 'External chain' } (chain id ${ chain.chain_id })` }>
           <Box>
             { chain.chain_logo ? (
@@ -74,19 +74,21 @@ const TxEntityInterop = ({ chain, hash, ...props }: Props) => {
           </Box>
         </Tooltip>
       ) }
-      { !chain && (
+      { !chain && !props.noIcon && (
         <IconStub/>
       ) }
       { hash && (
         <>
           { href ? (
-            <TxEntity.Link { ...partsProps.link } hash={ hash } href={ href } isExternal>
+            <TxEntity.Link { ...partsProps.link } hash={ hash } href={ href } external>
               <TxEntity.Content { ...partsProps.content } hash={ hash }/>
             </TxEntity.Link>
           ) : (
-            <TxEntity.Content { ...partsProps.content } hash={ hash }/>
+            <Box overflow="hidden">
+              <TxEntity.Content { ...partsProps.content } hash={ hash }/>
+            </Box>
           ) }
-          <TxEntity.Copy { ...partsProps.copy } hash={ hash }/>
+          <TxEntity.Copy { ...partsProps.copy } hash={ hash } noCopy/>
         </>
       ) }
       { !hash && (

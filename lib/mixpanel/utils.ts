@@ -24,6 +24,7 @@ export enum EventTypes {
   BUTTON_CLICK = 'Button click',
   PROMO_BANNER = 'Promo banner',
   APP_FEEDBACK = 'App feedback',
+  ADDRESS_WIDGET = 'Address widget',
 }
 
 /* eslint-disable  @stylistic/indent */
@@ -33,6 +34,7 @@ Type extends EventTypes.PAGE_VIEW ?
   'Page type': string;
   Tab: string;
   Page?: string;
+  Source?: string;
   'Color mode': 'light' | 'dark';
   'Color theme': ColorThemeId | undefined;
 } :
@@ -49,6 +51,7 @@ Type extends EventTypes.ADD_TO_WALLET ? (
   {
     Wallet: WalletType;
     Target: 'network';
+    Source: 'Footer' | 'Top bar' | 'Chain widget';
   } | {
     Wallet: WalletType;
     Target: 'token';
@@ -97,7 +100,7 @@ Type extends EventTypes.VERIFY_TOKEN ? {
   Action: 'Form opened' | 'Submit';
 } :
 Type extends EventTypes.WALLET_CONNECT ? {
-  Source: 'Header' | 'Login' | 'Profile' | 'Profile dropdown' | 'Smart contracts' | 'Swap button' | 'Merits';
+  Source: 'Header' | 'Login' | 'Profile' | 'Profile dropdown' | 'Smart contracts' | 'Swap button' | 'Merits' | 'Essential dapps';
   Status: 'Started' | 'Connected';
 } :
 Type extends EventTypes.WALLET_ACTION ? (
@@ -105,8 +108,10 @@ Type extends EventTypes.WALLET_ACTION ? (
     Action: 'Open' | 'Address click';
   } | {
     Action: 'Send Transaction' | 'Sign Message' | 'Sign Typed Data';
-    Address: string | undefined;
+    Source: 'Dappscout' | 'Essential dapps';
     AppId: string;
+    Address?: string;
+    ChainId?: string;
   }
 ) :
 Type extends EventTypes.CONTRACT_INTERACTION ? {
@@ -124,12 +129,9 @@ Type extends EventTypes.PAGE_WIDGET ? (
   {
     Type: 'Tokens dropdown' | 'Tokens show all (icon)' | 'Add to watchlist' | 'Address actions (more button)';
   } | {
-    Type: 'Favorite app' | 'More button' | 'Security score' | 'Total contracts' | 'Verified contracts' | 'Analyzed contracts';
+    Type: 'Favorite app' | 'More button';
     Info: string;
-    Source: 'Discovery view' | 'Security view' | 'App modal' | 'App page' | 'Security score popup' | 'Banner';
-  } | {
-    Type: 'Security score';
-    Source: 'Analyzed contracts popup';
+    Source: 'Discovery view' | 'App modal' | 'App page' | 'Banner';
   } | {
     Type: 'Action button';
     Info: string;
@@ -141,6 +143,10 @@ Type extends EventTypes.PAGE_WIDGET ? (
   } | {
     Type: 'Share chart';
     Info: string;
+  } | {
+    Type: 'Chain switch';
+    Info: string;
+    Source: 'Revoke essential dapp';
   }
 ) :
 Type extends EventTypes.TX_INTERPRETATION_INTERACTION ? {
@@ -168,6 +174,9 @@ Type extends EventTypes.APP_FEEDBACK ? {
   Source: 'Discovery' | 'App modal' | 'App page';
   AppId: string;
   Score: number;
+} :
+Type extends EventTypes.ADDRESS_WIDGET ? {
+  Name: string;
 } :
 undefined;
 /* eslint-enable  @stylistic/indent */

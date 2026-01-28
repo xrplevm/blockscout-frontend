@@ -1,10 +1,11 @@
+/* eslint-disable consistent-default-export-name/default-export-match-filename */
 import type { AppKitNetwork } from '@reown/appkit/networks';
 import { createAppKit, useAppKitTheme } from '@reown/appkit/react';
 import React from 'react';
 import { WagmiProvider } from 'wagmi';
 
 import config from 'configs/app';
-import { currentChain, parentChain } from 'lib/web3/chains';
+import { chains } from 'lib/web3/chains';
 import wagmiConfig from 'lib/web3/wagmiConfig';
 import { useColorMode } from 'toolkit/chakra/color-mode';
 import colors from 'toolkit/theme/foundations/colors';
@@ -21,7 +22,7 @@ const init = () => {
 
     createAppKit({
       adapters: [ wagmiConfig.adapter ],
-      networks: [ currentChain, parentChain ].filter(Boolean) as [AppKitNetwork, ...Array<AppKitNetwork>],
+      networks: chains as [AppKitNetwork, ...Array<AppKitNetwork>],
       metadata: {
         name: `${ config.chain.name } explorer`,
         description: `${ config.chain.name } explorer`,
@@ -42,7 +43,7 @@ const init = () => {
         '--w3m-border-radius-master': '2px',
         '--w3m-z-index': zIndex?.modal2?.value,
       },
-      featuredWalletIds: [],
+      featuredWalletIds: feature.walletConnect.featuredWalletIds,
       allowUnsupportedChain: true,
     });
   } catch (error) {}

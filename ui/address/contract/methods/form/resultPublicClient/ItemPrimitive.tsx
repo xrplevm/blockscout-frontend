@@ -1,15 +1,12 @@
-import BigNumber from 'bignumber.js';
+import { chakra } from '@chakra-ui/react';
 import React from 'react';
 import type { AbiParameter } from 'viem';
 
 import { route } from 'nextjs-routes';
 
 import { Link } from 'toolkit/chakra/link';
-import { Tooltip } from 'toolkit/chakra/tooltip';
-import { WEI } from 'toolkit/utils/consts';
 import CopyToClipboard from 'ui/shared/CopyToClipboard';
 
-import { matchInt } from '../utils';
 import ItemLabel from './ItemLabel';
 import { printRowOffset } from './utils';
 
@@ -28,8 +25,6 @@ function castValueToString(value: unknown): string {
       return String(value);
   }
 }
-
-const INT_TOOLTIP_THRESHOLD = 10 ** 9;
 
 interface Props {
   abiParameter: AbiParameter;
@@ -50,25 +45,15 @@ const ItemPrimitive = ({ abiParameter, data, level, hideLabel }: Props) => {
       );
     }
 
-    const intMatch = matchInt(abiParameter.type);
-    if (intMatch && typeof data === 'bigint' && intMatch.max > INT_TOOLTIP_THRESHOLD && data > INT_TOOLTIP_THRESHOLD) {
-      const dividedValue = BigNumber(data.toString()).div(WEI);
-      return (
-        <Tooltip content={ dividedValue.toLocaleString() + ' ETH' }>
-          <span>{ castValueToString(data) }</span>
-        </Tooltip>
-      );
-    }
-
     return <span>{ castValueToString(data) }</span>;
   })();
 
   return (
-    <p>
+    <chakra.span display="block">
       <span>{ printRowOffset(level) }</span>
       { !hideLabel && <ItemLabel abiParameter={ abiParameter }/> }
       { value }
-    </p>
+    </chakra.span>
   );
 };
 

@@ -23,11 +23,7 @@ const DefaultView = () => {
     exchange_rate: null,
     total_supply: null,
     icon_url: 'https://example.com/logo.png',
-  };
-
-  const backLink = {
-    label: 'Back to tokens list',
-    url: 'https://localhost:3000/tokens',
+    reputation: 'ok',
   };
 
   const contentAfter = (
@@ -61,7 +57,6 @@ const DefaultView = () => {
           variant="heading"
         />
       ) }
-      backLink={ backLink }
       contentAfter={ contentAfter }
       secondRow={ secondRow }
     />

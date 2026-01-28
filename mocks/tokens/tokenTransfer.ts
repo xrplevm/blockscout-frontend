@@ -37,6 +37,7 @@ export const erc20: TokenTransfer = {
     type: 'ERC-20',
     total_supply: '0',
     icon_url: null,
+    reputation: 'ok',
   },
   total: {
     decimals: '18',
@@ -85,6 +86,7 @@ export const erc721: TokenTransfer = {
     type: 'ERC-721',
     total_supply: '0',
     icon_url: null,
+    reputation: 'ok',
   },
   total: {
     token_id: '875879856',
@@ -133,6 +135,7 @@ export const erc1155A: TokenTransfer = {
     type: 'ERC-1155',
     total_supply: '0',
     icon_url: null,
+    reputation: 'ok',
   },
   total: {
     token_id: '123',
@@ -151,7 +154,7 @@ export const erc1155A: TokenTransfer = {
 export const erc1155B: TokenTransfer = {
   ...erc1155A,
   token: {
-    ...(erc1155A.token as TokenInfo<'ERC-1155'>),
+    ...(erc1155A.token as TokenInfo),
     name: 'SastanaNFT',
     symbol: 'ipfs://QmUpFUfVKDCWeZQk5pvDFUxnpQP9N6eLSHhNUy49T1JVtY',
   },
@@ -161,7 +164,7 @@ export const erc1155B: TokenTransfer = {
 export const erc1155C: TokenTransfer = {
   ...erc1155A,
   token: {
-    ...(erc1155A.token as TokenInfo<'ERC-1155'>),
+    ...(erc1155A.token as TokenInfo),
     name: 'SastanaNFT',
     symbol: 'ipfs://QmUpFUfVKDCWeZQk5pvDFUxnpQP9N6eLSHhNUy49T1JVtY',
   },
@@ -171,7 +174,7 @@ export const erc1155C: TokenTransfer = {
 export const erc1155D: TokenTransfer = {
   ...erc1155A,
   token: {
-    ...(erc1155A.token as TokenInfo<'ERC-1155'>),
+    ...(erc1155A.token as TokenInfo),
     name: 'SastanaNFT',
     symbol: 'ipfs://QmUpFUfVKDCWeZQk5pvDFUxnpQP9N6eLSHhNUy49T1JVtY',
   },
@@ -212,6 +215,7 @@ export const erc404A: TokenTransfer = {
     type: 'ERC-404',
     total_supply: '0',
     icon_url: null,
+    reputation: 'ok',
   },
   total: {
     value: '42000000000000000000000000',
@@ -231,7 +235,7 @@ export const erc404A: TokenTransfer = {
 export const erc404B: TokenTransfer = {
   ...erc404A,
   token: {
-    ...(erc404A.token as TokenInfo<'ERC-404'>),
+    ...(erc404A.token as TokenInfo),
     name: 'SastanaNFT',
     symbol: 'ipfs://QmUpFUfVKDCWeZQk5pvDFUxnpQP9N6eLSHhNUy49T1JVtY',
   },

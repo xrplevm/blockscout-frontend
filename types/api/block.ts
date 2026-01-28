@@ -6,7 +6,6 @@ import type { ArbitrumBatchStatus, ArbitrumL2TxData } from './arbitrumL2';
 import type { InternalTransaction } from './internalTransaction';
 import type { OptimisticL2BatchDataContainer, OptimisticL2BlobTypeEip4844, OptimisticL2BlobTypeCelestia } from './optimisticL2';
 import type { TokenInfo } from './token';
-import type { TokenTransfer } from './tokenTransfer';
 import type { ZkSyncBatchesItem } from './zkSyncL2';
 
 export type BlockType = 'block' | 'reorg' | 'uncle';
@@ -24,15 +23,15 @@ export interface Block {
   transactions_count: number;
   internal_transactions_count: number;
   miner: AddressParam;
-  size: number;
+  size?: number;
   hash: string;
   parent_hash: string;
-  difficulty: string;
-  total_difficulty: string | null;
+  difficulty?: string;
+  total_difficulty?: string | null;
   gas_used: string | null;
   gas_limit: string;
   nonce: string;
-  base_fee_per_gas: string | null;
+  base_fee_per_gas?: string | null;
   burnt_fees: string | null;
   priority_fee: string | null;
   extra_data: string | null;
@@ -45,6 +44,8 @@ export interface Block {
   transaction_fees: string | null;
   uncles_hashes: Array<string>;
   withdrawals_count?: number;
+  beacon_deposits_count?: number;
+  is_pending_update?: boolean;
   // ROOTSTOCK FIELDS
   bitcoin_merged_mining_coinbase_transaction?: string | null;
   bitcoin_merged_mining_header?: string | null;
@@ -66,7 +67,7 @@ export interface Block {
   // CELO FIELDS
   celo?: {
     epoch_number: number;
-    is_epoch_block: boolean;
+    l1_era_finalized_epoch_number: number | null;
     base_fee?: BlockBaseFeeCelo;
   };
   // ZILLIQA FIELDS
@@ -79,7 +80,7 @@ type ArbitrumBlockData = {
   confirmation_transaction: ArbitrumL2TxData;
   delayed_messages: number;
   l1_block_number: number;
-  send_count: number;
+  send_count: number | null;
   send_root: string;
   status: ArbitrumBatchStatus;
 };
@@ -166,33 +167,4 @@ export interface BlockCountdownResponse {
     EstimateTimeInSec: string;
     RemainingBlock: string;
   } | null;
-}
-
-export interface BlockEpochElectionReward {
-  count: number;
-  token: TokenInfo<'ERC-20'>;
-  total: string;
-}
-
-export type EpochRewardsType = 'group' | 'validator' | 'delegated_payment' | 'voter';
-
-export interface BlockEpoch {
-  number: number;
-  distribution: {
-    carbon_offsetting_transfer: TokenTransfer | null;
-    community_transfer: TokenTransfer | null;
-    reserve_bolster_transfer: TokenTransfer | null;
-  } | null;
-  aggregated_election_rewards: Record<EpochRewardsType, BlockEpochElectionReward | null> | null;
-}
-
-export interface BlockEpochElectionRewardDetails {
-  account: AddressParam;
-  amount: string;
-  associated_account: AddressParam;
-}
-
-export interface BlockEpochElectionRewardDetailsResponse {
-  items: Array<BlockEpochElectionRewardDetails>;
-  next_page_params: null;
 }

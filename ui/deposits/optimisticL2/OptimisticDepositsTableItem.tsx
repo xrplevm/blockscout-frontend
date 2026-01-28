@@ -14,7 +14,7 @@ import TimeWithTooltip from 'ui/shared/time/TimeWithTooltip';
 
 const rollupFeature = config.features.rollup;
 
- type Props = { item: OptimisticL2DepositsItem; isLoading?: boolean };
+type Props = { item: OptimisticL2DepositsItem; isLoading?: boolean };
 
 const OptimisticDepositsTableItem = ({ item, isLoading }: Props) => {
 
@@ -54,6 +54,7 @@ const OptimisticDepositsTableItem = ({ item, isLoading }: Props) => {
           hash={ item.l1_transaction_hash }
           truncation="constant_long"
           noIcon
+          noCopy
         />
       </TableCell>
       <TableCell verticalAlign="middle">

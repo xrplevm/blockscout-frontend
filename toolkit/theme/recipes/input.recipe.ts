@@ -14,6 +14,7 @@ export const recipe = defineRecipe({
     color: 'input.fg',
     '--focus-color': 'colors.border.error',
     '--error-color': 'colors.border.error',
+    fontWeight: 'medium',
     _invalid: {
       focusRingColor: 'var(--error-color)',
       borderColor: 'var(--error-color)',
@@ -55,6 +56,9 @@ export const recipe = defineRecipe({
         },
         _placeholderShown: {
           borderColor: 'input.border',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
           _invalid: {
             borderColor: 'input.border.error',
           },

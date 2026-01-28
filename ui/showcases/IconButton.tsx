@@ -15,21 +15,42 @@ const IconButtonShowcase = () => {
         <SamplesStack>
           <Sample label="variant: icon_secondary">
             <IconButton size="md" variant="icon_secondary">
-              <IconSvg name="heart_outline"/>
+              <IconSvg name="info"/>
             </IconButton>
             <IconButton size="md" variant="icon_secondary" data-hover>
-              <IconSvg name="heart_outline"/>
+              <IconSvg name="info"/>
             </IconButton>
             <IconButton size="md" variant="icon_secondary" disabled>
-              <IconSvg name="heart_outline"/>
+              <IconSvg name="info"/>
             </IconButton>
             <IconButton size="md" variant="icon_secondary" selected>
-              <IconSvg name="heart_filled"/>
+              <IconSvg name="info"/>
             </IconButton>
             <IconButton size="md" variant="icon_secondary" selected data-hover>
-              <IconSvg name="heart_filled"/>
+              <IconSvg name="info"/>
             </IconButton>
             <IconButton size="md" variant="icon_secondary" selected disabled>
+              <IconSvg name="info"/>
+            </IconButton>
+          </Sample>
+
+          <Sample label="variant: icon_background">
+            <IconButton size="md" variant="icon_background">
+              <IconSvg name="heart_outline"/>
+            </IconButton>
+            <IconButton size="md" variant="icon_background" data-hover>
+              <IconSvg name="heart_outline"/>
+            </IconButton>
+            <IconButton size="md" variant="icon_background" disabled>
+              <IconSvg name="heart_outline"/>
+            </IconButton>
+            <IconButton size="md" variant="icon_background" selected>
+              <IconSvg name="heart_filled"/>
+            </IconButton>
+            <IconButton size="md" variant="icon_background" selected data-hover>
+              <IconSvg name="heart_filled"/>
+            </IconButton>
+            <IconButton size="md" variant="icon_background" selected disabled>
               <IconSvg name="heart_filled"/>
             </IconButton>
           </Sample>
@@ -91,6 +112,11 @@ const IconButtonShowcase = () => {
           <Sample label="size: 2xs">
             <IconButton size="2xs" variant="icon_secondary" outline="1px dashed lightpink">
               <IconSvg name="star_outline"/>
+            </IconButton>
+          </Sample>
+          <Sample label="size: 2xs_alt">
+            <IconButton size="2xs_alt" variant="icon_secondary" outline="1px dashed lightpink">
+              <IconSvg name="plus"/>
             </IconButton>
           </Sample>
           <Sample label="size: md">

@@ -10,10 +10,11 @@ import { useRouter } from 'next/router';
 import React from 'react';
 
 import type { AdvancedFilterParams } from 'types/api/advancedFilter';
-import { ADVANCED_FILTER_TYPES, ADVANCED_FILTER_AGES } from 'types/api/advancedFilter';
+import { ADVANCED_FILTER_TYPES, ADVANCED_FILTER_AGES, ADVANCED_FILTER_ADDRESS_RELATION } from 'types/api/advancedFilter';
 
 import useApiQuery from 'lib/api/useApiQuery';
 import { AddressHighlightProvider } from 'lib/contexts/addressHighlight';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import dayjs from 'lib/date/dayjs';
 import getFilterValueFromQuery from 'lib/getFilterValueFromQuery';
 import getFilterValuesFromQuery from 'lib/getFilterValuesFromQuery';
@@ -33,6 +34,7 @@ import ItemByColumn from 'ui/advancedFilter/ItemByColumn';
 import { getDurationFromAge, getFilterTags } from 'ui/advancedFilter/lib';
 import ActionBar from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
+import ChainIcon from 'ui/shared/externalChains/ChainIcon';
 import IconSvg from 'ui/shared/IconSvg';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
@@ -46,9 +48,11 @@ TABLE_COLUMNS.forEach(c => COLUMNS_CHECKED[c.id] = true);
 
 const AdvancedFilter = () => {
   const router = useRouter();
+  const multichainContext = useMultichainContext();
 
   const [ filters, setFilters ] = React.useState<AdvancedFilterParams>(() => {
     const age = getFilterValueFromQuery(ADVANCED_FILTER_AGES, router.query.age);
+    const addressRelation = getFilterValueFromQuery(ADVANCED_FILTER_ADDRESS_RELATION, router.query.address_relation);
     return {
       transaction_types: getFilterValuesFromQuery(ADVANCED_FILTER_TYPES, router.query.transaction_types),
       methods: getValuesArrayFromQuery(router.query.methods),
@@ -58,6 +62,7 @@ const AdvancedFilter = () => {
       age,
       age_to: age ? dayjs().toISOString() : getQueryParamString(router.query.age_to),
       age_from: age ? dayjs((dayjs().valueOf() - getDurationFromAge(age))).toISOString() : getQueryParamString(router.query.age_from),
+      address_relation: addressRelation,
       token_contract_address_hashes_to_exclude: getValuesArrayFromQuery(router.query.token_contract_address_hashes_to_exclude),
       token_contract_symbols_to_exclude: getValuesArrayFromQuery(router.query.token_contract_symbols_to_exclude),
       token_contract_address_hashes_to_include: getValuesArrayFromQuery(router.query.token_contract_address_hashes_to_include),
@@ -144,6 +149,7 @@ const AdvancedFilter = () => {
         <TableRoot tableLayout="fixed" minWidth="950px" w="100%">
           <TableHeaderSticky>
             <TableRow>
+              { multichainContext?.chain && <TableColumnHeader width="38px"/> }
               { columnsToShow.map(column => {
                 return (
                   <TableColumnHeader
@@ -159,7 +165,6 @@ const AdvancedFilter = () => {
                         { column.id === 'age' ? 'Timestamp' : column.name }
                       </chakra.span>
                     ) }
-                    { column.id === 'age' && <TimeFormatToggle ml={ 0 } mr={ 1 } verticalAlign="middle"/> }
                     <FilterByColumn
                       column={ column.id }
                       columnName={ column.name }
@@ -168,6 +173,7 @@ const AdvancedFilter = () => {
                       searchParams={ data?.search_params }
                       isLoading={ isPlaceholderData }
                     />
+                    { column.id === 'age' && <TimeFormatToggle ml={ 1 } verticalAlign="middle"/> }
                   </TableColumnHeader>
                 );
               }) }
@@ -176,6 +182,11 @@ const AdvancedFilter = () => {
           <TableBody>
             { data?.items.map((item, index) => (
               <TableRow key={ item.hash + String(index) }>
+                { multichainContext?.chain && (
+                  <TableCell>
+                    <ChainIcon data={ multichainContext.chain } isLoading={ isPlaceholderData }/>
+                  </TableCell>
+                ) }
                 { columnsToShow.map(column => {
                   const textAlign = (() => {
                     if (column.id === 'or_and') {
@@ -235,6 +246,11 @@ const AdvancedFilter = () => {
         ) }
       </Flex>
       <HStack gap={ 2 } flexWrap="wrap" mb={ 6 }>
+        { multichainContext?.chain && (
+          <Tag variant="filter" label="Chain">
+            { multichainContext.chain.app_config.chain.name }
+          </Tag>
+        ) }
         { filterTags.map(t => (
           <Tag key={ t.name } variant="filter" onClose={ onClearFilter(t.key) } closable label={ t.name }>
             { t.value }
@@ -256,9 +272,9 @@ const AdvancedFilter = () => {
         itemsNum={ data?.items.length }
         emptyText="There are no transactions."
         actionBar={ actionBar }
-        filterProps={{
-          hasActiveFilters: Object.values(filters).some(Boolean),
-          emptyFilteredText: 'No match found for current filter',
+        hasActiveFilters={ Object.values(filters).some(Boolean) }
+        emptyStateProps={{
+          term: 'transaction',
         }}
       >
         { content }

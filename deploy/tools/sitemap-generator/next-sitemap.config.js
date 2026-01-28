@@ -59,7 +59,7 @@ module.exports = {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/auth/*', '/login', '/chakra', '/sprite', '/account/*'],
+        disallow: ['/auth/*', '/login', '/chakra', '/sprite', '/account/*', '/csv-export'],
       },
     ],
   },
@@ -71,6 +71,7 @@ module.exports = {
     '/login',
     '/sprite',
     '/chakra',
+    '/csv-export',
   ],
   transform: async(config, path) => {
     switch (path) {
@@ -81,7 +82,7 @@ module.exports = {
         break;
       case '/batches':
       case '/deposits':
-        if (!process.env.NEXT_PUBLIC_ROLLUP_TYPE) {
+        if (!process.env.NEXT_PUBLIC_ROLLUP_TYPE && (process.env.NEXT_PUBLIC_HAS_BEACON_CHAIN !== 'true' || process.env.NEXT_PUBLIC_BEACON_CHAIN_WITHDRAWALS_ONLY === 'true')) {
           return null;
         }
         break;
@@ -100,8 +101,8 @@ module.exports = {
           return null;
         }
         break;
-      case '/name-domains':
-        if (!process.env.NEXT_PUBLIC_NAME_SERVICE_API_HOST) {
+      case '/name-services':
+        if (!process.env.NEXT_PUBLIC_NAME_SERVICE_API_HOST || !process.env.NEXT_PUBLIC_CLUSTERS_API_HOST) {
           return null;
         }
         break;
@@ -136,7 +137,7 @@ module.exports = {
         }
         break;
       case '/api-docs':
-        if (process.env.NEXT_PUBLIC_API_SPEC_URL === 'none') {
+        if (process.env.NEXT_PUBLIC_API_DOCS_TABS === '[]') {
           return null;
         }
         break;
@@ -145,18 +146,46 @@ module.exports = {
           return null;
         }
         break;
-      case '/graphql':
-        if (process.env.NEXT_PUBLIC_GRAPHIQL_TRANSACTION === 'none') {
-          return null;
-        }
-        break;
       case '/stats':
         if (!process.env.NEXT_PUBLIC_STATS_API_HOST) {
           return null;
         }
         break;
+      case '/uptime':
+        if (!process.env.NEXT_PUBLIC_MEGA_ETH_SOCKET_URL_METRICS) {
+          return null;
+        }
+        break;
       case '/validators':
         if (!process.env.NEXT_PUBLIC_VALIDATORS_CHAIN_TYPE) {
+          return null;
+        }
+        break;
+      case '/epochs':
+        if (process.env.NEXT_PUBLIC_CELO_ENABLED !== 'true') {
+          return null;
+        }
+        break;
+      case '/operations':
+        if (!process.env.NEXT_PUBLIC_TAC_OPERATION_LIFECYCLE_API_HOST) {
+          return null;
+        }
+        break;
+      case '/public-tags/submit':
+        if (!process.env.NEXT_PUBLIC_ADMIN_SERVICE_API_HOST || !process.env.NEXT_PUBLIC_METADATA_SERVICE_API_HOST) {
+          return null;
+        }
+        break;
+      case '/txn-withdrawals':
+        if (!process.env.NEXT_PUBLIC_ROLLUP_TYPE || process.env.NEXT_PUBLIC_ROLLUP_TYPE !== 'arbitrum') {
+          return null;
+        }
+        break;
+      // disabled routes for multichain
+      case '/block/countdown':
+      case '/contract-verification':
+      case '/visualize/sol2uml':
+        if (process.env.NEXT_PUBLIC_MULTICHAIN_ENABLED === 'true') {
           return null;
         }
         break;
@@ -171,6 +200,10 @@ module.exports = {
     };
   },
   additionalPaths: async(config) => {
+    if(process.env.NEXT_PUBLIC_MULTICHAIN_ENABLED === 'true'){
+      return;
+    }
+
     const addresses = fetchResource(
       `${ apiUrl }/addresses`,
       (data) => data.items.map(({ hash }) => `/address/${ hash }`),
@@ -185,7 +218,7 @@ module.exports = {
     );
     const tokens = fetchResource(
       `${ apiUrl }/tokens`,
-      (data) => data.items.map(({ address }) => `/token/${ address }`),
+      (data) => data.items.map(({ address_hash }) => `/token/${ address_hash }`),
     );
     const contracts = fetchResource(
       `${ apiUrl }/smart-contracts`,

@@ -8,6 +8,10 @@ on:
 #   group: ${{ github.workflow }}__${{ github.job }}__${{ github.ref }}
 #   cancel-in-progress: true
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish_image:
     name: Publish Docker image
@@ -17,6 +21,7 @@ jobs:
       # NOTE: by default the image will be built with type=ref,event=tag; so we don't need to specify it here
       tags: |
         type=raw,value=e2e
+      platforms: linux/amd64
 
   deploy_e2e:
     name: Deploy E2E instance

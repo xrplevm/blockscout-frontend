@@ -1,4 +1,4 @@
-import { chakra } from '@chakra-ui/react';
+import { chakra, Flex } from '@chakra-ui/react';
 import { capitalize } from 'es-toolkit';
 import { useRouter } from 'next/router';
 import React from 'react';
@@ -6,29 +6,34 @@ import React from 'react';
 import type { TabItemRegular } from 'toolkit/components/AdaptiveTabs/types';
 import type { PaginationParams } from 'ui/shared/pagination/types';
 
+import { routeParams } from 'nextjs/routes';
+
 import config from 'configs/app';
-import { useAppContext } from 'lib/contexts/app';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import throwOnAbsentParamError from 'lib/errors/throwOnAbsentParamError';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import useIsMobile from 'lib/hooks/useIsMobile';
-import getNetworkValidationActionText from 'lib/networks/getNetworkValidationActionText';
+import getNetworkValidatorTitle from 'lib/networks/getNetworkValidatorTitle';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import RoutedTabs from 'toolkit/components/RoutedTabs/RoutedTabs';
 import BlockCeloEpochTag from 'ui/block/BlockCeloEpochTag';
+import BlockDeposits from 'ui/block/BlockDeposits';
 import BlockDetails from 'ui/block/BlockDetails';
-import BlockEpochRewards from 'ui/block/BlockEpochRewards';
 import BlockInternalTxs from 'ui/block/BlockInternalTxs';
 import BlockWithdrawals from 'ui/block/BlockWithdrawals';
 import useBlockBlobTxsQuery from 'ui/block/useBlockBlobTxsQuery';
+import useBlockDepositsQuery from 'ui/block/useBlockDepositsQuery';
 import useBlockInternalTxsQuery from 'ui/block/useBlockInternalTxsQuery';
 import useBlockQuery from 'ui/block/useBlockQuery';
 import useBlockTxsQuery from 'ui/block/useBlockTxsQuery';
 import useBlockWithdrawalsQuery from 'ui/block/useBlockWithdrawalsQuery';
 import TextAd from 'ui/shared/ad/TextAd';
 import ServiceDegradationWarning from 'ui/shared/alerts/ServiceDegradationWarning';
+import BlockPendingUpdateAlert from 'ui/shared/block/BlockPendingUpdateAlert';
 import AddressEntity from 'ui/shared/entities/address/AddressEntity';
+import * as BlockEntity from 'ui/shared/entities/block/BlockEntity';
 import NetworkExplorers from 'ui/shared/NetworkExplorers';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import Pagination from 'ui/shared/pagination/Pagination';
@@ -42,22 +47,26 @@ const TAB_LIST_PROPS = {
 };
 const TABS_HEIGHT = 88;
 
+const beaconChainFeature = config.features.beaconChain;
+
 const BlockPageContent = () => {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const appProps = useAppContext();
   const heightOrHash = getQueryParamString(router.query.height_or_hash);
   const tab = getQueryParamString(router.query.tab);
+  const multichainContext = useMultichainContext();
 
   const blockQuery = useBlockQuery({ heightOrHash });
   const blockTxsQuery = useBlockTxsQuery({ heightOrHash, blockQuery, tab });
   const blockWithdrawalsQuery = useBlockWithdrawalsQuery({ heightOrHash, blockQuery, tab });
+  const blockDepositsQuery = useBlockDepositsQuery({ heightOrHash, blockQuery, tab });
   const blockBlobTxsQuery = useBlockBlobTxsQuery({ heightOrHash, blockQuery, tab });
   const blockInternalTxsQuery = useBlockInternalTxsQuery({ heightOrHash, blockQuery, tab });
 
   const hasPagination = !isMobile && (
     (tab === 'txs' && blockTxsQuery.pagination.isVisible) ||
     (tab === 'withdrawals' && blockWithdrawalsQuery.pagination.isVisible) ||
+    (tab === 'deposits' && blockDepositsQuery.pagination.isVisible) ||
     (tab === 'internal_txs' && blockInternalTxsQuery.pagination.isVisible)
   );
 
@@ -67,7 +76,10 @@ const BlockPageContent = () => {
       title: 'Details',
       component: (
         <>
-          { blockQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockQuery.isPlaceholderData } mb={ 6 }/> }
+          <Flex rowGap={{ base: 1, lg: 2 }} mb={{ base: 3, lg: 6 }} flexDir="column">
+            { blockQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockQuery.isPlaceholderData }/> }
+            { blockQuery.data?.is_pending_update && <BlockPendingUpdateAlert/> }
+          </Flex>
           <BlockDetails query={ blockQuery }/>
         </>
       ),
@@ -77,21 +89,21 @@ const BlockPageContent = () => {
       title: 'Transactions',
       component: (
         <>
-          { blockTxsQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockTxsQuery.isPlaceholderData } mb={ 6 }/> }
+          { blockTxsQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockTxsQuery.isPlaceholderData } mb={{ base: 3, lg: 6 }}/> }
           <TxsWithFrontendSorting query={ blockTxsQuery } showBlockInfo={ false } top={ hasPagination ? TABS_HEIGHT : 0 }/>
         </>
       ),
     },
-    blockQuery.data?.internal_transactions_count ? {
+    {
       id: 'internal_txs',
       title: 'Internal txns',
       component: (
         <>
-          { blockTxsQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockTxsQuery.isPlaceholderData } mb={ 6 }/> }
+          { blockTxsQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockTxsQuery.isPlaceholderData } mb={{ base: 3, lg: 6 }}/> }
           <BlockInternalTxs query={ blockInternalTxsQuery } top={ hasPagination ? TABS_HEIGHT : 0 }/>
         </>
       ),
-    } : null,
+    },
     config.features.dataAvailability.isEnabled && blockQuery.data?.blob_transaction_count ?
       {
         id: 'blob_txs',
@@ -100,51 +112,48 @@ const BlockPageContent = () => {
           <TxsWithFrontendSorting query={ blockBlobTxsQuery } showBlockInfo={ false }/>
         ),
       } : null,
+    beaconChainFeature.isEnabled && !beaconChainFeature.withdrawalsOnly && Boolean(blockQuery.data?.beacon_deposits_count) ?
+      {
+        id: 'deposits',
+        title: 'Deposits',
+        component: (
+          <>
+            { blockDepositsQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockDepositsQuery.isPlaceholderData } mb={{ base: 3, lg: 6 }}/> }
+            <BlockDeposits blockDepositsQuery={ blockDepositsQuery }/>
+          </>
+        ),
+      } : null,
     config.features.beaconChain.isEnabled && Boolean(blockQuery.data?.withdrawals_count) ?
       {
         id: 'withdrawals',
         title: 'Withdrawals',
         component: (
           <>
-            { blockWithdrawalsQuery.isDegradedData && <ServiceDegradationWarning isLoading={ blockWithdrawalsQuery.isPlaceholderData } mb={ 6 }/> }
+            { blockWithdrawalsQuery.isDegradedData &&
+              <ServiceDegradationWarning isLoading={ blockWithdrawalsQuery.isPlaceholderData } mb={{ base: 3, lg: 6 }}/> }
             <BlockWithdrawals blockWithdrawalsQuery={ blockWithdrawalsQuery }/>
           </>
         ),
       } : null,
-    blockQuery.data?.celo?.is_epoch_block ? {
-      id: 'epoch_rewards',
-      title: 'Epoch rewards',
-      component: <BlockEpochRewards heightOrHash={ heightOrHash }/>,
-    } : null,
-  ].filter(Boolean)), [ blockBlobTxsQuery, blockInternalTxsQuery, blockQuery, blockTxsQuery, blockWithdrawalsQuery, hasPagination, heightOrHash ]);
+  ].filter(Boolean)), [ blockBlobTxsQuery, blockDepositsQuery, blockInternalTxsQuery, blockQuery, blockTxsQuery, blockWithdrawalsQuery, hasPagination ]);
 
   let pagination;
   if (tab === 'txs') {
     pagination = blockTxsQuery.pagination;
   } else if (tab === 'withdrawals') {
     pagination = blockWithdrawalsQuery.pagination;
+  } else if (tab === 'deposits') {
+    pagination = blockDepositsQuery.pagination;
   } else if (tab === 'internal_txs') {
     pagination = blockInternalTxsQuery.pagination;
   }
 
-  const backLink = React.useMemo(() => {
-    const hasGoBackLink = appProps.referrer && appProps.referrer.includes('/blocks');
-
-    if (!hasGoBackLink) {
-      return;
-    }
-
-    return {
-      label: 'Back to blocks list',
-      url: appProps.referrer,
-    };
-  }, [ appProps.referrer ]);
-
   throwOnAbsentParamError(heightOrHash);
 
   if (blockQuery.isError) {
-    if (!blockQuery.isDegradedData && blockQuery.error.status === 404 && !heightOrHash.startsWith('0x')) {
-      router.push({ pathname: '/block/countdown/[height]', query: { height: heightOrHash } });
+    if (!blockQuery.isDegradedData && blockQuery.error.status === 404 && !heightOrHash.startsWith('0x') && blockQuery.isFutureBlock) {
+      const url = routeParams({ pathname: '/block/countdown/[height]', query: { height: heightOrHash } }, multichainContext);
+      router.push(url, undefined, { shallow: true });
       return null;
     } else {
       throwOnResourceLoadError(blockQuery);
@@ -164,6 +173,10 @@ const BlockPageContent = () => {
     }
   })();
 
+  const beforeTitleElement = multichainContext?.chain ? (
+    <BlockEntity.Icon variant="heading" chain={ multichainContext.chain } isLoading={ blockQuery.isPlaceholderData }/>
+  ) : null;
+
   const titleSecondRow = (
     <>
       { !config.UI.views.block.hiddenFields?.miner && blockQuery.data?.miner && (
@@ -176,7 +189,7 @@ const BlockPageContent = () => {
           fontWeight={ 500 }
         >
           <chakra.span flexShrink={ 0 }>
-            { `${ capitalize(getNetworkValidationActionText()) } by` }
+            { capitalize(getNetworkValidatorTitle()) }
           </chakra.span>
           <AddressEntity address={ blockQuery.data.miner }/>
         </Skeleton>
@@ -194,7 +207,7 @@ const BlockPageContent = () => {
       <TextAd mb={ 6 }/>
       <PageTitle
         title={ title }
-        backLink={ backLink }
+        beforeTitle={ beforeTitleElement }
         contentAfter={ <BlockCeloEpochTag blockQuery={ blockQuery }/> }
         secondRow={ titleSecondRow }
         isLoading={ blockQuery.isPlaceholderData }

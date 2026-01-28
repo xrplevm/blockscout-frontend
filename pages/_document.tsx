@@ -8,6 +8,8 @@ import * as serverTiming from 'nextjs/utils/serverTiming';
 import config from 'configs/app';
 import * as svgSprite from 'ui/shared/IconSvg';
 
+const marketplaceFeature = config.features.marketplace;
+
 class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
     const originalRenderPage = ctx.renderPage;
@@ -44,6 +46,18 @@ class MyDocument extends Document {
 
           { /* eslint-disable-next-line @next/next/no-sync-scripts */ }
           <script src="/assets/envs.js"/>
+          { config.features.opSuperchain.isEnabled && (
+            <>
+              { /* eslint-disable-next-line @next/next/no-sync-scripts */ }
+              <script src="/assets/multichain/config.js"/>
+            </>
+          ) }
+          { marketplaceFeature.isEnabled && marketplaceFeature.essentialDapps && (
+            <>
+              { /* eslint-disable-next-line @next/next/no-sync-scripts */ }
+              <script src="/assets/essential-dapps/chains.js"/>
+            </>
+          ) }
 
           { /* FAVICON */ }
           <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png"/>

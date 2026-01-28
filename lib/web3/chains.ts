@@ -1,31 +1,42 @@
-import { type Chain } from 'viem';
+import type { Chain } from 'viem';
 
-import config from 'configs/app';
+import appConfig from 'configs/app';
+import essentialDappsChainsConfig from 'configs/essential-dapps-chains';
+import multichainConfig from 'configs/multichain';
 
-export const currentChain: Chain = {
-  id: Number(config.chain.id),
-  name: config.chain.name ?? '',
-  nativeCurrency: {
-    decimals: config.chain.currency.decimals,
-    name: config.chain.currency.name ?? '',
-    symbol: config.chain.currency.symbol ?? '',
-  },
-  rpcUrls: {
-    'default': {
-      http: config.chain.rpcUrls,
+const getChainInfo = (config: Partial<typeof appConfig> = appConfig, contracts?: Chain['contracts']): Chain | undefined => {
+  if (!config.chain || !config.app) {
+    return;
+  }
+
+  return {
+    id: Number(config.chain.id),
+    name: config.chain.name ?? '',
+    nativeCurrency: {
+      decimals: config.chain.currency.decimals,
+      name: config.chain.currency.name ?? '',
+      symbol: config.chain.currency.symbol ?? '',
     },
-  },
-  blockExplorers: {
-    'default': {
-      name: 'Blockscout',
-      url: config.app.baseUrl,
+    rpcUrls: {
+      'default': {
+        http: config.chain.rpcUrls,
+      },
     },
-  },
-  testnet: config.chain.isTestnet,
+    blockExplorers: {
+      'default': {
+        name: 'Blockscout',
+        url: config.app.baseUrl,
+      },
+    },
+    testnet: config.chain.isTestnet,
+    contracts,
+  };
 };
 
+export const currentChain: Chain | undefined = !appConfig.features.opSuperchain.isEnabled ? getChainInfo() : undefined;
+
 export const parentChain: Chain | undefined = (() => {
-  const rollupFeature = config.features.rollup;
+  const rollupFeature = appConfig.features.rollup;
 
   const parentChain = rollupFeature.isEnabled && rollupFeature.parentChain;
 
@@ -54,4 +65,39 @@ export const parentChain: Chain | undefined = (() => {
     },
     testnet: parentChain.isTestnet,
   };
+})();
+
+export const clusterChains: Array<Chain> | undefined = (() => {
+  const config = multichainConfig();
+
+  if (!config) {
+    return;
+  }
+
+  return config.chains.map(({ app_config: config }) => getChainInfo(config)).filter(Boolean);
+})();
+
+export const essentialDappsChains: Array<Chain> | undefined = (() => {
+  const config = essentialDappsChainsConfig();
+
+  if (!config) {
+    return;
+  }
+
+  return config.chains.map(({ app_config: config, contracts }) => getChainInfo(config, contracts)).filter(Boolean);
+})();
+
+export const chains = (() => {
+  if (essentialDappsChains) {
+    const hasCurrentChain = essentialDappsChains.some((chain) => chain.id === currentChain?.id);
+    const hasParentChain = essentialDappsChains.some((chain) => chain.id === parentChain?.id);
+
+    return [
+      ...essentialDappsChains,
+      hasCurrentChain ? undefined : currentChain,
+      hasParentChain ? undefined : parentChain,
+    ].filter(Boolean);
+  }
+
+  return [ currentChain, parentChain, ...(clusterChains ?? []) ].filter(Boolean);
 })();

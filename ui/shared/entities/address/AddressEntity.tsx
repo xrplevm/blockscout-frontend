@@ -3,7 +3,7 @@ import React from 'react';
 
 import type { AddressParam } from 'types/api/addressParams';
 
-import { route } from 'nextjs-routes';
+import { route } from 'nextjs/routes';
 
 import { toBech32Address } from 'lib/address/bech32';
 import { useAddressHighlightContext } from 'lib/contexts/addressHighlight';
@@ -11,6 +11,9 @@ import { useSettingsContext } from 'lib/contexts/settings';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { Tooltip } from 'toolkit/chakra/tooltip';
 import * as EntityBase from 'ui/shared/entities/base/components';
+import { getTagName } from 'ui/shared/EntityTags/utils';
+import getChainTooltipText from 'ui/shared/externalChains/getChainTooltipText';
+import type { IconName } from 'ui/shared/IconSvg';
 
 import { distributeEntityProps, getContentProps, getIconProps } from '../base/utils';
 import AddressEntityContentProxy from './AddressEntityContentProxy';
@@ -24,7 +27,10 @@ const getDisplayedAddress = (address: AddressProp, altHash?: string) => {
 };
 
 const Link = chakra((props: LinkProps) => {
-  const defaultHref = route({ pathname: '/address/[hash]', query: { ...props.query, hash: props.address.hash } });
+  const defaultHref = route(
+    { pathname: '/address/[hash]', query: { ...props.query, hash: props.address.hash } },
+    { chain: props.chain, external: props.external },
+  );
 
   return (
     <EntityBase.Link
@@ -43,11 +49,10 @@ const Icon = (props: IconProps) => {
     return null;
   }
 
-  const marginRight = props.marginRight ?? (props.shield ? '18px' : '8px');
-  const styles = {
-    ...getIconProps(props.variant),
-    marginRight,
-  };
+  const shield = props.shield ?? (props.chain ? { src: props.chain.logo } : undefined);
+  const hintPostfix: string = props.hintPostfix ?? (props.chain && props.shield !== false ? getChainTooltipText(props.chain, ' on') : '');
+
+  const styles = getIconProps(props, Boolean(shield));
 
   if (props.isLoading) {
     return <Skeleton { ...styles } loading borderRadius="full" flexShrink={ 0 }/>;
@@ -60,6 +65,7 @@ const Icon = (props: IconProps) => {
       return (
         <EntityBase.Icon
           { ...props }
+          shield={ shield }
           name="brands/safe"
         />
       );
@@ -67,12 +73,13 @@ const Icon = (props: IconProps) => {
 
     const isProxy = Boolean(props.address.implementations?.length);
     const isVerified = isProxy ? props.address.is_verified && props.address.implementations?.every(({ name }) => Boolean(name)) : props.address.is_verified;
-    const contractIconName: EntityBase.IconBaseProps['name'] = props.address.is_verified ? 'contracts/verified' : 'contracts/regular';
-    const label = (isVerified ? 'verified ' : '') + (isProxy ? 'proxy contract' : 'contract') + (props.hintPostfix ?? '');
+    const contractIconName: IconName = props.address.is_verified ? 'contracts/verified' : 'contracts/regular';
+    const label = (isVerified ? 'verified ' : '') + (isProxy ? 'proxy contract' : 'contract') + hintPostfix;
 
     return (
       <EntityBase.Icon
         { ...props }
+        shield={ shield }
         name={ isProxy ? 'contracts/proxy' : contractIconName }
         color={ isVerified ? 'green.500' : undefined }
         borderRadius={ 0 }
@@ -83,7 +90,11 @@ const Icon = (props: IconProps) => {
 
   const label = (() => {
     if (isDelegatedAddress) {
-      return (props.address.is_verified ? 'EOA + verified code' : 'EOA + code') + (props.hintPostfix ?? '');
+      return (props.address.is_verified ? 'EOA + verified code' : 'EOA + code') + hintPostfix;
+    }
+
+    if (props.chain) {
+      return 'Address' + hintPostfix;
     }
 
     return props.hint;
@@ -94,14 +105,14 @@ const Icon = (props: IconProps) => {
       content={ label }
       disabled={ !label }
       interactive={ props.tooltipInteractive }
-      positioning={ props.shield ? { offset: { mainAxis: 8 } } : undefined }
+      positioning={ shield ? { offset: { mainAxis: 8 } } : undefined }
     >
       <Flex marginRight={ styles.marginRight } position="relative">
         <AddressIdenticon
-          size={ props.variant === 'heading' ? 30 : 20 }
+          size={ props.size ?? (props.variant === 'heading' ? 30 : 20) }
           hash={ getDisplayedAddress(props.address) }
         />
-        { props.shield && <EntityBase.IconShield { ...props.shield }/> }
+        { shield && <EntityBase.IconShield { ...shield }/> }
         { isDelegatedAddress && <AddressIconDelegated isVerified={ Boolean(props.address.is_verified) }/> }
       </Flex>
     </Tooltip>
@@ -112,7 +123,14 @@ export type ContentProps = Omit<EntityBase.ContentBaseProps, 'text'> & Pick<Enti
 
 const Content = chakra((props: ContentProps) => {
   const displayedAddress = getDisplayedAddress(props.address, props.altHash);
-  const nameTag = props.address.metadata?.tags.find(tag => tag.tagType === 'name')?.name;
+  const nameTag = (() => {
+    const tagData = props.address.metadata?.tags.find(tag => tag.tagType === 'name');
+    if (!tagData || !tagData.name) {
+      return;
+    }
+
+    return getTagName(tagData, props.address.hash);
+  })();
   const nameText = nameTag || props.address.ens_domain_name || props.address.name;
 
   const isProxy = props.address.implementations && props.address.implementations.length > 0 && props.address.proxy_type !== 'eip7702';
@@ -139,6 +157,7 @@ const Content = chakra((props: ContentProps) => {
         contentProps={{ maxW: { base: 'calc(100vw - 8px)', lg: '400px' } }}
         triggerProps={{ minW: 0 }}
         interactive={ props.tooltipInteractive }
+        disabled={ props.noTooltip }
       >
         <Skeleton loading={ props.isLoading } overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" { ...styles }>
           { nameText }
@@ -183,6 +202,7 @@ const AddressEntity = (props: EntityProps) => {
   const partsProps = distributeEntityProps(props);
   const highlightContext = useAddressHighlightContext(props.noHighlight);
   const settingsContext = useSettingsContext();
+
   const altHash = !props.noAltHash && settingsContext?.addressFormat === 'bech32' ? toBech32Address(props.address.hash) : undefined;
 
   // inside highlight context all tooltips should be interactive

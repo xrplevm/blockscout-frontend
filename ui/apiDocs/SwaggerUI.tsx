@@ -9,15 +9,12 @@ import { Box, useToken } from '@chakra-ui/react';
 import dynamic from 'next/dynamic';
 import React from 'react';
 
-import config from 'configs/app';
+import type { SwaggerRequest } from './types';
+
 import { useColorModeValue } from 'toolkit/chakra/color-mode';
-import ContentLoader from 'ui/shared/ContentLoader';
+import { ContentLoader } from 'toolkit/components/loaders/ContentLoader';
 import 'swagger-ui-react/swagger-ui.css';
 import PageTitle from 'ui/shared/Page/PageTitle';
-
-const feature = config.features.restApiDocs;
-
-const DEFAULT_SERVER = 'blockscout.com/poa/core';
 
 const NeverShowInfoPlugin = () => {
   return {
@@ -29,7 +26,12 @@ const NeverShowInfoPlugin = () => {
   };
 };
 
-const SwaggerUI = () => {
+interface Props {
+  url: string;
+  requestInterceptor?: (request: SwaggerRequest) => SwaggerRequest;
+}
+
+const SwaggerUI = ({ url, requestInterceptor }: Props) => {
   const mainColor = { _light: 'blackAlpha.800', _dark: 'whiteAlpha.800' };
   const borderColor = useToken('colors', 'border.divider');
   const mainBgColor = { _light: 'blackAlpha.100', _dark: 'whiteAlpha.200' };
@@ -114,30 +116,14 @@ const SwaggerUI = () => {
     },
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const reqInterceptor = React.useCallback((req: any) => {
-    if (!req.loadSpec) {
-      const newUrl = new URL(req.url.replace(DEFAULT_SERVER, config.apis.general.host));
-
-      newUrl.protocol = config.apis.general.protocol + ':';
-
-      if (config.apis.general.port) {
-        newUrl.port = config.apis.general.port;
-      }
-
-      req.url = newUrl.toString();
-    }
-    return req;
-  }, []);
-
-  if (!feature.isEnabled) {
-    return null;
-  }
-
   return (
     <Box css={ swaggerStyle } backgroundColor={ bgColor } borderRadius="md" padding={{ base: 6, lg: 8 }}>
       <PageTitle title="API Documentation"/>
-      <SwaggerUIReact url={ feature.specUrl } plugins={ [ NeverShowInfoPlugin ] } requestInterceptor={ reqInterceptor }/>
+      <SwaggerUIReact
+        url={ url }
+        plugins={ [ NeverShowInfoPlugin ] }
+        requestInterceptor={ requestInterceptor }
+      />
     </Box>
   );
 };

@@ -1,7 +1,5 @@
 import type CspDev from 'csp-dev';
 
-import { getFeaturePayload } from 'configs/app/features/types';
-
 import config from 'configs/app';
 
 import { KEY_WORDS } from '../utils';
@@ -23,7 +21,7 @@ const externalFontsDomains = (() => {
   } catch (error) {}
 })();
 
-export function app(): CspDev.DirectiveDescriptor {
+export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
   return {
     'default-src': [
       // KEY_WORDS.NONE,
@@ -41,11 +39,10 @@ export function app(): CspDev.DirectiveDescriptor {
 
       // APIs
       ...Object.values(config.apis).filter(Boolean).map((api) => api.endpoint),
-      config.apis.general.socketEndpoint,
+      ...Object.values(config.apis).filter(Boolean).map((api) => api.socketEndpoint),
 
       // chain RPC server
       ...config.chain.rpcUrls,
-      ...(getFeaturePayload(config.features.rollup)?.parentChain?.rpcUrls ?? []),
       'https://infragrid.v.network', // RPC providers
 
       // github (spec for api-docs page)
@@ -122,10 +119,14 @@ export function app(): CspDev.DirectiveDescriptor {
       KEY_WORDS.NONE,
     ],
 
-    'frame-src': [
-      // could be a marketplace app or NFT media (html-page)
-      '*',
-    ],
+    // Restrict frame-src in private mode to prevent iframe tracking
+    // In normal mode, frame-src is also set by marketplace.ts when marketplace is enabled
+    ...(isPrivateMode ? {} as CspDev.DirectiveDescriptor : {
+      'frame-src': [
+        // could be a marketplace app or NFT media (html-page)
+        '*',
+      ],
+    }),
 
     'frame-ancestors': [
       KEY_WORDS.SELF,

@@ -4,13 +4,12 @@ import React from 'react';
 
 import type { TabItemRegular } from './types';
 
-import { useScrollDirection } from 'lib/contexts/scrollDirection';
 import useIsMobile from 'lib/hooks/useIsMobile';
 
-import { useIsSticky } from '../..//hooks/useIsSticky';
 import { Skeleton } from '../../chakra/skeleton';
 import type { TabsProps } from '../../chakra/tabs';
 import { TabsCounter, TabsList, TabsTrigger } from '../../chakra/tabs';
+import { useIsSticky } from '../../hooks/useIsSticky';
 import AdaptiveTabsMenu from './AdaptiveTabsMenu';
 import useAdaptiveTabs from './useAdaptiveTabs';
 import useScrollToActiveTab from './useScrollToActiveTab';
@@ -74,7 +73,6 @@ const AdaptiveTabsList = (props: Props) => {
     variant,
   } = props;
 
-  const scrollDirection = useScrollDirection();
   const isMobile = useIsMobile();
 
   const tabsList = React.useMemo(() => {
@@ -85,6 +83,10 @@ const AdaptiveTabsList = (props: Props) => {
   const isSticky = useIsSticky(listRef, 5, stickyEnabled);
   const activeTabIndex = tabsList.findIndex((tab) => getTabValue(tab) === activeTab) ?? 0;
   useScrollToActiveTab({ activeTabIndex, listRef, tabsRefs, isMobile, isLoading });
+
+  if (tabs.length === 1 && !leftSlot && !rightSlot) {
+    return null;
+  }
 
   const isReady = !isLoading && tabsCut !== undefined;
 
@@ -115,7 +117,7 @@ const AdaptiveTabsList = (props: Props) => {
         ...(props.stickyEnabled ? {
           position: 'sticky',
           boxShadow: { base: isSticky ? 'md' : 'none', lg: 'none' },
-          top: { base: scrollDirection === 'down' ? `0px` : `106px`, lg: 0 },
+          top: 0,
           zIndex: { base: 'sticky2', lg: 'docked' },
         } : { })
       }
@@ -133,7 +135,7 @@ const AdaptiveTabsList = (props: Props) => {
         </Box>
       )
       }
-      { tabsList.map((tab, index) => {
+      { tabs.length > 1 && tabsList.map((tab, index) => {
         const value = getTabValue(tab);
         const ref = tabsRefs[index];
 
@@ -157,6 +159,9 @@ const AdaptiveTabsList = (props: Props) => {
             ref={ ref }
             scrollSnapAlign="start"
             flexShrink={ 0 }
+            _hover={{
+              color: 'purple.300',
+            }}
             { ...getItemStyles(index, tabsCut, isLoading) }
           >
             { typeof tab.title === 'function' ? tab.title() : tab.title }

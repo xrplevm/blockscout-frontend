@@ -12,7 +12,7 @@ export const recipe = defineSlotRecipe({
       textAlign: 'center',
       boxShadow: 'size.md',
       zIndex: 'tooltip',
-      maxW: '320px',
+      maxW: { base: 'calc(100vw - 8px)', lg: '320px' },
       transformOrigin: 'var(--transform-origin)',
       _open: {
         animationStyle: 'scale-fade-in',
@@ -40,28 +40,6 @@ export const recipe = defineSlotRecipe({
           '--tooltip-bg': 'colors.tooltip.bg',
           bg: 'var(--tooltip-bg)',
           color: 'tooltip.fg',
-        },
-      },
-      navigation: {
-        content: {
-          '--tooltip-bg': 'colors.tooltip.navigation.bg',
-          bg: 'var(--tooltip-bg)',
-          color: 'tooltip.navigation.fg',
-          borderWidth: '0',
-          borderRadius: 'base',
-          minW: '120px',
-          boxShadow: 'none',
-          textAlign: 'center',
-          padding: '15px 12px',
-          _selected: {
-            color: 'tooltip.navigation.fg.selected',
-          },
-        },
-        arrow: {
-          display: 'none',
-        },
-        arrowTip: {
-          display: 'none',
         },
       },
       popover: {

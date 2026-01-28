@@ -11,6 +11,7 @@ import TxEntity from 'ui/shared/entities/tx/TxEntity';
 import TxEntityL1 from 'ui/shared/entities/tx/TxEntityL1';
 import ListItemMobileGrid from 'ui/shared/ListItemMobile/ListItemMobileGrid';
 import TimeWithTooltip from 'ui/shared/time/TimeWithTooltip';
+import SimpleValue from 'ui/shared/value/SimpleValue';
 
 const rollupFeature = config.features.rollup;
 
@@ -48,6 +49,7 @@ const ZkEvmL2DepositsListItem = ({ item, isLoading }: Props) => {
           hash={ item.l1_transaction_hash }
           textStyle="sm"
           truncation="constant_long"
+          noCopy
         />
       </ListItemMobileGrid.Value>
 
@@ -78,9 +80,10 @@ const ZkEvmL2DepositsListItem = ({ item, isLoading }: Props) => {
 
       <ListItemMobileGrid.Label isLoading={ isLoading }>Value</ListItemMobileGrid.Label>
       <ListItemMobileGrid.Value>
-        <Skeleton loading={ isLoading } display="inline-block">
-          { BigNumber(item.value).toFormat() }
-        </Skeleton>
+        <SimpleValue
+          value={ BigNumber(item.value) }
+          loading={ isLoading }
+        />
       </ListItemMobileGrid.Value>
 
       <ListItemMobileGrid.Label isLoading={ isLoading }>Token</ListItemMobileGrid.Label>

@@ -14,7 +14,7 @@ import LatestDeposits from './LatestDeposits';
 
 const LatestOptimisticDeposits = () => {
   const isMobile = useIsMobile();
-  const itemsCount = isMobile ? 2 : 6;
+  const itemsCount = isMobile ? 2 : 5;
   const { data, isPlaceholderData, isError } = useApiQuery('general:homepage_optimistic_deposits', {
     queryOptions: {
       placeholderData: Array(itemsCount).fill(L2_DEPOSIT_ITEM),
@@ -22,14 +22,14 @@ const LatestOptimisticDeposits = () => {
   });
 
   const [ num, setNum ] = useGradualIncrement(0);
-  const [ socketAlert, setSocketAlert ] = React.useState('');
+  const [ showSocketErrorAlert, setShowSocketErrorAlert ] = React.useState(false);
 
   const handleSocketClose = React.useCallback(() => {
-    setSocketAlert('Connection is lost. Please reload the page.');
+    setShowSocketErrorAlert(true);
   }, []);
 
   const handleSocketError = React.useCallback(() => {
-    setSocketAlert('An error has occurred while fetching new transactions. Please reload the page.');
+    setShowSocketErrorAlert(true);
   }, []);
 
   const handleNewDepositMessage: SocketMessage.NewOptimisticDeposits['handler'] = React.useCallback((payload) => {
@@ -61,7 +61,7 @@ const LatestOptimisticDeposits = () => {
         )) }
         isLoading={ isPlaceholderData }
         socketItemsNum={ num }
-        socketAlert={ socketAlert }
+        showSocketErrorAlert={ showSocketErrorAlert }
       />
     );
   }

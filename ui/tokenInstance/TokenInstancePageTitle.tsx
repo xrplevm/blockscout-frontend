@@ -3,7 +3,7 @@ import React from 'react';
 
 import type { TokenInfo, TokenInstance } from 'types/api/token';
 
-import { useAppContext } from 'lib/contexts/app';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import { getTokenTypeName } from 'lib/token/tokenTypes';
 import { Link } from 'toolkit/chakra/link';
 import { Tag } from 'toolkit/chakra/tag';
@@ -22,7 +22,7 @@ interface Props {
 }
 
 const TokenInstancePageTitle = ({ isLoading, token, instance, hash }: Props) => {
-  const appProps = useAppContext();
+  const multichainContext = useMultichainContext();
 
   const title = (() => {
     if (typeof instance?.metadata?.name === 'string') {
@@ -39,19 +39,6 @@ const TokenInstancePageTitle = ({ isLoading, token, instance, hash }: Props) => 
 
     return `ID ${ instance.id }`;
   })();
-
-  const backLink = React.useMemo(() => {
-    const hasGoBackLink = appProps.referrer && appProps.referrer.includes(`/token/${ hash }`) && !appProps.referrer.includes('instance');
-
-    if (!hasGoBackLink) {
-      return;
-    }
-
-    return {
-      label: 'Back to token page',
-      url: appProps.referrer,
-    };
-  }, [ appProps.referrer, hash ]);
 
   const tokenTag = token ? <Tag loading={ isLoading }>{ getTokenTypeName(token.type) }</Tag> : null;
 
@@ -99,6 +86,7 @@ const TokenInstancePageTitle = ({ isLoading, token, instance, hash }: Props) => 
           variant="subheading"
           w="auto"
           maxW="700px"
+          chain={ multichainContext?.chain }
         />
       ) }
       { !isLoading && token && <AddressAddToWallet token={ token } tokenId={ instance?.id } variant="button"/> }
@@ -111,7 +99,6 @@ const TokenInstancePageTitle = ({ isLoading, token, instance, hash }: Props) => 
   return (
     <PageTitle
       title={ title }
-      backLink={ backLink }
       contentAfter={ tokenTag }
       secondRow={ titleSecondRow }
       isLoading={ isLoading }

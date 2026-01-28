@@ -17,7 +17,7 @@ export_envs_from_preset() {
   fi
 
   local blacklist=(
-    "NEXT_PUBLIC_APP_PROTOCOL" 
+    "NEXT_PUBLIC_APP_PROTOCOL"
     "NEXT_PUBLIC_APP_HOST"
     "NEXT_PUBLIC_APP_PORT"
     "NEXT_PUBLIC_APP_ENV"
@@ -37,6 +37,10 @@ export_envs_from_preset
 
 # Download external assets
 ./download_assets.sh ./public/assets/configs
+if [ $? -ne 0 ]; then
+  echo "🛑 Failed to download external assets. The application cannot start."
+  exit 1
+fi
 
 # Check run-time ENVs values
 if [ "$SKIP_ENVS_VALIDATION" != "true" ]; then
@@ -64,11 +68,28 @@ node --no-warnings ./og_image_generator.js
 # Create envs.js file with run-time environment variables for the client app
 ./make_envs_script.sh
 
+# Generate multichain config
+node --no-warnings ./deploy/tools/multichain-config-generator/dist/index.js
+if [ $? -ne 0 ]; then
+  echo "👎 Unable to generate multichain config."
+  exit 1
+fi
+
+# Generate essential dapps chains config
+node --no-warnings ./deploy/tools/essential-dapps-chains-config-generator/dist/index.js
+if [ $? -ne 0 ]; then
+  echo "👎 Unable to generate essential dapps chains config."
+  exit 1
+fi
+
 # Generate sitemap.xml and robots.txt files
 ./sitemap_generator.sh
 
+# Generate llms.txt file
+node --no-warnings ./deploy/tools/llms-txt-generator/dist/index.js
+
 # Print list of enabled features
-node ./feature-reporter.js
+node --no-warnings ./feature-reporter.js
 
 echo "Starting Next.js application"
 exec "$@"

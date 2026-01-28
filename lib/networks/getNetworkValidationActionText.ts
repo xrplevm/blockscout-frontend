@@ -1,7 +1,7 @@
 import config from 'configs/app';
 
-export default function getNetworkValidationActionText() {
-  switch (config.chain.verificationType) {
+export default function getNetworkValidationActionText(chainConfig = config) {
+  switch (chainConfig.chain.verificationType) {
     case 'validation': {
       return 'validated';
     }
@@ -14,8 +14,11 @@ export default function getNetworkValidationActionText() {
     case 'sequencing': {
       return 'sequenced';
     }
+    case 'fee reception': {
+      return 'validated';
+    }
     default: {
-      return 'miner';
+      return 'mined';
     }
   }
 }

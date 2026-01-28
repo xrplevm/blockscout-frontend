@@ -1,34 +1,38 @@
 import { Text, chakra } from '@chakra-ui/react';
 import React from 'react';
 
+import config from 'configs/app';
 import { Alert } from 'toolkit/chakra/alert';
 import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { TableCell, TableRow } from 'toolkit/chakra/table';
 
+const flashblocksFeature = config.features.flashblocks;
+
 interface InjectedProps {
   content: React.ReactNode;
 }
 
 interface Props {
-  type?: 'transaction' | 'token_transfer' | 'deposit' | 'block';
+  type?: 'transaction' | 'token_transfer' | 'deposit' | 'block' | 'flashblock' | 'cross_chain_transaction';
   children?: (props: InjectedProps) => React.JSX.Element;
   className?: string;
   url?: string;
-  alert?: string;
+  showErrorAlert?: boolean;
   num?: number;
   isLoading?: boolean;
+  onLinkClick?: () => void;
 }
 
-const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, type = 'transaction', isLoading }: Props) => {
+const SocketNewItemsNotice = chakra(({ children, className, url, num, showErrorAlert, type = 'transaction', isLoading, onLinkClick }: Props) => {
   const handleLinkClick = React.useCallback(() => {
-    window.location.reload();
-  }, []);
+    onLinkClick ? onLinkClick() : window.location.reload();
+  }, [ onLinkClick ]);
 
   const alertContent = (() => {
-    if (alert) {
-      return alert;
+    if (showErrorAlert) {
+      return 'Live updates temporarily delayed';
     }
 
     let name;
@@ -43,6 +47,15 @@ const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, typ
       case 'block':
         name = 'block';
         break;
+      case 'flashblock': {
+        if (flashblocksFeature.isEnabled) {
+          name = flashblocksFeature.name;
+        }
+        break;
+      }
+      case 'cross_chain_transaction':
+        name = 'cross chain transaction';
+        break;
       default:
         name = 'transaction';
         break;
@@ -50,6 +63,12 @@ const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, typ
 
     if (!num) {
       return `scanning new ${ name }s...`;
+    }
+
+    if (type === 'cross_chain_transaction') {
+      return (
+        <Link href={ url } onClick={ !url ? handleLinkClick : undefined }>More { name }s available</Link>
+      );
     }
 
     return (
@@ -66,12 +85,13 @@ const SocketNewItemsNotice = chakra(({ children, className, url, num, alert, typ
   const content = !isLoading ? (
     <Alert
       className={ className }
-      status="warning_table"
+      status={ showErrorAlert || !num ? 'warning_table' : 'info' }
       px={ 4 }
       py="6px"
       fontSize="sm"
       color={ color }
       bgColor={ bgColor }
+      textStyle="sm"
     >
       { alertContent }
     </Alert>

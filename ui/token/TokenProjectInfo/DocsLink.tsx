@@ -11,12 +11,13 @@ const DocsLink = ({ href }: Props) => {
   return (
     <Link
       href={ href }
-      target="_blank"
+      external
+      noIcon
       display="inline-flex"
       alignItems="center"
       columnGap={ 1 }
     >
-      <IconSvg name="docs" boxSize={ 6 } color="text.secondary"/>
+      <IconSvg name="docs" boxSize={ 6 } color="icon.primary"/>
       <span>Documentation</span>
     </Link>
   );

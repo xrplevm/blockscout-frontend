@@ -1,3 +1,4 @@
+import { HStack } from '@chakra-ui/react';
 import React from 'react';
 
 import type { AddressMetadataTagFormatted } from 'types/client/addressMetadata';
@@ -24,6 +25,30 @@ const TokenNftMarketplaces = ({ hash, id, isLoading, appActionData, source }: Pr
     return null;
   }
 
+  const items = config.UI.views.nft.marketplaces
+    .map((item) => {
+      const hrefTemplate = id ? item.instance_url : item.collection_url;
+      if (!hrefTemplate) {
+        return null;
+      }
+      const href = hrefTemplate
+        .replace('{id}', id || '')
+        .replace('{id_lowercase}', id?.toLowerCase() || '')
+        .replace('{hash}', hash || '')
+        .replace('{hash_lowercase}', hash?.toLowerCase() || '');
+
+      return {
+        href,
+        logo_url: item.logo_url,
+        name: item.name,
+      };
+    })
+    .filter(Boolean);
+
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <>
       <DetailedInfo.ItemLabel
@@ -35,28 +60,26 @@ const TokenNftMarketplaces = ({ hash, id, isLoading, appActionData, source }: Pr
       <DetailedInfo.ItemValue
         py={ appActionData ? '1px' : '6px' }
       >
-        <Skeleton loading={ isLoading } display="flex" columnGap={ 3 } flexWrap="wrap" alignItems="center">
-          { config.UI.views.nft.marketplaces.map((item) => {
-
-            const hrefTemplate = id ? item.instance_url : item.collection_url;
-            const href = hrefTemplate.replace('{id}', id || '').replace('{hash}', hash || '');
-
-            return (
-              <Tooltip content={ `View on ${ item.name }` } key={ item.name }>
-                <Link href={ href } target="_blank">
-                  <Image
-                    src={ item.logo_url }
-                    alt={ `${ item.name } marketplace logo` }
-                    boxSize={ 5 }
-                    borderRadius="full"
-                  />
-                </Link>
-              </Tooltip>
-            );
-          }) }
+        <Skeleton loading={ isLoading } display="flex" flexWrap="wrap" alignItems="center">
+          <HStack gap={ 3 }>
+            { items.map((item) => {
+              return (
+                <Tooltip content={ `View on ${ item.name }` } key={ item.name }>
+                  <Link href={ item.href } external noIcon>
+                    <Image
+                      src={ item.logo_url }
+                      alt={ `${ item.name } marketplace logo` }
+                      boxSize={ 5 }
+                      borderRadius="full"
+                    />
+                  </Link>
+                </Tooltip>
+              );
+            }) }
+          </HStack>
           { appActionData && (
             <>
-              <TextSeparator color="gray.500" margin={ 0 }/>
+              <TextSeparator/>
               <AppActionButton data={ appActionData } height="30px" source={ source }/>
             </>
           ) }

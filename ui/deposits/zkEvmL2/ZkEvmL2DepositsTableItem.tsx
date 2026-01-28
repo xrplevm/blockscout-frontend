@@ -11,10 +11,11 @@ import BlockEntityL1 from 'ui/shared/entities/block/BlockEntityL1';
 import TxEntity from 'ui/shared/entities/tx/TxEntity';
 import TxEntityL1 from 'ui/shared/entities/tx/TxEntityL1';
 import TimeWithTooltip from 'ui/shared/time/TimeWithTooltip';
+import SimpleValue from 'ui/shared/value/SimpleValue';
 
 const rollupFeature = config.features.rollup;
 
- type Props = { item: ZkEvmL2DepositsItem; isLoading?: boolean };
+type Props = { item: ZkEvmL2DepositsItem; isLoading?: boolean };
 
 const ZkEvmL2DepositsTableItem = ({ item, isLoading }: Props) => {
   if (!rollupFeature.isEnabled || rollupFeature.type !== 'zkEvm') {
@@ -44,6 +45,7 @@ const ZkEvmL2DepositsTableItem = ({ item, isLoading }: Props) => {
           truncation="constant_long"
           noIcon
           textStyle="sm"
+          noCopy
         />
       </TableCell>
       <TableCell verticalAlign="middle" pr={ 12 }>
@@ -69,9 +71,10 @@ const ZkEvmL2DepositsTableItem = ({ item, isLoading }: Props) => {
         ) }
       </TableCell>
       <TableCell verticalAlign="middle" isNumeric>
-        <Skeleton loading={ isLoading } display="inline-block">
-          <span>{ BigNumber(item.value).toFormat() }</span>
-        </Skeleton>
+        <SimpleValue
+          value={ BigNumber(item.value) }
+          loading={ isLoading }
+        />
       </TableCell>
       <TableCell verticalAlign="middle">
         <Skeleton loading={ isLoading } display="inline-block">

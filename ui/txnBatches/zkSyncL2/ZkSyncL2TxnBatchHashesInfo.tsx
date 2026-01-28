@@ -1,4 +1,3 @@
-import { Flex } from '@chakra-ui/react';
 import React from 'react';
 
 import type { ZkSyncBatch } from 'types/api/zkSyncL2';
@@ -30,22 +29,16 @@ const ZkSyncL2TxnBatchHashesInfo = ({ isLoading, data }: Props) => {
       >
         Commit tx hash
       </DetailedInfo.ItemLabel>
-      <DetailedInfo.ItemValue
-        flexDir="column"
-        alignItems="flex-start"
-      >
+      <DetailedInfo.ItemValue multiRow >
         { data.commit_transaction_hash ? (
           <>
             <TxEntityL1
               isLoading={ isLoading }
               hash={ data.commit_transaction_hash }
               maxW="100%"
-              noCopy={ false }
             />
             { data.commit_transaction_timestamp && (
-              <Flex alignItems="center" flexWrap="wrap" rowGap={ 3 }>
-                <DetailedInfoTimestamp timestamp={ data.commit_transaction_timestamp } isLoading={ isLoading }/>
-              </Flex>
+              <DetailedInfoTimestamp timestamp={ data.commit_transaction_timestamp } isLoading={ isLoading }/>
             ) }
           </>
         ) : <Skeleton loading={ isLoading }>Pending</Skeleton> }
@@ -57,22 +50,16 @@ const ZkSyncL2TxnBatchHashesInfo = ({ isLoading, data }: Props) => {
       >
         Prove tx hash
       </DetailedInfo.ItemLabel>
-      <DetailedInfo.ItemValue
-        flexDir="column"
-        alignItems="flex-start"
-      >
+      <DetailedInfo.ItemValue multiRow>
         { data.prove_transaction_hash ? (
           <>
             <TxEntityL1
               isLoading={ isLoading }
               hash={ data.prove_transaction_hash }
               maxW="100%"
-              noCopy={ false }
             />
             { data.prove_transaction_timestamp && (
-              <Flex alignItems="center" flexWrap="wrap" rowGap={ 3 }>
-                <DetailedInfoTimestamp timestamp={ data.prove_transaction_timestamp } isLoading={ isLoading }/>
-              </Flex>
+              <DetailedInfoTimestamp timestamp={ data.prove_transaction_timestamp } isLoading={ isLoading }/>
             ) }
           </>
         ) : <Skeleton loading={ isLoading }>Pending</Skeleton> }
@@ -84,22 +71,16 @@ const ZkSyncL2TxnBatchHashesInfo = ({ isLoading, data }: Props) => {
       >
         Execute tx hash
       </DetailedInfo.ItemLabel>
-      <DetailedInfo.ItemValue
-        flexDir="column"
-        alignItems="flex-start"
-      >
+      <DetailedInfo.ItemValue multiRow>
         { data.execute_transaction_hash ? (
           <>
             <TxEntityL1
               isLoading={ isLoading }
               hash={ data.execute_transaction_hash }
               maxW="100%"
-              noCopy={ false }
             />
             { data.execute_transaction_timestamp && (
-              <Flex alignItems="center" flexWrap="wrap" rowGap={ 3 }>
-                <DetailedInfoTimestamp timestamp={ data.execute_transaction_timestamp } isLoading={ isLoading }/>
-              </Flex>
+              <DetailedInfoTimestamp timestamp={ data.execute_transaction_timestamp } isLoading={ isLoading }/>
             ) }
           </>
         ) : <Skeleton loading={ isLoading }>Pending</Skeleton> }

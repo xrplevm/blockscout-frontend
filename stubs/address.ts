@@ -21,6 +21,7 @@ export const ADDRESS_INFO: Address = {
   coin_balance: '810941268802273085757',
   creation_transaction_hash: null,
   creator_address_hash: ADDRESS_HASH,
+  creation_status: 'success',
   exchange_rate: null,
   has_logs: true,
   has_token_transfers: false,
@@ -54,6 +55,7 @@ export const ADDRESS_TABS_COUNTERS: AddressTabsCounters = {
   transactions_count: 10,
   validations_count: 10,
   withdrawals_count: 10,
+  beacon_deposits_count: 10,
 };
 
 export const TOP_ADDRESS: AddressesItem = {
@@ -87,23 +89,23 @@ export const ADDRESS_TOKEN_BALANCE_ERC_20: AddressTokenBalance = {
 
 export const ADDRESS_NFT_721: AddressNFT = {
   token_type: 'ERC-721',
-  token: TOKEN_INFO_ERC_721,
   value: '1',
   ...TOKEN_INSTANCE,
+  token: TOKEN_INFO_ERC_721,
 };
 
 export const ADDRESS_NFT_1155: AddressNFT = {
   token_type: 'ERC-1155',
-  token: TOKEN_INFO_ERC_1155,
   value: '10',
   ...TOKEN_INSTANCE,
+  token: TOKEN_INFO_ERC_1155,
 };
 
 export const ADDRESS_NFT_404: AddressNFT = {
   token_type: 'ERC-404',
-  token: TOKEN_INFO_ERC_404,
   value: '10',
   ...TOKEN_INSTANCE,
+  token: TOKEN_INFO_ERC_404,
 };
 
 export const ADDRESS_COLLECTION: AddressCollection = {
@@ -119,11 +121,9 @@ export const ADDRESS_MUD_TABLE_ITEM: AddressMudTableItem = {
 
 export const EPOCH_REWARD_ITEM: AddressEpochRewardsItem = {
   amount: '136609473658452408568',
-  block_number: 10355938,
   block_timestamp: '2022-05-15T13:16:24Z',
   type: 'voter',
   token: TOKEN_INFO_ERC_20,
-  block_hash: '0x5956a847d8089e254e02e5111cad6992b99ceb9e5c2dc4343fd53002834c4dc6',
   account: ADDRESS_PARAMS,
   epoch_number: 1234,
   associated_account: ADDRESS_PARAMS,

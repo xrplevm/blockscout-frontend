@@ -3,14 +3,15 @@ import React from 'react';
 import type { OptimisticL2TxnBatchesItem } from 'types/api/optimisticL2';
 import type { ExcludeUndefined } from 'types/utils';
 
+import type { BadgeProps } from 'toolkit/chakra/badge';
 import { Badge } from 'toolkit/chakra/badge';
 
-export interface Props {
+export interface Props extends BadgeProps {
   container: ExcludeUndefined<OptimisticL2TxnBatchesItem['batch_data_container']>;
   isLoading?: boolean;
 }
 
-const OptimisticL2TxnBatchDA = ({ container, isLoading }: Props) => {
+const OptimisticL2TxnBatchDA = ({ container, isLoading, ...rest }: Props) => {
 
   const text = (() => {
     switch (container) {
@@ -20,11 +21,17 @@ const OptimisticL2TxnBatchDA = ({ container, isLoading }: Props) => {
         return 'Calldata';
       case 'in_celestia':
         return 'Celestia blob';
+      case 'in_eigenda':
+        return 'EigenDA';
     }
   })();
 
+  if (!text) {
+    return null;
+  }
+
   return (
-    <Badge colorPalette="yellow" loading={ isLoading }>
+    <Badge colorPalette="yellow" loading={ isLoading } { ...rest }>
       { text }
     </Badge>
   );

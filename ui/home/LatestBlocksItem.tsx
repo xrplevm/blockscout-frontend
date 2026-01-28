@@ -1,4 +1,5 @@
 import { Box, Flex, Grid } from '@chakra-ui/react';
+import { capitalize } from 'es-toolkit';
 import React from 'react';
 
 import type { Block } from 'types/api/block';
@@ -6,12 +7,15 @@ import type { Block } from 'types/api/block';
 import config from 'configs/app';
 import getBlockTotalReward from 'lib/block/getBlockTotalReward';
 import getNetworkValidatorTitle from 'lib/networks/getNetworkValidatorTitle';
+import { currencyUnits } from 'lib/units';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { Tooltip } from 'toolkit/chakra/tooltip';
+import { thinsp } from 'toolkit/utils/htmlEntities';
 import AddressEntity from 'ui/shared/entities/address/AddressEntity';
 import BlockEntity from 'ui/shared/entities/block/BlockEntity';
 import IconSvg from 'ui/shared/IconSvg';
 import TimeWithTooltip from 'ui/shared/time/TimeWithTooltip';
+import SimpleValue from 'ui/shared/value/SimpleValue';
 
 type Props = {
   block: Block;
@@ -34,12 +38,12 @@ const LatestBlocksItem = ({ block, isLoading, animation }: Props) => {
           isLoading={ isLoading }
           number={ block.height }
           tailLength={ 2 }
-          textStyle="xl"
+          textStyle="md"
           fontWeight={ 500 }
           mr="auto"
         />
-        { block.celo?.is_epoch_block && (
-          <Tooltip content={ `Finalized epoch #${ block.celo.epoch_number }` }>
+        { block.celo?.l1_era_finalized_epoch_number && (
+          <Tooltip content={ `Finalized epoch #${ block.celo.l1_era_finalized_epoch_number }` }>
             <IconSvg name="checkered_flag" boxSize={ 5 } p="1px" ml={ 2 } isLoading={ isLoading } flexShrink={ 0 }/>
           </Tooltip>
         ) }
@@ -62,13 +66,18 @@ const LatestBlocksItem = ({ block, isLoading, animation }: Props) => {
         { !config.features.rollup.isEnabled && !config.UI.views.block.hiddenFields?.total_reward && (
           <>
             <Skeleton loading={ isLoading }>Reward</Skeleton>
-            <Skeleton loading={ isLoading } color="text.secondary"><span>{ totalReward.dp(10).toFixed() }</span></Skeleton>
+            <SimpleValue
+              value={ totalReward }
+              loading={ isLoading }
+              color="text.secondary"
+              endElement={ `${ thinsp }${ currencyUnits.ether }` }
+            />
           </>
         ) }
 
         { !config.features.rollup.isEnabled && !config.UI.views.block.hiddenFields?.miner && (
           <>
-            <Skeleton loading={ isLoading } textTransform="capitalize">{ getNetworkValidatorTitle() }</Skeleton>
+            <Skeleton loading={ isLoading }>{ capitalize(getNetworkValidatorTitle()) }</Skeleton>
             <AddressEntity
               address={ block.miner }
               isLoading={ isLoading }

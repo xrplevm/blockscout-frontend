@@ -23,7 +23,7 @@ const ContractVerificationSolidityHardhat = ({ config: formConfig }: { config: S
   solidity: "${ latestSolidityVersion || '0.8.24' }", // replace if necessary
   networks: {
     '${ chainNameSlug }': {
-      url: '${ config.chain.rpcUrls[0] || `${ config.apis.general.endpoint }/api/eth-rpc` }'
+      url: '${ config.chain.rpcUrls[0] || (config.apis.general ? `${ config.apis.general.endpoint }/api/eth-rpc` : '') }'
     },
   },
   etherscan: {
@@ -35,7 +35,7 @@ const ContractVerificationSolidityHardhat = ({ config: formConfig }: { config: S
         network: "${ chainNameSlug }",
         chainId: ${ config.chain.id },
         urls: {
-          apiURL: "${ config.apis.general.endpoint }/api",
+          apiURL: "${ config.apis.general ? `${ config.apis.general.endpoint }/api` : '' }",
           browserURL: "${ config.app.baseUrl }"
         }
       }
@@ -57,7 +57,7 @@ const ContractVerificationSolidityHardhat = ({ config: formConfig }: { config: S
         </Flex>
         <Box whiteSpace="pre-wrap">
           <span>Full tutorial about contract verification via Hardhat on Blockscout is available </span>
-          <Link href="https://docs.blockscout.com/for-users/verifying-a-smart-contract/hardhat-verification-plugin" external>
+          <Link href="https://docs.blockscout.com/devs/verification/hardhat-verification-plugin" external>
             here
           </Link>
         </Box>

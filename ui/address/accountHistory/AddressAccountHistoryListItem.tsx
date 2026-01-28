@@ -5,6 +5,7 @@ import type { NovesResponseData } from 'types/api/noves';
 
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
+import { SECOND } from 'toolkit/utils/consts';
 import IconSvg from 'ui/shared/IconSvg';
 import ListItemMobile from 'ui/shared/ListItemMobile/ListItemMobile';
 import NovesFromTo from 'ui/shared/Noves/NovesFromTo';
@@ -33,8 +34,7 @@ const AddressAccountHistoryListItem = (props: Props) => {
               name="lightning"
               height="5"
               width="5"
-              color="gray.500"
-              _dark={{ color: 'gray.400' }}
+              color="icon.primary"
             />
 
             <Text fontSize="sm" fontWeight={ 500 }>
@@ -42,7 +42,7 @@ const AddressAccountHistoryListItem = (props: Props) => {
             </Text>
           </Flex>
           <TimeWithTooltip
-            timestamp={ props.tx.rawTransactionData.timestamp * 1000 }
+            timestamp={ props.tx.rawTransactionData.timestamp * SECOND }
             color="text.secondary"
             borderRadius="sm"
             fontWeight={ 500 }

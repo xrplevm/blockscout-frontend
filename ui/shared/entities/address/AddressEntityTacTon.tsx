@@ -27,7 +27,7 @@ const AddressEntityTacTon = (props: Props) => {
           pathname: '/address/[hash]',
           query: {
             ...props.query,
-            hash: props.address.hash,
+            hash: encodeURIComponent(props.address.hash),
           },
         });
       case tac.BlockchainType.TAC:
@@ -51,7 +51,7 @@ const AddressEntityTacTon = (props: Props) => {
     <AddressEntity.default
       { ...props }
       href={ href }
-      isExternal={ props.chainType === tac.BlockchainType.TON }
+      link={{ external: props.chainType === tac.BlockchainType.TON }}
       icon={ props.chainType === tac.BlockchainType.TON ? {
         shield: { name: 'brands/ton' },
         hint: 'Address on TON',

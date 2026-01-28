@@ -4,7 +4,7 @@ import React from 'react';
 
 import type { AddressCounters } from 'types/api/address';
 
-import { route } from 'nextjs-routes';
+import { route } from 'nextjs/routes';
 
 import type { ResourceError } from 'lib/api/resources';
 import { Link } from 'toolkit/chakra/link';
@@ -25,7 +25,6 @@ const PROP_TO_TAB = {
 };
 
 const AddressCounterItem = ({ prop, query, address, isAddressQueryLoading, isDegradedData }: Props) => {
-
   const handleClick = React.useCallback(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);

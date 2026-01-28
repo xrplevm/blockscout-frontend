@@ -25,7 +25,7 @@ const NavLinkGroup = ({ item, isCollapsed }: Props) => {
   const isHighlighted = checkRouteHighlight(item.subItems);
 
   const content = (
-    <Box width="220px" top={{ lg: isExpanded ? '-16px' : 0, xl: isCollapsed ? 0 : '-16px' }}>
+    <Box width="228px" top={{ lg: isExpanded ? '-16px' : 0, xl: isCollapsed ? 0 : '-16px' }}>
       <Text color="text.secondary" fontSize="sm" mb={ 1 } display={{ lg: isExpanded ? 'none' : 'block', xl: isCollapsed ? 'block' : 'none' }}>
         { item.text }
       </Text>
@@ -70,12 +70,20 @@ const NavLinkGroup = ({ item, isCollapsed }: Props) => {
           position="relative"
           color={ item.isActive ? 'link.navigation.fg.selected' : 'link.navigation.fg' }
           bgColor={ item.isActive ? 'link.navigation.bg.selected' : 'link.navigation.bg' }
+          _hover={{
+            color: 'link.navigation.fg.hover',
+          }}
+          _open={{
+            color: 'link.navigation.fg.hover',
+          }}
+          cursor="pointer"
         >
           <HStack gap={ 0 } overflow="hidden">
             <NavLinkIcon item={ item }/>
             <Text
               { ...styleProps.textProps }
               ml={ 3 }
+              whiteSpace="nowrap"
             >
               { item.text }
             </Text>

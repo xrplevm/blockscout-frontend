@@ -14,13 +14,13 @@ const LayoutHome = ({ children }: Props) => {
       <Layout.Container>
         <Layout.TopRow/>
         <Layout.NavBar/>
-        <HeaderMobile hideSearchBar/>
+        <HeaderMobile hideSearchButton/>
         <Layout.MainArea>
           <Layout.SideBar/>
           <Layout.MainColumn
             paddingTop={{ base: 3, lg: 6 }}
           >
-            <HeaderAlert/>
+            <HeaderAlert mb={ 3 }/>
             <AppErrorBoundary>
               { children }
               { /* eslint-disable-next-line @next/next/no-img-element */ }

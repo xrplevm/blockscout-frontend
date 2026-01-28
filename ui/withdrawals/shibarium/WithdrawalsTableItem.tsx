@@ -12,7 +12,7 @@ import TimeWithTooltip from 'ui/shared/time/TimeWithTooltip';
 
 const feature = config.features.rollup;
 
- type Props = { item: ShibariumWithdrawalsItem; isLoading?: boolean };
+type Props = { item: ShibariumWithdrawalsItem; isLoading?: boolean };
 
 const WithdrawalsTableItem = ({ item, isLoading }: Props) => {
   if (!(feature.isEnabled && feature.type === 'shibarium')) {
@@ -43,6 +43,7 @@ const WithdrawalsTableItem = ({ item, isLoading }: Props) => {
           hash={ item.l1_transaction_hash }
           truncation="constant_long"
           textStyle="sm"
+          noCopy
         />
       </TableCell>
       <TableCell verticalAlign="middle">

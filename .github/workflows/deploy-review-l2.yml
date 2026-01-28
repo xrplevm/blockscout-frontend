@@ -14,26 +14,35 @@ on:
             - arbitrum_nova
             - arbitrum_sepolia
             - base
-            - celo_alfajores
+            - celo
+            - celo_sepolia
             - garnet
             - gnosis
             - eth
             - eth_sepolia
-            - eth_goerli
             - filecoin
             - immutable
+            - mega_eth
             - neon_devnet
             - optimism
             - optimism_sepolia
+            - optimism_superchain
             - polygon
             - rootstock
             - scroll_sepolia
             - shibarium
             - stability
+            - zetachain
+            - zetachain_testnet
             - zkevm 
-            - zilliqa_prototestnet
+            - zilliqa
             - zksync
             - zora
+
+permissions:
+  contents: read
+  packages: write
+  pull-requests: write
 
 jobs:
   make_slug:
@@ -57,6 +66,7 @@ jobs:
         tags: |
           type=raw,value=review-${{ needs.make_slug.outputs.REF_SLUG }}
         build_args: ENVS_PRESET=${{ inputs.envs_preset }}
+        platforms: linux/amd64
     secrets: inherit
 
   deploy_review_l2:
@@ -70,3 +80,4 @@ jobs:
       kubeConfigSecret: ci/data/dev/kubeconfig/k8s-dev
       vaultRole: ci-dev
     secrets: inherit
+    permissions: write-all

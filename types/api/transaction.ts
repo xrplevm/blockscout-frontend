@@ -4,8 +4,7 @@ import type { BlockTransactionsResponse } from './block';
 import type { DecodedInput } from './decodedInput';
 import type { Fee } from './fee';
 import type { ChainInfo, MessageStatus } from './interop';
-import type { NovesTxTranslation } from './noves';
-import type { OptimisticL2WithdrawalStatus } from './optimisticL2';
+import type { OptimisticL2WithdrawalClaimInfo, OptimisticL2WithdrawalStatus } from './optimisticL2';
 import type { ScrollL2BlockStatus } from './scrollL2';
 import type { TokenInfo } from './token';
 import type { TokenTransfer } from './tokenTransfer';
@@ -19,7 +18,7 @@ export type TransactionRevertReason = {
 export type WrappedTransactionFields = 'decoded_input' | 'fee' | 'gas_limit' | 'gas_price' | 'hash' | 'max_fee_per_gas' |
 'max_priority_fee_per_gas' | 'method' | 'nonce' | 'raw_input' | 'to' | 'type' | 'value';
 
-export interface OpWithdrawal {
+export interface OpWithdrawal extends OptimisticL2WithdrawalClaimInfo {
   l1_transaction_hash: string;
   nonce: number;
   status: OptimisticL2WithdrawalStatus;
@@ -64,8 +63,10 @@ export type Transaction = {
   l1_gas_price?: string;
   l1_gas_used?: string;
   has_error_in_internal_transactions: boolean | null;
+  is_pending_update?: boolean;
   // optimism fields
   op_withdrawals?: Array<OpWithdrawal>;
+  operator_fee?: string;
   // SUAVE fields
   execution_node?: AddressParam | null;
   allowed_peekers?: Array<string>;
@@ -81,7 +82,7 @@ export type Transaction = {
   };
   // Celo fields
   celo?: {
-    gas_token: TokenInfo<'ERC-20'> | null;
+    gas_token: TokenInfo | null;
   };
   // zkEvm fields
   zkevm_verify_hash?: string;
@@ -102,14 +103,12 @@ export type Transaction = {
   blob_gas_price?: string;
   burnt_blob_fee?: string;
   max_fee_per_blob_gas?: string;
-  // Noves-fi
-  translation?: NovesTxTranslation;
   arbitrum?: ArbitrumTransactionData;
   scroll?: ScrollTransactionData;
   // EIP-7702
   authorization_list?: Array<TxAuthorization>;
   // Interop
-  op_interop?: InteropTransactionInfo;
+  op_interop_messages?: Array<InteropTransactionInfo>;
 };
 
 type ArbitrumTransactionData = {
@@ -217,6 +216,7 @@ export interface TxAuthorization {
   authority: string;
   chain_id: number;
   nonce: number;
+  status: 'ok' | 'invalid_chain_id' | 'invalid_nonce' | 'invalid_signature' | null;
 }
 
 export interface InteropTransactionInfo {
@@ -226,7 +226,7 @@ export interface InteropTransactionInfo {
   relay_chain?: ChainInfo | null;
   init_transaction_hash?: string;
   relay_transaction_hash?: string;
-  sender: string;
+  sender_address_hash: string;
   status: MessageStatus;
-  target: string;
+  target_address_hash: string;
 }

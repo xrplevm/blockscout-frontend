@@ -1,10 +1,11 @@
 import { Box } from '@chakra-ui/react';
 import React from 'react';
 
-import type { AddressTokensResponse } from 'types/api/address';
+import type { AddressTokenBalance, AddressTokensResponse } from 'types/api/address';
 
 import * as addressMock from 'mocks/address/address';
 import * as tokensMock from 'mocks/address/tokens';
+import * as tokenInfo from 'mocks/tokens/tokenInfo';
 import * as tokenInstance from 'mocks/tokens/tokenInstance';
 import * as socketServer from 'playwright/fixtures/socketServer';
 import { test, expect, devices } from 'playwright/lib';
@@ -127,7 +128,7 @@ test.describe('mobile', () => {
     await expect(component).toHaveScreenshot();
   });
 
-  test('nfts', async({ render, mockAssetResponse }) => {
+  test('nfts', async({ render, mockAssetResponse, page }) => {
     await mockAssetResponse(tokenInstance.base.image_url as string, './playwright/mocks/image_s.jpg');
 
     const hooksConfig = {
@@ -145,6 +146,8 @@ test.describe('mobile', () => {
     );
 
     await component.locator('button').filter({ hasText: 'List' }).click();
+    await page.mouse.move(0, 0);
+    await page.mouse.click(0, 0);
 
     await expect(component).toHaveScreenshot();
   });
@@ -265,4 +268,96 @@ test.describe('update balances via socket', () => {
 
     await expect(component).toHaveScreenshot();
   });
+
+  test('custom token ZRC-2', async({ render, page, createSocket, mockApiResponse, mockEnvs }) => {
+    test.slow();
+
+    await mockEnvs([
+      [ 'NEXT_PUBLIC_NETWORK_ADDITIONAL_TOKEN_TYPES', '[{"id":"ZRC-2","name":"ZRC-2"}]' ],
+    ]);
+
+    const hooksConfig = {
+      router: {
+        query: { hash: ADDRESS_HASH, tab: 'tokens_erc20' },
+        isReady: true,
+      },
+    };
+
+    const responseErc20AndZrc2 = {
+      items: [ tokensMock.erc20a ],
+      next_page_params: null,
+    };
+    const responseZrc2 = {
+      items: [],
+      next_page_params: null,
+    };
+
+    const erc20AndZrc2ApiUrl = await mockApiResponse(
+      'general:address_tokens',
+      responseErc20AndZrc2,
+      { pathParams: { hash: ADDRESS_HASH }, queryParams: { type: [ 'ERC-20', 'ZRC-2' ] } },
+    );
+    const zrc2ApiUrl = await mockApiResponse(
+      'general:address_tokens',
+      responseZrc2,
+      { pathParams: { hash: ADDRESS_HASH }, queryParams: { type: 'ZRC-2' } },
+    );
+
+    const component = await render(
+      <Box pt={{ base: '134px', lg: 6 }}>
+        <AddressTokens/>
+      </Box>,
+      { hooksConfig },
+      { withSocket: true },
+    );
+
+    await page.waitForResponse(erc20AndZrc2ApiUrl);
+    await page.waitForResponse(zrc2ApiUrl);
+
+    await expect(component).toHaveScreenshot();
+
+    const zrc2TokenBalance: AddressTokenBalance = {
+      ...tokensMock.erc20a,
+      token: {
+        ...tokensMock.erc20a.token,
+        // custom token type enabled via NEXT_PUBLIC_NETWORK_ADDITIONAL_TOKEN_TYPES
+        type: 'ZRC-2',
+        address_hash: '0x00000000000000000000000000000000000000f2',
+        name: 'ZRC-2 Token',
+        symbol: 'ZRC2',
+        exchange_rate: '0.02',
+      } as unknown as AddressTokenBalance['token'],
+      value: '1234500000000000000',
+    };
+
+    const socket = await createSocket();
+    const channel = await socketServer.joinChannel(socket, `addresses:${ ADDRESS_HASH.toLowerCase() }`);
+    socketServer.sendMessage(socket, channel, 'updated_token_balances_zrc_2', {
+      overflow: false,
+      token_balances: [ zrc2TokenBalance ],
+    });
+
+    await expect(component).toHaveScreenshot();
+  });
+});
+
+test('native token', async({ render, mockEnvs }) => {
+  await mockEnvs([
+    [ 'NEXT_PUBLIC_VIEWS_ADDRESS_NATIVE_TOKEN_ADDRESS', tokenInfo.tokenInfoERC20c.address_hash ],
+  ]);
+  const hooksConfig = {
+    router: {
+      query: { hash: ADDRESS_HASH, tab: 'tokens_erc20' },
+      isReady: true,
+    },
+  };
+
+  const component = await render(
+    <Box pt={{ base: '134px', lg: 6 }}>
+      <AddressTokens/>
+    </Box>,
+    { hooksConfig },
+  );
+
+  await expect(component).toHaveScreenshot();
 });
