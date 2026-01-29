@@ -11,7 +11,7 @@ interface Props {
   isUserOpDataLoading: boolean;
 }
 
-const TxDetailsActionsInterpretation = ({ hash, isUserOpDataLoading }: Props) => {
+const UserOpDetailsActions = ({ hash, isUserOpDataLoading }: Props) => {
   const interpretationQuery = useApiQuery('general:user_op_interpretation', {
     pathParams: { hash },
     queryOptions: {
@@ -35,6 +35,7 @@ const TxDetailsActionsInterpretation = ({ hash, isUserOpDataLoading }: Props) =>
             key={ index }
             summary={ action }
             isLoading={ isUserOpDataLoading || interpretationQuery.isPlaceholderData }
+            fontWeight="normal"
           />
         ),
         ) }
@@ -44,4 +45,4 @@ const TxDetailsActionsInterpretation = ({ hash, isUserOpDataLoading }: Props) =>
   );
 };
 
-export default TxDetailsActionsInterpretation;
+export default UserOpDetailsActions;

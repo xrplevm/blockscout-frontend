@@ -1,18 +1,15 @@
-import { Box } from '@chakra-ui/react';
+import { Box, useToken } from '@chakra-ui/react';
 import React from 'react';
-
-import { useColorModeValue } from 'toolkit/chakra/color-mode';
 
 interface Props {
   isVerified: boolean;
 }
 
 const AddressIconDelegated = ({ isVerified }: Props) => {
-  const bgColor = useColorModeValue('var(--chakra-colors-white)', 'var(--chakra-colors-black)');
-  const defaultColor = useColorModeValue('gray.500', 'gray.400');
+  const bgColor = useToken('colors', 'bg.primary')[0];
 
   return (
-    <Box position="absolute" boxSize="14px" top="-2px" right="-2px" color={ isVerified ? 'green.500' : defaultColor }>
+    <Box position="absolute" boxSize="14px" top="-2px" right="-2px" color={ isVerified ? 'green.500' : 'icon.primary' }>
       <svg
         viewBox="0 0 14 14"
         fill="none"

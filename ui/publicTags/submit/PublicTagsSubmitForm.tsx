@@ -56,18 +56,23 @@ const PublicTagsSubmitForm = ({ config, userInfo, onSubmitResult }: Props) => {
   }, [ router ]);
 
   const onFormSubmit: SubmitHandler<FormFields> = React.useCallback(async(data) => {
+
+    const token = await recaptcha.executeAsync();
+
+    if (!token) {
+      throw new Error('ReCaptcha is not solved');
+    }
+
     const requestsBody = convertFormDataToRequestsBody(data);
 
     const result = await Promise.all(requestsBody.map(async(body) => {
-      return recaptcha.executeAsync()
-        .then(() => {
-          return apiFetch<'admin:public_tag_application', unknown, { message: string }>('admin:public_tag_application', {
-            pathParams: { chainId: appConfig.chain.id },
-            fetchParams: {
-              method: 'POST',
-              body: { submission: body },
-            },
-          });
+      return apiFetch<'admin:public_tag_application', unknown, { message: string }>(
+        'admin:public_tag_application', {
+          pathParams: { chainId: appConfig.chain.id },
+          fetchParams: {
+            method: 'POST',
+            body: { submission: body },
+          },
         })
         .then(() => ({ error: null, payload: body }))
         .catch((error: unknown) => {
@@ -124,11 +129,11 @@ const PublicTagsSubmitForm = ({ config, userInfo, onSubmitResult }: Props) => {
               required
               placeholder={
                 isMobile ?
-                  'Confirm the connection between addresses and tags.' :
-                  'Provide a comment to confirm the connection between addresses and tags.'
+                  'Confirm the connection between addresses and tags' :
+                  'Provide a comment to confirm the connection between addresses and tags (max 500 characters)'
               }
               maxH="160px"
-              rules={{ maxLength: 80 }}
+              rules={{ maxLength: 500 }}
               asComponent="Textarea"
               size="2xl"
             />

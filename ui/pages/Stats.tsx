@@ -2,6 +2,7 @@ import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
+import useEtherscanRedirects from 'lib/router/useEtherscanRedirects';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import PageTitle from 'ui/shared/Page/PageTitle';
 
@@ -21,9 +22,10 @@ const Stats = () => {
     handleIntervalChange,
     handleFilterChange,
     displayedCharts,
-    filterQuery,
     initialFilterQuery,
   } = useStats();
+
+  useEtherscanRedirects();
 
   return (
     <PeersystPageWrapper>
@@ -49,12 +51,13 @@ const Stats = () => {
       </Box>
 
       <ChartsWidgetsList
-        filterQuery={ filterQuery }
         initialFilterQuery={ initialFilterQuery }
         isError={ isError }
         isPlaceholderData={ isPlaceholderData }
         charts={ displayedCharts }
         interval={ interval }
+        sections={ sections }
+        selectedSectionId={ currentSection }
       />
     </PeersystPageWrapper>
   );

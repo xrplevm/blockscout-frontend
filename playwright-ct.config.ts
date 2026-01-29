@@ -1,6 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/experimental-ct-react';
 import { devices, defineConfig } from '@playwright/experimental-ct-react';
 import react from '@vitejs/plugin-react';
+import type { Plugin } from 'esbuild';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -36,6 +37,12 @@ const config: PlaywrightTestConfig = defineConfig({
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
 
+  expect: {
+    toHaveScreenshot: {
+      threshold: 0.05,
+    },
+  },
+
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     baseURL: appConfig.app.baseUrl,
@@ -55,7 +62,7 @@ const config: PlaywrightTestConfig = defineConfig({
         svgr({
           exportAsDefault: true,
         }),
-      ],
+      ] as unknown as Array<Plugin>,
       build: {
         // it actually frees some memory that vite needs a lot
         // https://github.com/storybookjs/builder-vite/issues/409#issuecomment-1152848986
@@ -88,6 +95,15 @@ const config: PlaywrightTestConfig = defineConfig({
 
           { find: '/playwright/index.ts', replacement: './playwright/index.ts' },
           { find: '/playwright/envs.js', replacement: './playwright/envs.js' },
+
+          // Fix for @libp2p/utils missing merge-options export
+          { find: '@libp2p/utils/merge-options', replacement: 'merge-options' },
+
+          // Mock for @helia/verified-fetch to avoid build issues in tests
+          { find: '@helia/verified-fetch', replacement: './playwright/mocks/modules/@helia/verified-fetch.js' },
+
+          // Mock for @specify-sh/sdk to avoid build issues in tests
+          { find: '@specify-sh/sdk', replacement: './playwright/mocks/modules/@specify-sh/sdk.js' },
         ],
       },
       define: {

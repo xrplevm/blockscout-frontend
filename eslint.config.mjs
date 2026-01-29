@@ -3,15 +3,16 @@ import jsPlugin from '@eslint/js';
 import nextJsPlugin from '@next/eslint-plugin-next';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import reactQueryPlugin from '@tanstack/eslint-plugin-query';
+import consistentDefaultExportNamePlugin from 'eslint-plugin-consistent-default-export-name';
 import importPlugin from 'eslint-plugin-import';
 import importHelpersPlugin from 'eslint-plugin-import-helpers';
-import jestPlugin from 'eslint-plugin-jest';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
 import noCyrillicStringPlugin from 'eslint-plugin-no-cyrillic-string';
 import playwrightPlugin from 'eslint-plugin-playwright';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import * as regexpPlugin from 'eslint-plugin-regexp';
+import vitestPlugin from 'eslint-plugin-vitest';
 import globals from 'globals';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -37,7 +38,8 @@ const RESTRICTED_MODULES = {
         'Heading', 'Badge', 'Tabs', 'Show', 'Hide', 'Checkbox', 'CheckboxGroup',
         'Table', 'TableRoot', 'TableBody', 'TableHeader', 'TableRow', 'TableCell',
         'Menu', 'MenuRoot', 'MenuTrigger', 'MenuContent', 'MenuItem', 'MenuTriggerItem', 'MenuRadioItemGroup', 'MenuContextTrigger',
-        'Rating', 'RatingGroup', 'Textarea',
+        'Rating', 'RatingGroup', 'Textarea', 'Progress', 'ProgressCircle',
+        'EmptyState',
       ],
       message: 'Please use corresponding component or hook from "toolkit" instead',
     },
@@ -78,14 +80,12 @@ export default tseslint.config(
   {
     plugins: {
       '@typescript-eslint': tseslint.plugin,
-      jest: jestPlugin,
     },
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {
         projectService: true,
       },
-      globals: jestPlugin.environments.globals.globals,
     },
     rules: {
       '@typescript-eslint/array-type': [ 'error', {
@@ -260,10 +260,21 @@ export default tseslint.config(
   },
 
   {
-    files: [ '**/*.test.{ts,js,jsx,tsx}' ],
-    plugins: { jest: jestPlugin },
+    files: [ '**/*.spec.{ts,js,jsx,tsx}' ],
+    plugins: { vitest: vitestPlugin },
+    rules: {
+      ...vitestPlugin.configs.recommended.rules,
+    },
+    settings: {
+      vitest: {
+        typecheck: true,
+      },
+    },
     languageOptions: {
-      globals: jestPlugin.environments.globals.globals,
+      globals: {
+        ...vitestPlugin.environments.env.globals,
+        fetchMock: true,
+      },
     },
   },
 
@@ -296,7 +307,6 @@ export default tseslint.config(
               '/^data/',
               '/^deploy/',
               '/^icons/',
-              '/^jest/',
               '/^lib/',
               '/^mocks/',
               '/^pages/',
@@ -305,6 +315,7 @@ export default tseslint.config(
               '/^theme/',
               '/^toolkit/',
               '/^ui/',
+              '/^vitest/',
             ],
             [ 'parent', 'sibling', 'index' ],
           ],
@@ -328,6 +339,23 @@ export default tseslint.config(
       'jsx-a11y': jsxA11yPlugin,
     },
     languageOptions: { parserOptions: { ecmaFeatures: { jsx: true } } },
+  },
+
+  {
+    plugins: {
+      'consistent-default-export-name': consistentDefaultExportNamePlugin,
+    },
+    files: [
+      'ui/**/[A-Z]*.tsx',
+    ],
+    ignores: [
+      '**/*.pw.*',
+      '**/*.pwstory.*',
+      '**/pages/**',
+    ],
+    rules: {
+      'consistent-default-export-name/default-export-match-filename': [ 'error', null ],
+    },
   },
 
   {
@@ -380,10 +408,10 @@ export default tseslint.config(
         numbers: true,
       } ],
       '@stylistic/quotes': [ 'error', 'single', {
-        allowTemplateLiterals: true,
+        allowTemplateLiterals: 'always',
       } ],
       '@stylistic/semi': [ 'error', 'always' ],
-      '@stylistic/space-before-function-paren': [ 'error', 'never' ],
+      '@stylistic/space-before-function-paren': [ 'error', { anonymous: 'never', named: 'never', asyncArrow: 'never', 'catch': 'always' } ],
       '@stylistic/space-before-blocks': [ 'error', 'always' ],
       '@stylistic/space-in-parens': [ 'error', 'never' ],
       '@stylistic/space-infix-ops': 'error',

@@ -3,13 +3,14 @@ import dynamic from 'next/dynamic';
 import React from 'react';
 
 import type { Route } from 'nextjs-routes';
-import * as gSSP from 'nextjs/getServerSideProps';
-import type { Props } from 'nextjs/getServerSideProps';
+import type { Props } from 'nextjs/getServerSideProps/handlers';
+import * as gSSP from 'nextjs/getServerSideProps/main';
 import PageNextJs from 'nextjs/PageNextJs';
 import detectBotRequest from 'nextjs/utils/detectBotRequest';
 import fetchApi from 'nextjs/utils/fetchApi';
 
 import config from 'configs/app';
+import { MultichainProvider } from 'lib/contexts/multichain';
 import dayjs from 'lib/date/dayjs';
 import getQueryParamString from 'lib/router/getQueryParamString';
 
@@ -20,7 +21,13 @@ const pathname: Route['pathname'] = '/stats/[id]';
 const Page: NextPage<Props<typeof pathname>> = (props: Props<typeof pathname>) => {
   return (
     <PageNextJs pathname={ pathname } query={ props.query } apiData={ props.apiData }>
-      <Chart/>
+      { config.features.opSuperchain.isEnabled ? (
+        <MultichainProvider chainId={ getQueryParamString(props.query?.chain_id) }>
+          <Chart/>
+        </MultichainProvider>
+      ) : (
+        <Chart/>
+      ) }
     </PageNextJs>
   );
 };

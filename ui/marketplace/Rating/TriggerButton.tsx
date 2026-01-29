@@ -1,6 +1,9 @@
 import { chakra, Text } from '@chakra-ui/react';
 import React from 'react';
 
+import { getFeaturePayload } from 'configs/app/features/types';
+
+import config from 'configs/app';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import usePreventFocusAfterModalClosing from 'lib/hooks/usePreventFocusAfterModalClosing';
 import type { ButtonProps } from 'toolkit/chakra/button';
@@ -13,15 +16,12 @@ interface Props extends ButtonProps {
   rating?: number;
   count?: number;
   fullView?: boolean;
-  canRate: boolean | undefined;
+  canRate: boolean;
 };
 
-const getTooltipText = (canRate: boolean | undefined) => {
-  if (canRate === undefined) {
-    return <>Please connect your wallet to Blockscout to rate this DApp.<br/>Only wallets with 5+ transactions are eligible</>;
-  }
+const getTooltipText = (canRate: boolean) => {
   if (!canRate) {
-    return <>Brand new wallets cannot leave ratings.<br/>Please connect a wallet with 5 or more transactions on this chain</>;
+    return <>Please log in to Blockscout to rate this { (getFeaturePayload(config.features.marketplace)?.titles.entity_name ?? '').toLowerCase() }.</>;
   }
   return <>Ratings come from verified users.<br/>Click here to rate!</>;
 };
@@ -31,7 +31,6 @@ const TriggerButton = (
   ref: React.ForwardedRef<HTMLButtonElement>,
 ) => {
   const onFocusCapture = usePreventFocusAfterModalClosing();
-
   const isMobile = useIsMobile();
 
   return (
@@ -58,13 +57,13 @@ const TriggerButton = (
             { !fullView && (
               <IconSvg
                 name={ rating ? 'star_filled' : 'star_outline' }
-                color={ rating ? 'yellow.400' : 'gray.400' }
+                color={ rating ? 'yellow.400' : 'icon.secondary' }
                 boxSize={ 5 }
                 mr={ 1 }
               />
             ) }
             { (rating && !fullView) ? (
-              <chakra.span color={{ _light: 'blackAlpha.800', _dark: 'whiteAlpha.800' }} transition="inherit" display="inline-flex">
+              <chakra.span color="text.primary" transition="inherit" display="inline-flex">
                 { rating }
                 <Text color="text.secondary" ml={ 1 }>({ count })</Text>
               </chakra.span>

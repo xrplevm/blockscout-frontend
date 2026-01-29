@@ -19,11 +19,12 @@ const ServiceLink = ({ href, title, icon }: Props) => {
       href={ href }
       aria-label={ title }
       title={ title }
-      target="_blank"
+      external
+      noIcon
       display="inline-flex"
       alignItems="center"
     >
-      <IconSvg name={ icon } boxSize={ 5 } mr={ 2 } color="text.secondary"/>
+      <IconSvg name={ icon } boxSize={ 5 } mr={ 2 } color="icon.primary"/>
       <span>{ title }</span>
     </Link>
   );

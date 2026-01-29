@@ -5,11 +5,11 @@ import type { Screen } from 'ui/snippets/auth/types';
 
 import config from 'configs/app';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
+import { ContentLoader } from 'toolkit/components/loaders/ContentLoader';
 import { useDisclosure } from 'toolkit/hooks/useDisclosure';
 import MyProfileEmail from 'ui/myProfile/MyProfileEmail';
 import MyProfileWallet from 'ui/myProfile/MyProfileWallet';
 import AccountPageDescription from 'ui/shared/AccountPageDescription';
-import ContentLoader from 'ui/shared/ContentLoader';
 import DataFetchAlert from 'ui/shared/DataFetchAlert';
 import PageTitle from 'ui/shared/Page/PageTitle';
 import AuthModal from 'ui/snippets/auth/AuthModal';

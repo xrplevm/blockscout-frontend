@@ -17,7 +17,8 @@ import { Image } from 'toolkit/chakra/image';
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { Tag } from 'toolkit/chakra/tag';
-import { ADDRESS_REGEXP } from 'toolkit/components/forms/validators/address';
+import { SECOND } from 'toolkit/utils/consts';
+import { ADDRESS_REGEXP } from 'toolkit/utils/regexp';
 import ContractCertifiedLabel from 'ui/shared/ContractCertifiedLabel';
 import * as AddressEntity from 'ui/shared/entities/address/AddressEntity';
 import * as BlobEntity from 'ui/shared/entities/blob/BlobEntity';
@@ -33,6 +34,7 @@ import ListItemMobile from 'ui/shared/ListItemMobile/ListItemMobile';
 import type { SearchResultAppItem } from 'ui/shared/search/utils';
 import { getItemCategory, searchItemTitles } from 'ui/shared/search/utils';
 import TacOperationStatus from 'ui/shared/statusTag/TacOperationStatus';
+import Time from 'ui/shared/time/Time';
 
 import SearchResultEntityTag from './SearchResultEntityTag';
 
@@ -82,6 +84,7 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
             </Link>
             { data.certified && <ContractCertifiedLabel iconSize={ 4 } boxSize={ 4 } ml={ 1 }/> }
             { data.is_verified_via_admin_panel && !data.certified && <IconSvg name="certified" boxSize={ 4 } ml={ 1 } color="green.500"/> }
+            { data.reputation && <TokenEntity.Reputation value={ data.reputation }/> }
           </Flex>
         );
       }
@@ -126,7 +129,7 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
       case 'label': {
         return (
           <Flex alignItems="center">
-            <IconSvg name="publictags_slim" boxSize={ 6 } mr={ 2 } color="gray.500"/>
+            <IconSvg name="publictags" boxSize={ 6 } mr={ 2 } color="icon.primary"/>
             <Link
               href={ route({ pathname: '/address/[hash]', query: { hash: data.address_hash } }) }
               fontWeight={ 700 }
@@ -216,6 +219,27 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
         );
       }
 
+      case 'zetaChainCCTX': {
+        return (
+          <TxEntity.Container>
+            <IconSvg name="interop" boxSize={ 5 } marginRight={ 1 } color="text.secondary"/>
+            <TxEntity.Link
+              isLoading={ isLoading }
+              hash={ data.cctx.index }
+              href={ route({ pathname: '/cc/tx/[hash]', query: { hash: data.cctx.index } }) }
+              onClick={ handleLinkClick }
+            >
+              <TxEntity.Content
+                asProp={ data.cctx.index === searchTerm ? 'mark' : 'span' }
+                hash={ data.cctx.index }
+                textStyle="sm"
+                fontWeight={ 700 }
+              />
+            </TxEntity.Link>
+          </TxEntity.Container>
+        );
+      }
+
       case 'tac_operation': {
         return (
           <OperationEntity.Container>
@@ -283,7 +307,10 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
           <EnsEntity.Container>
             <EnsEntity.Icon protocol={ data.ens_info.protocol }/>
             <Link
-              href={ route({ pathname: '/address/[hash]', query: { hash: data.address_hash } }) }
+              href={ data.address_hash ?
+                route({ pathname: '/address/[hash]', query: { hash: data.address_hash } }) :
+                route({ pathname: '/name-services/domains/[name]', query: { name: data.ens_info.name } })
+              }
               fontWeight={ 700 }
               wordBreak="break-all"
               loading={ isLoading }
@@ -339,25 +366,30 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
               <HashStringShortenDynamic hash={ data.block_hash } as={ shouldHighlightHash ? 'mark' : 'span' }/>
             </Skeleton>
             <Skeleton loading={ isLoading } color="text.secondary" mr={ 2 }>
-              <span>{ dayjs(data.timestamp).format('llll') }</span>
+              <Time timestamp={ data.timestamp } format="lll_s"/>
             </Skeleton>
           </>
         );
       }
       case 'transaction': {
         return (
-          <Text color="text.secondary">{ dayjs(data.timestamp).format('llll') }</Text>
+          <Time timestamp={ data.timestamp } color="text.secondary" format="lll_s"/>
+        );
+      }
+      case 'zetaChainCCTX': {
+        return (
+          <Time timestamp={ Number(data.cctx.last_update_timestamp) * SECOND } color="text.secondary" format="lll_s"/>
         );
       }
       case 'tac_operation': {
         return (
-          <Text color="text.secondary">{ dayjs(data.tac_operation.timestamp).format('llll') }</Text>
+          <Time timestamp={ data.tac_operation.timestamp } color="text.secondary" format="lll_s"/>
         );
       }
       case 'user_operation': {
 
         return (
-          <Text color="text.secondary">{ dayjs(data.timestamp).format('llll') }</Text>
+          <Time timestamp={ data.timestamp } color="text.secondary" format="lll_s"/>
         );
       }
       case 'label': {
@@ -406,7 +438,7 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
               </Flex>
             ) }
             { data.type === 'metadata_tag' && (
-              <SearchResultEntityTag metadata={ data.metadata } searchTerm={ searchTerm }/>
+              <SearchResultEntityTag metadata={ data.metadata } addressHash={ data.address_hash } searchTerm={ searchTerm }/>
             ) }
           </Flex>
         ) :
@@ -414,13 +446,15 @@ const SearchResultListItem = ({ data, searchTerm, isLoading, addressFormat }: Pr
       }
       case 'ens_domain': {
         const expiresText = data.ens_info?.expiry_date ? ` expires ${ dayjs(data.ens_info.expiry_date).fromNow() }` : '';
-        const hash = data.filecoin_robust_address || (addressFormat === 'bech32' ? toBech32Address(data.address_hash) : data.address_hash);
+        const hash = data.filecoin_robust_address || (addressFormat === 'bech32' && data.address_hash ? toBech32Address(data.address_hash) : data.address_hash);
 
         return (
           <Flex alignItems="center" gap={ 3 }>
-            <Box overflow="hidden">
-              <HashStringShortenDynamic hash={ hash }/>
-            </Box>
+            { hash && (
+              <Box overflow="hidden">
+                <HashStringShortenDynamic hash={ hash }/>
+              </Box>
+            ) }
             {
               data.ens_info.names_count > 1 ?
                 <chakra.span color="text.secondary"> ({ data.ens_info.names_count > 39 ? '40+' : `+${ data.ens_info.names_count - 1 }` })</chakra.span> :

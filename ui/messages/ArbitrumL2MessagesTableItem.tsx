@@ -20,7 +20,7 @@ import type { MessagesDirection } from './ArbitrumL2Messages';
 
 const rollupFeature = config.features.rollup;
 
- type Props = { item: ArbitrumL2MessagesItem; isLoading?: boolean; direction: MessagesDirection };
+type Props = { item: ArbitrumL2MessagesItem; isLoading?: boolean; direction: MessagesDirection };
 
 const ArbitrumL2MessagesTableItem = ({ item, direction, isLoading }: Props) => {
   if (!rollupFeature.isEnabled || rollupFeature.type !== 'arbitrum') {
@@ -92,6 +92,7 @@ const ArbitrumL2MessagesTableItem = ({ item, direction, isLoading }: Props) => {
             hash={ l1TxHash }
             truncation="constant_long"
             noIcon
+            noCopy
           />
         ) : (
           <chakra.span color="text.secondary">

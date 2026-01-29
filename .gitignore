@@ -14,6 +14,8 @@
 /out/
 /public/assets/envs.js
 /public/assets/configs
+/public/assets/multichain
+/public/assets/essential-dapps
 /public/icons/sprite.svg
 /public/icons/sprite.*.svg
 /public/icons/registry.json
@@ -21,6 +23,7 @@
 /public/static/og_image.png
 /public/sitemap.xml
 /public/robots.txt
+/public/llms.txt
 /analyze
 
 # production
@@ -31,7 +34,7 @@
 *.pem
 .tools
 grafana
-.cursor
+.zed
 
 # debug
 npm-debug.log*

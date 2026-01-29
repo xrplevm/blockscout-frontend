@@ -15,18 +15,18 @@ type Props = {
 
 const NavLinkRewards = ({ isCollapsed, onClick }: Props) => {
   const router = useRouter();
-  const { openLoginModal, dailyRewardQuery, apiToken, isInitialized } = useRewardsContext();
+  const { openLoginModal, dailyRewardQuery, isAuth, isInitialized } = useRewardsContext();
 
   const pathname = '/account/merits';
   const nextRoute = { pathname } as Route;
 
   const handleClick = useCallback((e: React.MouseEvent) => {
-    if (isInitialized && !apiToken) {
+    if (isInitialized && !isAuth) {
       e.preventDefault();
       openLoginModal();
     }
     onClick?.();
-  }, [ onClick, isInitialized, apiToken, openLoginModal ]);
+  }, [ onClick, isInitialized, isAuth, openLoginModal ]);
 
   if (!config.features.rewards.isEnabled) {
     return null;
@@ -36,7 +36,7 @@ const NavLinkRewards = ({ isCollapsed, onClick }: Props) => {
     <NavLink
       item={{
         text: 'Merits',
-        icon: dailyRewardQuery.data?.available ? 'merits_with_dot' : 'merits',
+        icon: dailyRewardQuery.data?.available ? 'navigation/merits_with_dot' : 'navigation/merits',
         nextRoute: nextRoute,
         isActive: router.pathname === pathname,
       }}

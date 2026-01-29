@@ -10,7 +10,6 @@ import { useRewardsContext } from 'lib/contexts/rewards';
 import useGetCsrfToken from 'lib/hooks/useGetCsrfToken';
 import * as mixpanel from 'lib/mixpanel';
 import { DialogBody, DialogContent, DialogHeader, DialogRoot } from 'toolkit/chakra/dialog';
-import { BackToButton } from 'toolkit/components/buttons/BackToButton';
 
 import AuthModalScreenConnectWallet from './screens/AuthModalScreenConnectWallet';
 import AuthModalScreenEmail from './screens/AuthModalScreenEmail';
@@ -40,8 +39,7 @@ const AuthModal = ({ initialScreen, onClose, mixpanelConfig, closeOnError }: Pro
   const [ isSuccess, setIsSuccess ] = React.useState(false);
   const [ rewardsApiToken, setRewardsApiToken ] = React.useState<string | undefined>(undefined);
 
-  const { saveApiToken } = useRewardsContext();
-
+  const { onLoginSuccess: onRewardsLoginSuccess } = useRewardsContext();
   const router = useRouter();
   const csrfQuery = useGetCsrfToken();
   const queryClient = useQueryClient();
@@ -94,11 +92,11 @@ const AuthModal = ({ initialScreen, onClose, mixpanelConfig, closeOnError }: Pro
 
     if ('rewardsToken' in screen && screen.rewardsToken) {
       setRewardsApiToken(screen.rewardsToken);
-      saveApiToken(screen.rewardsToken);
+      onRewardsLoginSuccess(screen.rewardsToken);
     }
 
     onNextStep(screen);
-  }, [ initialScreen, mixpanelConfig?.account_link_info.source, onNextStep, csrfQuery, queryClient, saveApiToken ]);
+  }, [ initialScreen, mixpanelConfig?.account_link_info.source, onNextStep, csrfQuery, queryClient, onRewardsLoginSuccess ]);
 
   const onModalClose = React.useCallback(() => {
     onClose(isSuccess, rewardsApiToken);
@@ -192,7 +190,7 @@ const AuthModal = ({ initialScreen, onClose, mixpanelConfig, closeOnError }: Pro
     >
       <DialogContent>
         <DialogHeader
-          startElement={ steps.length > 1 && !steps[steps.length - 1].type.startsWith('success') && <BackToButton onClick={ onPrevStep }/> }
+          onBackToClick={ steps.length > 1 && !steps[steps.length - 1].type.startsWith('success') ? onPrevStep : undefined }
         >
           { header }
         </DialogHeader>

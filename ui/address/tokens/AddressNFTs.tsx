@@ -1,27 +1,35 @@
 import { Grid } from '@chakra-ui/react';
 import React from 'react';
 
+import type { NFTTokenType } from 'types/api/token';
+
+import { useMultichainContext } from 'lib/contexts/multichain';
 import useIsMobile from 'lib/hooks/useIsMobile';
-import { apos } from 'toolkit/utils/htmlEntities';
 import ActionBar from 'ui/shared/ActionBar';
 import DataListDisplay from 'ui/shared/DataListDisplay';
 import Pagination from 'ui/shared/pagination/Pagination';
 import type { QueryWithPagesResult } from 'ui/shared/pagination/useQueryWithPages';
 
+import AddressNftTypeFilter from './AddressNftTypeFilter';
 import NFTItem from './NFTItem';
 
 type Props = {
   tokensQuery: QueryWithPagesResult<'general:address_nfts'>;
-  hasActiveFilters: boolean;
+  tokenTypes: Array<NFTTokenType> | undefined;
+  onTokenTypesChange: (value: Array<NFTTokenType>) => void;
 };
 
-const AddressNFTs = ({ tokensQuery, hasActiveFilters }: Props) => {
+const AddressNFTs = ({ tokensQuery, tokenTypes, onTokenTypesChange }: Props) => {
   const isMobile = useIsMobile();
+  const multichainContext = useMultichainContext();
 
   const { isError, isPlaceholderData, data, pagination } = tokensQuery;
 
+  const hasActiveFilters = Boolean(tokenTypes?.length);
+
   const actionBar = isMobile && pagination.isVisible && (
     <ActionBar mt={ -6 }>
+      <AddressNftTypeFilter value={ tokenTypes } onChange={ onTokenTypesChange }/>
       <Pagination ml="auto" { ...pagination }/>
     </ActionBar>
   );
@@ -42,6 +50,7 @@ const AddressNFTs = ({ tokensQuery, hasActiveFilters }: Props) => {
             { ...item }
             isLoading={ isPlaceholderData }
             withTokenLink
+            chain={ multichainContext?.chain }
           />
         );
       }) }
@@ -54,9 +63,9 @@ const AddressNFTs = ({ tokensQuery, hasActiveFilters }: Props) => {
       itemsNum={ data?.items?.length }
       emptyText="There are no tokens of selected type."
       actionBar={ actionBar }
-      filterProps={{
-        emptyFilteredText: `Couldn${ apos }t find any token that matches your query.`,
-        hasActiveFilters,
+      hasActiveFilters={ hasActiveFilters }
+      emptyStateProps={{
+        term: 'token',
       }}
     >
       { content }

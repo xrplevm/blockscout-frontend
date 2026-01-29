@@ -7,6 +7,7 @@ import { recipe as checkmark } from './checkmark.recipe';
 import { recipe as closeButton } from './close-button.recipe';
 import { recipe as dialog } from './dialog.recipe';
 import { recipe as drawer } from './drawer.recipe';
+import { recipe as emptyState } from './empty-state.recipe';
 import { recipe as field } from './field.recipe';
 import { recipe as input } from './input.recipe';
 import { recipe as link } from './link.recipe';
@@ -15,10 +16,12 @@ import { recipe as menu } from './menu.recipe';
 import { recipe as pinInput } from './pin-input.recipe';
 import { recipe as popover } from './popover.recipe';
 import { recipe as progressCircle } from './progress-circle.recipe';
+import { recipe as progress } from './progress.recipe';
 import { recipe as radioGroup } from './radio-group.recipe';
 import { recipe as radiomark } from './radiomark.recipe';
 import { recipe as ratingGroup } from './rating-group.recipe';
 import { recipe as select } from './select.recipe';
+import { recipe as separator } from './separator.recipe';
 import { recipe as skeleton } from './skeleton.recipe';
 import { recipe as spinner } from './spinner.recipe';
 import { recipe as stat } from './stat.recipe';
@@ -40,6 +43,7 @@ export const recipes = {
   radiomark,
   skeleton,
   spinner,
+  separator,
   textarea,
 };
 
@@ -49,11 +53,13 @@ export const slotRecipes = {
   checkbox,
   dialog,
   drawer,
+  emptyState,
   field,
   list,
   menu,
   pinInput,
   popover,
+  progress,
   progressCircle,
   radioGroup,
   ratingGroup,

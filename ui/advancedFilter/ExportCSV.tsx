@@ -4,11 +4,13 @@ import type { AdvancedFilterParams } from 'types/api/advancedFilter';
 
 import config from 'configs/app';
 import buildUrl from 'lib/api/buildUrl';
+import isNeedProxy from 'lib/api/isNeedProxy';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import dayjs from 'lib/date/dayjs';
-import downloadBlob from 'lib/downloadBlob';
 import { Button } from 'toolkit/chakra/button';
 import { toaster } from 'toolkit/chakra/toaster';
 import { Tooltip } from 'toolkit/chakra/tooltip';
+import { downloadBlob } from 'toolkit/utils/file';
 import ReCaptcha from 'ui/shared/reCaptcha/ReCaptcha';
 import useReCaptcha from 'ui/shared/reCaptcha/useReCaptcha';
 
@@ -17,35 +19,46 @@ type Props = {
 };
 
 const ExportCSV = ({ filters }: Props) => {
+  const multichainContext = useMultichainContext();
   const recaptcha = useReCaptcha();
+
   const [ isLoading, setIsLoading ] = React.useState(false);
+
+  const apiFetchFactory = React.useCallback(async(recaptchaToken?: string) => {
+    const url = buildUrl('general:advanced_filter_csv', undefined, {
+      ...filters,
+      recaptcha_response: recaptchaToken,
+    }, undefined, multichainContext?.chain);
+
+    const response = await fetch(url, {
+      headers: {
+        'content-type': 'application/octet-stream',
+        ...(recaptchaToken && { 'recaptcha-v2-response': recaptchaToken }),
+        ...(isNeedProxy() && multichainContext?.chain ? { 'x-endpoint': multichainContext.chain.app_config.apis.general?.endpoint } : {}),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(response.statusText, {
+        cause: {
+          status: response.status,
+        },
+      });
+    }
+
+    return response;
+  }, [ filters, multichainContext?.chain ]);
 
   const handleExportCSV = React.useCallback(async() => {
     try {
       setIsLoading(true);
-      const token = await recaptcha.executeAsync();
 
-      if (!token) {
-        throw new Error('ReCaptcha is not solved');
-      }
-
-      const url = buildUrl('general:advanced_filter_csv', undefined, {
-        ...filters,
-        recaptcha_response: token,
-      });
-
-      const response = await fetch(url, {
-        headers: {
-          'content-type': 'application/octet-stream',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error();
-      }
+      const response = await recaptcha.fetchProtectedResource(apiFetchFactory);
 
       const blob = await response.blob();
-      const fileName = `export-filtered-txs-${ dayjs().format('YYYY-MM-DD-HH-mm-ss') }.csv`;
+
+      const chainText = multichainContext?.chain ? `${ multichainContext.chain.name.replace(' ', '-') }_` : '';
+      const fileName = `${ chainText }export-filtered-txs-${ dayjs().format('YYYY-MM-DD-HH-mm-ss') }.csv`;
       downloadBlob(blob, fileName);
 
     } catch (error) {
@@ -56,9 +69,11 @@ const ExportCSV = ({ filters }: Props) => {
     } finally {
       setIsLoading(false);
     }
-  }, [ filters, recaptcha ]);
+  }, [ apiFetchFactory, recaptcha, multichainContext?.chain ]);
 
-  if (!config.services.reCaptchaV2.siteKey) {
+  const chainConfig = multichainContext?.chain.app_config || config;
+
+  if (!chainConfig.services.reCaptchaV2.siteKey) {
     return null;
   }
 

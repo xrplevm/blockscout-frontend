@@ -28,7 +28,7 @@ type Props = {
   isLoading?: boolean;
   items: Array<DepositsItem>;
   socketItemsNum: number;
-  socketAlert?: string;
+  showSocketErrorAlert?: boolean;
 };
 
 type ItemProps = {
@@ -43,14 +43,12 @@ const LatestDepositsItem = ({ item, isLoading }: ItemProps) => {
     <BlockEntityL1
       number={ item.l1BlockNumber }
       isLoading={ isLoading }
-      textStyle="sm"
       fontWeight={ 700 }
     />
   ) : (
     <BlockEntityL1
       number="TBD"
       isLoading={ isLoading }
-      textStyle="sm"
       fontWeight={ 700 }
       noLink
     />
@@ -60,16 +58,16 @@ const LatestDepositsItem = ({ item, isLoading }: ItemProps) => {
     <TxEntityL1
       isLoading={ isLoading }
       hash={ item.l1TxHash }
-      textStyle="sm"
       truncation={ isMobile ? 'constant_long' : 'dynamic' }
+      noCopy
     />
   ) : (
     <TxEntityL1
       isLoading={ isLoading }
       hash="To be determined"
-      textStyle="sm"
       truncation="none"
       noLink
+      noCopy
     />
   );
 
@@ -77,7 +75,6 @@ const LatestDepositsItem = ({ item, isLoading }: ItemProps) => {
     <TxEntity
       isLoading={ isLoading }
       hash={ item.l2TxHash }
-      textStyle="sm"
       truncation={ isMobile ? 'constant_long' : 'dynamic' }
     />
   );
@@ -151,11 +148,18 @@ const LatestDepositsItem = ({ item, isLoading }: ItemProps) => {
   );
 };
 
-const LatestDeposits = ({ isLoading, items, socketAlert, socketItemsNum }: Props) => {
+const LatestDeposits = ({ isLoading, items, showSocketErrorAlert, socketItemsNum }: Props) => {
   const depositsUrl = route({ pathname: '/deposits' });
   return (
     <>
-      <SocketNewItemsNotice borderBottomRadius={ 0 } url={ depositsUrl } num={ socketItemsNum } alert={ socketAlert } type="deposit" isLoading={ isLoading }/>
+      <SocketNewItemsNotice
+        borderBottomRadius={ 0 }
+        url={ depositsUrl }
+        num={ socketItemsNum }
+        showErrorAlert={ showSocketErrorAlert }
+        type="deposit"
+        isLoading={ isLoading }
+      />
       <Box mb={{ base: 3, lg: 4 }}>
         { items.map(((item, index) => (
           <LatestDepositsItem

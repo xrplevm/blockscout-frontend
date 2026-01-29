@@ -6,10 +6,9 @@ import type {
   BlockFilters,
   BlockWithdrawalsResponse,
   BlockCountdownResponse,
-  BlockEpoch,
-  BlockEpochElectionRewardDetailsResponse,
   BlockInternalTransactionsResponse,
 } from 'types/api/block';
+import type { DepositsResponse } from 'types/api/deposits';
 import type { TTxsWithBlobsFilters } from 'types/api/txsFilters';
 
 export const GENERAL_API_BLOCK_RESOURCES = {
@@ -33,20 +32,15 @@ export const GENERAL_API_BLOCK_RESOURCES = {
     pathParams: [ 'height_or_hash' as const ],
     paginated: true,
   },
-  block_withdrawals: {
-    path: '/api/v2/blocks/:height_or_hash/withdrawals',
+  block_deposits: {
+    path: '/api/v2/blocks/:height_or_hash/beacon/deposits',
     pathParams: [ 'height_or_hash' as const ],
     filterFields: [],
     paginated: true,
   },
-  block_epoch: {
-    path: '/api/v2/blocks/:height_or_hash/epoch',
+  block_withdrawals: {
+    path: '/api/v2/blocks/:height_or_hash/withdrawals',
     pathParams: [ 'height_or_hash' as const ],
-    filterFields: [],
-  },
-  block_election_rewards: {
-    path: '/api/v2/blocks/:height_or_hash/election-rewards/:reward_type',
-    pathParams: [ 'height_or_hash' as const, 'reward_type' as const ],
     filterFields: [],
     paginated: true,
   },
@@ -62,8 +56,7 @@ R extends 'general:block_countdown' ? BlockCountdownResponse :
 R extends 'general:block_txs' ? BlockTransactionsResponse :
 R extends 'general:block_internal_txs' ? BlockInternalTransactionsResponse :
 R extends 'general:block_withdrawals' ? BlockWithdrawalsResponse :
-R extends 'general:block_epoch' ? BlockEpoch :
-R extends 'general:block_election_rewards' ? BlockEpochElectionRewardDetailsResponse :
+R extends 'general:block_deposits' ? DepositsResponse :
 never;
 /* eslint-enable @stylistic/indent */
 

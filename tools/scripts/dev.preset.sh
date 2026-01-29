@@ -14,10 +14,28 @@ if [ ! -f "$config_file" ]; then
     exit 1
 fi
 
+# remove previous assets
+rm -rf ./public/assets/configs
+rm -rf ./public/assets/multichain
+rm -rf ./public/assets/essential-dapps
+rm -rf ./public/assets/envs.js
+
 # download assets for the running instance
 dotenv \
   -e $config_file \
   -- bash -c './deploy/scripts/download_assets.sh ./public/assets/configs'
+
+# generate multichain config (adjust condition accordingly)
+if [[ "$preset_name" == "optimism_superchain" ]]; then
+  dotenv \
+    -e $config_file \
+    -- bash -c 'cd deploy/tools/multichain-config-generator && yarn install --silent && yarn build && yarn generate' || exit 1
+fi
+
+# generate essential dapps chains config if marketplace essential dapps enabled
+dotenv \
+  -e $config_file \
+  -- bash -c 'cd deploy/tools/essential-dapps-chains-config-generator && yarn install --silent && yarn build && yarn generate' || exit 1
 
 source ./deploy/scripts/build_sprite.sh
 echo ""

@@ -30,19 +30,19 @@ export type Erc404TotalPayload = {
 
 export type TokenTransfer = (
   {
-    token: TokenInfo<'ERC-20'> | null;
+    token: TokenInfo | null;
     total: Erc20TotalPayload | null;
   } |
   {
-    token: TokenInfo<'ERC-721'> | null;
+    token: TokenInfo | null;
     total: Erc721TotalPayload | null;
   } |
   {
-    token: TokenInfo<'ERC-1155'> | null;
+    token: TokenInfo | null;
     total: Erc1155TotalPayload | null;
   } |
   {
-    token: TokenInfo<'ERC-404'> | null;
+    token: TokenInfo | null;
     total: Erc404TotalPayload | null;
   }
 ) & TokenTransferBase;
@@ -51,7 +51,7 @@ export type TokenTotal = Erc20TotalPayload | Erc721TotalPayload | Erc1155TotalPa
 
 interface TokenTransferBase {
   type: 'token_transfer' | 'token_burning' | 'token_spawning' | 'token_minting';
-  transaction_hash: string;
+  transaction_hash: string | null;
   from: AddressParam;
   to: AddressParam;
   timestamp: string;

@@ -12,6 +12,8 @@ import getQueryParamString from 'lib/router/getQueryParamString';
 
 import * as userProfile from './userProfile';
 
+const opSuperchainFeature = config.features.opSuperchain;
+
 export default function useMixpanelInit() {
   const [ isInited, setIsInited ] = React.useState(false);
   const router = useRouter();
@@ -27,6 +29,8 @@ export default function useMixpanelInit() {
 
     const mixpanelConfig: Partial<Config> = {
       debug: Boolean(debugFlagQuery.current || debugFlagCookie),
+      persistence: 'localStorage',
+      ...feature.configOverrides,
     };
     const isAuth = Boolean(cookies.get(cookies.NAMES.API_TOKEN));
 
@@ -42,6 +46,7 @@ export default function useMixpanelInit() {
       Language: window.navigator.language,
       'Device type': capitalize(deviceType),
       'User id': uuid,
+      ...(opSuperchainFeature.isEnabled ? { 'Cluster name': opSuperchainFeature.cluster } : {}),
     });
     mixpanel.identify(uuid);
     userProfile.set({

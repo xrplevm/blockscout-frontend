@@ -82,7 +82,7 @@ const CongratsStepContent = ({ isReferral, customReferralReward }: Props) => {
           <Center
             boxSize={ 8 }
             borderRadius="8px"
-            color={{ _light: 'blue.500', _dark: 'blue.100' }}
+            color={{ _light: 'purple.500', _dark: 'purple.100' }}
             bgColor={{ _light: 'blue.50', _dark: 'blue.800' }}
           >
             <IconSvg name="profile" boxSize={ 5 }/>
@@ -110,7 +110,7 @@ const CongratsStepContent = ({ isReferral, customReferralReward }: Props) => {
         />
         <Skeleton loading={ referralsQuery.isLoading } mt={ 6 }>
           <Button asChild>
-            <a href={ `https://x.com/intent/tweet?text=${ encodeURIComponent(shareText) }` } target="_blank">
+            <a href={ `https://x.com/intent/tweet?text=${ encodeURIComponent(shareText) }` } target="_blank" rel="noopener noreferrer">
               Share on <IconSvg name="social/twitter" boxSize={ 6 } ml={ 1 }/>
             </a>
           </Button>
@@ -124,7 +124,8 @@ const CongratsStepContent = ({ isReferral, customReferralReward }: Props) => {
             color={{ _light: 'blue.500', _dark: 'blue.100' }}
             bgColor={{ _light: 'blue.50', _dark: 'blue.800' }}
           >
-            <IconSvg name="stats" boxSize={ 6 }/>
+            { /* FIXME use non-navigation icon */ }
+            <IconSvg name="navigation/stats" boxSize={ 6 }/>
           </Center>
           <Text fontSize="lg" fontWeight="500">
             Dashboard

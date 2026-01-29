@@ -13,6 +13,7 @@ import useApiQuery, { getResourceKey } from 'lib/api/useApiQuery';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import * as metadata from 'lib/metadata';
 import getQueryParamString from 'lib/router/getQueryParamString';
+import useEtherscanRedirects from 'lib/router/useEtherscanRedirects';
 import useSocketChannel from 'lib/socket/useSocketChannel';
 import useSocketMessage from 'lib/socket/useSocketMessage';
 import { NFT_TOKEN_TYPE_IDS } from 'lib/token/tokenTypes';
@@ -22,9 +23,10 @@ import { getTokenHoldersStub } from 'stubs/token';
 import { generateListStub } from 'stubs/utils';
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
 import RoutedTabs from 'toolkit/components/RoutedTabs/RoutedTabs';
+import Address3rdPartyWidgets from 'ui/address/Address3rdPartyWidgets';
+import useAddress3rdPartyWidgets from 'ui/address/address3rdPartyWidgets/useAddress3rdPartyWidgets';
 import AddressContract from 'ui/address/AddressContract';
 import AddressCsvExportLink from 'ui/address/AddressCsvExportLink';
-import useContractTabs from 'ui/address/contract/useContractTabs';
 import { CONTRACT_TAB_IDS } from 'ui/address/contract/utils';
 import TextAd from 'ui/shared/ad/TextAd';
 import IconSvg from 'ui/shared/IconSvg';
@@ -58,6 +60,7 @@ const TokenPageContent = () => {
   const tab = getQueryParamString(router.query.tab);
   const ownerFilter = getQueryParamString(router.query.holder_address_hash) || undefined;
 
+  useEtherscanRedirects();
   const queryClient = useQueryClient();
 
   const tokenQuery = useTokenQuery(hashString);
@@ -106,15 +109,28 @@ const TokenPageContent = () => {
     handler: handleTotalSupplyMessage,
   });
 
+  const verifiedInfoQuery = useApiQuery('contractInfo:token_verified_info', {
+    pathParams: { hash: tokenQuery.data?.address_hash, chainId: config.chain.id },
+    queryOptions: { enabled: Boolean(tokenQuery.data) && !tokenQuery.isPlaceholderData && config.features.verifiedTokens.isEnabled },
+  });
+
   useEffect(() => {
-    if (tokenQuery.data && !tokenQuery.isPlaceholderData && !config.meta.seo.enhancedDataEnabled) {
-      const apiData = { ...tokenQuery.data, symbol_or_name: tokenQuery.data.symbol ?? tokenQuery.data.name ?? '' };
+    // even if config.meta.seo.enhancedDataEnabled is enabled, we don't fetch contract info for the project description
+    // so we need to update the metadata anyway.
+    if (tokenQuery.data && !tokenQuery.isPlaceholderData && !verifiedInfoQuery.isPlaceholderData) {
+      const apiData = {
+        ...tokenQuery.data,
+        symbol_or_name: tokenQuery.data.symbol ?? tokenQuery.data.name ?? '',
+        description: verifiedInfoQuery.data?.projectDescription,
+        projectName: verifiedInfoQuery.data?.projectName,
+      };
       metadata.update({ pathname: '/token/[hash]', query: { hash: tokenQuery.data.address_hash } }, apiData);
     }
-  }, [ tokenQuery.data, tokenQuery.isPlaceholderData ]);
+  }, [ tokenQuery.data, tokenQuery.isPlaceholderData, verifiedInfoQuery.isPlaceholderData, verifiedInfoQuery.data ]);
 
   const hasData = (tokenQuery.data && !tokenQuery.isPlaceholderData) && (addressQuery.data && !addressQuery.isPlaceholderData);
   const hasInventoryTab = tokenQuery.data?.type && NFT_TOKEN_TYPE_IDS.includes(tokenQuery.data.type);
+  const isFirstTabTokenTransfer = !hasInventoryTab && !tab;
 
   const transfersQuery = useQueryWithPages({
     resourceName: 'general:token_transfers',
@@ -161,8 +177,12 @@ const TokenPageContent = () => {
     },
   });
 
-  const isLoading = tokenQuery.isPlaceholderData || addressQuery.isPlaceholderData;
-  const contractTabs = useContractTabs(addressQuery.data, addressQuery.isPlaceholderData);
+  const address3rdPartyWidgets = useAddress3rdPartyWidgets('token', false, isQueryEnabled);
+
+  const isLoading =
+    tokenQuery.isPlaceholderData ||
+    addressQuery.isPlaceholderData ||
+    (address3rdPartyWidgets.isEnabled && address3rdPartyWidgets.configQuery.isPlaceholderData);
 
   const tabs: Array<TabItemRegular> = [
     hasInventoryTab ? {
@@ -194,15 +214,20 @@ const TokenPageContent = () => {
 
         return 'Contract';
       },
-      component: <AddressContract tabs={ contractTabs.tabs } isLoading={ contractTabs.isLoading } shouldRender={ !isLoading }/>,
+      component: <AddressContract addressData={ addressQuery.data } isLoading={ isLoading }/>,
       subTabs: CONTRACT_TAB_IDS,
+    } : undefined,
+    (address3rdPartyWidgets.isEnabled && address3rdPartyWidgets.items.length > 0) ? {
+      id: 'widgets',
+      title: 'Widgets',
+      count: address3rdPartyWidgets.items.length,
+      component: <Address3rdPartyWidgets shouldRender={ !isLoading } addressType="token" showAll/>,
     } : undefined,
   ].filter(Boolean);
 
   let pagination: PaginationParams | undefined;
 
-  // default tab for erc-20 is token transfers
-  if ((tokenQuery.data?.type === 'ERC-20' && !tab) || tab === 'token_transfers') {
+  if (isFirstTabTokenTransfer || tab === 'token_transfers') {
     pagination = transfersQuery.pagination;
   }
 
@@ -235,13 +260,14 @@ const TokenPageContent = () => {
     return (
       <>
         { (tab === 'token_transfers' || tab === '') && (
-          <TokenAdvancedFilterLink token={ tokenQuery.data }/>
+          <TokenAdvancedFilterLink token={ tokenQuery.data } ml={ 6 }/>
         ) }
         { tab === 'holders' && (
           <AddressCsvExportLink
             address={ hashString }
             params={{ type: 'holders' }}
             isLoading={ pagination?.isLoading }
+            ml={ 6 }
           />
         ) }
         { pagination?.isVisible && <Pagination { ...pagination }/> }
@@ -253,7 +279,12 @@ const TokenPageContent = () => {
     <PeersystPageWrapper>
       <TextAd mb={ 6 }/>
 
-      <TokenPageTitle tokenQuery={ tokenQuery } addressQuery={ addressQuery } hash={ hashString }/>
+      <TokenPageTitle
+        tokenQuery={ tokenQuery }
+        addressQuery={ addressQuery }
+        verifiedInfoQuery={ verifiedInfoQuery }
+        hash={ hashString }
+      />
 
       <TokenDetails tokenQuery={ tokenQuery }/>
 

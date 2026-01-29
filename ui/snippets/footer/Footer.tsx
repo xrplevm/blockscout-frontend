@@ -31,6 +31,7 @@ const Footer = () => {
   const { data: backendVersionData } = useApiQuery('general:config_backend_version', {
     queryOptions: {
       staleTime: Infinity,
+      enabled: !config.features.opSuperchain.isEnabled,
     },
   });
   const apiVersionUrl = getApiVersionUrl(backendVersionData?.backend_version);
@@ -71,17 +72,17 @@ const Footer = () => {
       icon: 'donate' as const,
       iconSize: '20px',
       text: 'Donate',
-      url: 'https://github.com/sponsors/blockscout',
+      url: 'https://eth.blockscout.com/address/0xfB4aF6A8592041E9BcE186E5aC4BDbd2B137aD11',
     },
   ];
 
   const frontendLink = (() => {
     if (config.UI.footer.frontendVersion) {
-      return <Link href={ FRONT_VERSION_URL } target="_blank">{ config.UI.footer.frontendVersion }</Link>;
+      return <Link href={ FRONT_VERSION_URL } external noIcon>{ config.UI.footer.frontendVersion }</Link>;
     }
 
     if (config.UI.footer.frontendCommit) {
-      return <Link href={ FRONT_COMMIT_URL } target="_blank">{ config.UI.footer.frontendCommit }</Link>;
+      return <Link href={ FRONT_COMMIT_URL } external noIcon>{ config.UI.footer.frontendCommit }</Link>;
     }
 
     return null;
@@ -104,15 +105,17 @@ const Footer = () => {
   const renderNetworkInfo = React.useCallback((gridArea?: GridProps['gridArea']) => {
     return (
       <Flex
+        alignItems="center"
         gridArea={ gridArea }
         flexWrap="wrap"
-        columnGap={ 8 }
-        rowGap={ 6 }
+        justifyContent="flex-start"
+        columnGap={ 3 }
+        rowGap={ 2 }
         mb={{ base: 5, lg: 10 }}
         _empty={{ display: 'none' }}
       >
         { !config.UI.indexingAlert.intTxs.isHidden && <IntTxsIndexingStatus/> }
-        <NetworkAddToWallet/>
+        { !config.features.opSuperchain.isEnabled && <NetworkAddToWallet source="Footer"/> }
       </Flex>
     );
   }, []);

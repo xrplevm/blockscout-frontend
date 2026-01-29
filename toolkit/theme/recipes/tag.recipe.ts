@@ -8,11 +8,16 @@ export const recipe = defineSlotRecipe({
       alignItems: 'center',
       verticalAlign: 'top',
       maxWidth: '100%',
-      userSelect: 'none',
+      userSelect: 'text',
       borderRadius: 'sm',
       focusVisibleRing: 'outside',
       _loading: {
         borderRadius: 'sm',
+      },
+      _disabled: {
+        opacity: 'control.disabled',
+        pointerEvents: 'none',
+        cursor: 'not-allowed',
       },
     },
     label: {
@@ -32,7 +37,7 @@ export const recipe = defineSlotRecipe({
       focusVisibleRing: 'inside',
       focusRingWidth: '2px',
       _hover: {
-        color: 'link.primary.hover',
+        color: 'hover',
       },
     },
     startElement: {
@@ -122,11 +127,11 @@ export const recipe = defineSlotRecipe({
           bgColor: 'tag.root.select.bg',
           color: 'tag.root.select.fg',
           _hover: {
-            color: 'blue.400',
+            color: 'hover',
             opacity: 0.76,
           },
           _selected: {
-            bgColor: 'tag.root.select.bg.selected',
+            bgColor: 'selected.option.bg',
             color: 'whiteAlpha.800',
             _hover: {
               color: 'whiteAlpha.800',

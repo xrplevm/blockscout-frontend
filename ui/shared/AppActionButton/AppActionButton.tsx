@@ -33,7 +33,7 @@ const AppActionButton = ({ data, className, txHash, source }: Props) => {
     }
   }, [ source, appID, actionURL ]);
 
-  if ((!appID && !appMarketplaceURL) || (!appActionButtonText && !appLogoURL)) {
+  if ((!appID && !actionURL) || (!appActionButtonText && !appLogoURL)) {
     return null;
   }
 
@@ -54,13 +54,11 @@ const AppActionButton = ({ data, className, txHash, source }: Props) => {
     </>
   );
 
-  const isExternal = !appID;
-
   return (
     <Link
       className={ className }
-      href={ isExternal ? actionURL : route({ pathname: '/apps/[id]', query: { id: appID, action: 'connect', ...(actionURL ? { url: actionURL } : {}) } }) }
-      external={ isExternal }
+      href={ actionURL ?? (appID ? route({ pathname: '/apps/[id]', query: { id: appID, action: 'connect' } }) : undefined) }
+      external={ Boolean(actionURL) }
       onClick={ handleClick }
       variant="underlaid"
       iconColor={ textColor }

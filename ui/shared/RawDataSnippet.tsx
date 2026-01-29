@@ -1,4 +1,4 @@
-import type { HTMLChakraProps } from '@chakra-ui/react';
+import type { BoxProps, HTMLChakraProps } from '@chakra-ui/react';
 import { Box, Flex, chakra } from '@chakra-ui/react';
 import React from 'react';
 
@@ -12,8 +12,8 @@ interface Props {
   className?: string;
   rightSlot?: React.ReactNode;
   beforeSlot?: React.ReactNode;
-  textareaMaxHeight?: string;
-  textareaMinHeight?: string;
+  textareaMaxHeight?: BoxProps['maxH'];
+  textareaMinHeight?: BoxProps['minH'];
   showCopy?: boolean;
   isLoading?: boolean;
   contentProps?: HTMLChakraProps<'div'>;
@@ -40,7 +40,7 @@ const RawDataSnippet = ({
   return (
     <Box className={ className } as="section" title={ title }>
       { (title || rightSlot || showCopy) && (
-        <Flex justifyContent={ title ? 'space-between' : 'flex-end' } alignItems="center" mb={ 3 }>
+        <Flex justifyContent={ title ? 'space-between' : 'flex-end' } alignItems="center" mb={{ base: 1, lg: 3 }}>
           { title && <Skeleton fontWeight={ 500 } loading={ isLoading }>{ title }</Skeleton> }
           { rightSlot }
           { typeof data === 'string' && showCopy && <CopyToClipboard text={ data } isLoading={ isLoading }/> }

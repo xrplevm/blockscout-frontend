@@ -4,16 +4,23 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import fetchFactory from 'nextjs/utils/fetchProxy';
 
 import appConfig from 'configs/app';
+import isNeedProxy from 'lib/api/isNeedProxy';
 
 const handler = async(nextReq: NextApiRequest, nextRes: NextApiResponse) => {
+
+  if (!isNeedProxy()) {
+    nextRes.status(404).json({ error: 'Not found' });
+    return;
+  }
+
   if (!nextReq.url) {
-    nextRes.status(500).json({ error: 'no url provided' });
+    nextRes.status(500).json({ error: 'No url provided' });
     return;
   }
 
   const url = new URL(
     nextReq.url.replace(/^\/node-api\/proxy/, ''),
-    nextReq.headers['x-endpoint']?.toString() || appConfig.apis.general.endpoint,
+    nextReq.headers['x-endpoint']?.toString() || appConfig.apis.general?.endpoint,
   );
   const apiRes = await fetchFactory(nextReq)(
     url.toString(),
@@ -21,14 +28,25 @@ const handler = async(nextReq: NextApiRequest, nextRes: NextApiResponse) => {
   );
 
   // proxy some headers from API
-  const requestId = apiRes.headers.get('x-request-id');
-  requestId && nextRes.setHeader('x-request-id', requestId);
+  const HEADERS_TO_PROXY = [
+    'x-request-id',
+    'content-type',
+    'bypass-429-option',
+    'x-ratelimit-limit',
+    'x-ratelimit-remaining',
+    'x-ratelimit-reset',
+    'api-v2-temp-token',
+  ];
+
+  HEADERS_TO_PROXY.forEach((header) => {
+    const value = apiRes.headers.get(header);
+    value && nextRes.setHeader(header, value);
+  });
 
   const setCookie = apiRes.headers.raw()['set-cookie'];
   setCookie?.forEach((value) => {
     nextRes.appendHeader('set-cookie', value);
   });
-  nextRes.setHeader('content-type', apiRes.headers.get('content-type') || '');
 
   nextRes.status(apiRes.status).send(apiRes.body);
 };

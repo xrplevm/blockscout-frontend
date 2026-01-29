@@ -5,6 +5,7 @@ import type { AddressParam } from 'types/api/addressParams';
 
 import config from 'configs/app';
 import useApiQuery from 'lib/api/useApiQuery';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import { NOVES_TRANSLATE } from 'stubs/noves/NovesTranslate';
 import { TX_INTERPRETATION } from 'stubs/txInterpretation';
 import { Link } from 'toolkit/chakra/link';
@@ -25,9 +26,10 @@ type Props = {
   txQuery: TxQuery;
 };
 
-const feature = config.features.txInterpretation;
-
 const TxSubHeading = ({ hash, hasTag, txQuery }: Props) => {
+  const multichainContext = useMultichainContext();
+  const feature = multichainContext?.chain?.app_config.features.txInterpretation || config.features.txInterpretation;
+
   const hasInterpretationFeature = feature.isEnabled;
   const isNovesInterpretation = hasInterpretationFeature && feature.provider === 'noves';
 
@@ -76,6 +78,7 @@ const TxSubHeading = ({ hash, hasTag, txQuery }: Props) => {
           fontSize="lg"
           mr={{ base: 0, lg: 2 }}
           isNoves
+          chainData={ multichainContext?.chain }
         />
       );
     } else if (hasInternalInterpretation) {
@@ -87,6 +90,7 @@ const TxSubHeading = ({ hash, hasTag, txQuery }: Props) => {
             addressDataMap={ addressDataMap }
             fontSize="lg"
             mr={ hasViewAllInterpretationsLink ? 3 : 0 }
+            chainData={ multichainContext?.chain }
           />
           { hasViewAllInterpretationsLink &&
           <Link href={ `#${ TX_ACTIONS_BLOCK_ID }` }>View all</Link> }
@@ -115,10 +119,11 @@ const TxSubHeading = ({ hash, hasTag, txQuery }: Props) => {
           isLoading={ txQuery.isPlaceholderData }
           fontSize="lg"
           mr={{ base: 0, lg: 2 }}
+          chainData={ multichainContext?.chain }
         />
       );
     } else {
-      return <TxEntity hash={ hash } noLink noCopy={ false } variant="subheading" mr={{ base: 0, lg: 2 }}/>;
+      return <TxEntity hash={ hash } noLink variant="subheading" mr={{ base: 0, lg: 2 }} chain={ multichainContext?.chain }/>;
     }
   })();
 

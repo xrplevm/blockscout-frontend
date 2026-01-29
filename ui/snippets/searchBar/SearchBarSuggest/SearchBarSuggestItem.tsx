@@ -1,13 +1,17 @@
 import React from 'react';
 
-import type { SearchResultItem } from 'types/client/search';
+import type { QuickSearchResultItem } from 'types/client/search';
 import type { AddressFormat } from 'types/views/address';
 
-import { route } from 'nextjs-routes';
+import { route } from 'nextjs/routes';
+
+import multichainConfig from 'configs/multichain';
+import { isEvmAddress } from 'lib/address/isEvmAddress';
 
 import SearchBarSuggestAddress from './SearchBarSuggestAddress';
 import SearchBarSuggestBlob from './SearchBarSuggestBlob';
 import SearchBarSuggestBlock from './SearchBarSuggestBlock';
+import SearchBarSuggestCluster from './SearchBarSuggestCluster';
 import SearchBarSuggestDomain from './SearchBarSuggestDomain';
 import SearchBarSuggestItemLink from './SearchBarSuggestItemLink';
 import SearchBarSuggestLabel from './SearchBarSuggestLabel';
@@ -17,7 +21,7 @@ import SearchBarSuggestTx from './SearchBarSuggestTx';
 import SearchBarSuggestUserOp from './SearchBarSuggestUserOp';
 
 interface Props {
-  data: SearchResultItem;
+  data: QuickSearchResultItem;
   isMobile: boolean | undefined;
   searchTerm: string;
   onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
@@ -26,10 +30,19 @@ interface Props {
 
 const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressFormat }: Props) => {
 
+  const multichainContext = React.useMemo(() => {
+    const chainInfo = 'chain_id' in data && multichainConfig()?.chains.find((chain) => chain.id === data.chain_id);
+    if (chainInfo) {
+      return {
+        chain: chainInfo,
+      };
+    }
+  }, [ data ]);
+
   const url = (() => {
     switch (data.type) {
       case 'token': {
-        return route({ pathname: '/token/[hash]', query: { hash: data.address_hash } });
+        return route({ pathname: '/token/[hash]', query: { hash: data.address_hash } }, multichainContext);
       }
       case 'contract':
       case 'address':
@@ -38,15 +51,17 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressForm
         return route({ pathname: '/address/[hash]', query: { hash: data.address_hash } });
       }
       case 'transaction': {
-        return route({ pathname: '/tx/[hash]', query: { hash: data.transaction_hash } });
+        return route({ pathname: '/tx/[hash]', query: { hash: data.transaction_hash } }, multichainContext);
       }
       case 'block': {
-        const isFutureBlock = data.timestamp === undefined;
+        const isFutureBlock = 'timestamp' in data && data.timestamp === undefined;
         if (isFutureBlock) {
-          return route({ pathname: '/block/countdown/[height]', query: { height: String(data.block_number) } });
+          return route({ pathname: '/block/countdown/[height]', query: { height: String(data.block_number) } }, multichainContext);
         }
 
-        return route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: String(data.block_hash) } });
+        const heightOrHash = data.block_hash || String(data.block_number);
+
+        return route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: heightOrHash } }, multichainContext);
       }
       case 'user_operation': {
         return route({ pathname: '/op/[hash]', query: { hash: data.user_operation_hash } });
@@ -55,6 +70,12 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressForm
         return route({ pathname: '/blobs/[hash]', query: { hash: data.blob_hash } });
       }
       case 'ens_domain': {
+        if (data.address_hash) {
+          return route({ pathname: '/address/[hash]', query: { hash: data.address_hash } });
+        }
+        return route({ pathname: '/name-services/domains/[name]', query: { name: data.ens_info.name } });
+      }
+      case 'cluster': {
         return route({ pathname: '/address/[hash]', query: { hash: data.address_hash } });
       }
       case 'tac_operation': {
@@ -72,6 +93,7 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressForm
             searchTerm={ searchTerm }
             isMobile={ isMobile }
             addressFormat={ addressFormat }
+            chainInfo={ multichainContext?.chain }
           />
         );
       }
@@ -84,6 +106,7 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressForm
             searchTerm={ searchTerm }
             isMobile={ isMobile }
             addressFormat={ addressFormat }
+            chainInfo={ multichainContext?.chain }
           />
         );
       }
@@ -98,10 +121,10 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressForm
         );
       }
       case 'block': {
-        return <SearchBarSuggestBlock data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
+        return <SearchBarSuggestBlock data={ data } searchTerm={ searchTerm } isMobile={ isMobile } chainInfo={ multichainContext?.chain }/>;
       }
       case 'transaction': {
-        return <SearchBarSuggestTx data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
+        return <SearchBarSuggestTx data={ data } searchTerm={ searchTerm } isMobile={ isMobile } chainInfo={ multichainContext?.chain }/>;
       }
       case 'user_operation': {
         return <SearchBarSuggestUserOp data={ data } searchTerm={ searchTerm } isMobile={ isMobile }/>;
@@ -112,11 +135,20 @@ const SearchBarSuggestItem = ({ data, isMobile, searchTerm, onClick, addressForm
       case 'ens_domain': {
         return <SearchBarSuggestDomain data={ data } searchTerm={ searchTerm } isMobile={ isMobile } addressFormat={ addressFormat }/>;
       }
+      case 'cluster': {
+        return <SearchBarSuggestCluster data={ data } searchTerm={ searchTerm } isMobile={ isMobile } addressFormat={ addressFormat }/>;
+      }
       case 'tac_operation': {
         return <SearchBarSuggestTacOperation data={ data } searchTerm={ searchTerm } isMobile={ isMobile } addressFormat={ addressFormat }/>;
       }
     }
   })();
+
+  const hasLink = data.type === 'cluster' ? isEvmAddress(data.address_hash) : true;
+
+  if (!hasLink) {
+    return content;
+  }
 
   return (
     <SearchBarSuggestItemLink onClick={ onClick } href={ url }>

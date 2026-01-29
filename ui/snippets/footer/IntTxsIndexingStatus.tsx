@@ -5,6 +5,7 @@ import React from 'react';
 import type { SocketMessage } from 'lib/socket/types';
 import type { IndexingStatus } from 'types/api/indexingStatus';
 
+import config from 'configs/app';
 import useApiQuery, { getResourceKey } from 'lib/api/useApiQuery';
 import useSocketChannel from 'lib/socket/useSocketChannel';
 import useSocketMessage from 'lib/socket/useSocketMessage';
@@ -14,9 +15,11 @@ import IconSvg from 'ui/shared/IconSvg';
 
 const IntTxsIndexingStatus = () => {
 
-  const { data, isError, isPending } = useApiQuery('general:homepage_indexing_status');
-
-  const bgColor = { base: 'blackAlpha.100', _dark: 'whiteAlpha.100' };
+  const { data, isError, isPending } = useApiQuery('general:homepage_indexing_status', {
+    queryOptions: {
+      enabled: !config.UI.indexingAlert.intTxs.isHidden,
+    },
+  });
 
   const queryClient = useQueryClient();
 
@@ -60,15 +63,13 @@ const IntTxsIndexingStatus = () => {
 
   const trigger = (
     <Flex
-      px={ 2 }
-      py={ 1 }
-      bg={ bgColor }
-      borderRadius="base"
+      px={ 1 }
+      bg={{ base: 'blackAlpha.50', _dark: 'whiteAlpha.100' }}
+      borderRadius="sm"
       alignItems="center"
       justifyContent="center"
-      columnGap={ 1 }
       color="green.400"
-      _hover={{ color: 'blue.400' }}
+      _hover={{ color: 'hover' }}
     >
       <IconSvg name="info" boxSize={ 5 }/>
       { data.indexed_internal_transactions_ratio && (

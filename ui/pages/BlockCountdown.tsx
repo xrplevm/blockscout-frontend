@@ -2,24 +2,27 @@ import { Box, Center, Flex, Grid } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
-import { route } from 'nextjs-routes';
+import { route } from 'nextjs/routes';
 
 import useApiQuery from 'lib/api/useApiQuery';
+import { useMultichainContext } from 'lib/contexts/multichain';
 import dayjs from 'lib/date/dayjs';
-import downloadBlob from 'lib/downloadBlob';
 import throwOnResourceLoadError from 'lib/errors/throwOnResourceLoadError';
 import getQueryParamString from 'lib/router/getQueryParamString';
 import { Button } from 'toolkit/chakra/button';
 import { Heading } from 'toolkit/chakra/heading';
 import { Image } from 'toolkit/chakra/image';
 import { Link } from 'toolkit/chakra/link';
+import { ContentLoader } from 'toolkit/components/loaders/ContentLoader';
+import { TruncatedText } from 'toolkit/components/truncation/TruncatedText';
+import { downloadBlob } from 'toolkit/utils/file';
 import BlockCountdownTimer from 'ui/blockCountdown/BlockCountdownTimer';
 import createGoogleCalendarLink from 'ui/blockCountdown/createGoogleCalendarLink';
 import createIcsFileBlob from 'ui/blockCountdown/createIcsFileBlob';
-import ContentLoader from 'ui/shared/ContentLoader';
+import ChainIcon from 'ui/shared/externalChains/ChainIcon';
 import IconSvg from 'ui/shared/IconSvg';
 import StatsWidget from 'ui/shared/stats/StatsWidget';
-import TruncatedValue from 'ui/shared/TruncatedValue';
+import Time from 'ui/shared/time/Time';
 
 import CapybaraRunner from '../games/CapybaraRunner';
 
@@ -28,6 +31,7 @@ type Props = {
 };
 
 const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
+  const multichainContext = useMultichainContext();
   const router = useRouter();
   const height = getQueryParamString(router.query.height);
 
@@ -43,13 +47,13 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
     if (!data?.result?.EstimateTimeInSec) {
       return;
     }
-    const fileBlob = createIcsFileBlob({ blockHeight: height, date: dayjs().add(Number(data.result.EstimateTimeInSec), 's') });
+    const fileBlob = createIcsFileBlob({ blockHeight: height, date: dayjs().add(Number(data.result.EstimateTimeInSec), 's'), multichainContext });
     downloadBlob(fileBlob, `Block #${ height } creation event.ics`);
-  }, [ data?.result?.EstimateTimeInSec, height ]);
+  }, [ data?.result?.EstimateTimeInSec, height, multichainContext ]);
 
   const handleTimerFinish = React.useCallback(() => {
-    window.location.assign(route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: height } }));
-  }, [ height ]);
+    window.location.assign(route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: height } }, multichainContext));
+  }, [ height, multichainContext ]);
 
   React.useEffect(() => {
     if (!isError && !isPending && !data.result) {
@@ -73,11 +77,11 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
             <Heading
               level="1"
             >
-              <TruncatedValue value={ `Block #${ height }` } w="100%"/>
+              <TruncatedText text={ `Block #${ height }` } w="100%"/>
             </Heading>
             <Box mt={ 2 } color="text.secondary">
               <Box fontWeight={ 600 }>Estimated target date</Box>
-              <Box>{ dayjs().add(Number(data.result.EstimateTimeInSec), 's').format('llll') }</Box>
+              <Time timestamp={ dayjs().add(Number(data.result.EstimateTimeInSec), 's').valueOf() }/>
             </Box>
             <Flex columnGap={ 2 } mt={ 3 }>
               <Link
@@ -86,7 +90,7 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
                 textStyle="sm"
                 px={ 2 }
                 display="inline-flex"
-                href={ createGoogleCalendarLink({ blockHeight: height, timeFromNow: Number(data.result.EstimateTimeInSec) }) }
+                href={ createGoogleCalendarLink({ blockHeight: height, timeFromNow: Number(data.result.EstimateTimeInSec), multichainContext }) }
               >
                 <Image src="/static/google_calendar.svg" alt="Google calendar logo" boxSize={ 5 } mr={ 2 }/>
                 <span>Google</span>
@@ -107,13 +111,26 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
               </Button>
             </Flex>
           </Box>
-          <IconSvg
-            name="block_slim"
-            w={{ base: '65px', lg: '125px' }}
-            h={{ base: '75px', lg: '140px' }}
-            color={{ _light: 'gray.300', _dark: 'gray.600' }}
-            flexShrink={ 0 }
-          />
+          <Box position="relative">
+            <IconSvg
+              name="block"
+              w={{ base: '65px', lg: '125px' }}
+              h={{ base: '75px', lg: '140px' }}
+              color={{ _light: 'gray.300', _dark: 'gray.600' }}
+              flexShrink={ 0 }
+            />
+            { multichainContext?.chain && (
+              <ChainIcon
+                data={ multichainContext.chain }
+                position="absolute"
+                bottom={{ base: '5px', lg: '6px' }}
+                right={{ base: '45px', lg: '86px' }}
+                boxSize={{ lg: '60px' }}
+                bgColor="bg.primary"
+                borderRadius="full"
+              />
+            ) }
+          </Box>
         </Flex>
         { data.result.EstimateTimeInSec && (
           <BlockCountdownTimer
@@ -122,8 +139,8 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
           />
         ) }
         <Grid gridTemplateColumns="repeat(2, calc(50% - 4px))" columnGap={ 2 } mt={ 2 }>
-          <StatsWidget label="Remaining blocks" value={ data.result.RemainingBlock } icon="apps_slim"/>
-          <StatsWidget label="Current block" value={ data.result.CurrentBlock } icon="block_slim"/>
+          <StatsWidget label="Remaining blocks" value={ data.result.RemainingBlock } icon="apps"/>
+          <StatsWidget label="Current block" value={ data.result.CurrentBlock } icon="block"/>
         </Grid>
         { !hideCapybaraRunner && <CapybaraRunner/> }
       </Flex>

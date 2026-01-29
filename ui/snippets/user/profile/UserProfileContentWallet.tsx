@@ -55,7 +55,6 @@ const UserProfileContentWallet = ({ onClose, className }: Props) => {
             fontSize="sm"
             fontWeight={ 500 }
             noAltHash
-            noTooltip
             onClick={ handleAddressClick }
           />
           { web3Wallet.isReconnecting ? <Spinner size="sm" m="2px" flexShrink={ 0 }/> : (
@@ -66,7 +65,7 @@ const UserProfileContentWallet = ({ onClose, className }: Props) => {
               onClick={ handleOpenWalletClick }
               loading={ web3Wallet.isOpen }
             >
-              <IconSvg name="gear_slim"/>
+              <IconSvg name="gear"/>
             </IconButton>
           ) }
         </Flex>

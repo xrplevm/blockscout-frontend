@@ -22,6 +22,8 @@ export default function parseMetaPayload(meta: AddressMetadataTag['meta']): Addr
       'tooltipTitle',
       'tooltipDescription',
       'tooltipUrl',
+      'tooltipAttribution',
+      'tooltipAttributionIcon',
       'appID',
       'appMarketplaceURL',
       'appLogoURL',
@@ -31,6 +33,7 @@ export default function parseMetaPayload(meta: AddressMetadataTag['meta']): Addr
       'alertBgColor',
       'alertTextColor',
       'alertStatus',
+      'cexDeposit',
     ];
 
     for (const stringField of stringFields) {

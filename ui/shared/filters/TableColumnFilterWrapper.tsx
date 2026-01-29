@@ -33,7 +33,7 @@ const TableColumnFilterWrapper = ({ columnName, className, children, isLoading, 
           fontWeight={ 500 }
           padding={ 0 }
         >
-          <IconSvg name="filter" w="19px" h="19px"/>
+          <IconSvg name="filter" w="19px" h="19px" color="purple.300"/>
           { Boolean(value) && <chakra.span>{ value }</chakra.span> }
         </Button>
       </PopoverTrigger>

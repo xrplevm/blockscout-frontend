@@ -19,6 +19,7 @@ type RpcResponseType = GetBlockReturnType<Chain, false, 'latest'> | null;
 
 export type BlockQuery = UseQueryResult<Block, ResourceError<{ status: number }>> & {
   isDegradedData: boolean;
+  isFutureBlock: boolean;
 };
 
 interface Params {
@@ -47,6 +48,17 @@ export default function useBlockQuery({ heightOrHash }: Params): BlockQuery {
     },
   });
 
+  const latestBlockQuery = useQuery({
+    queryKey: [ 'RPC', 'block', 'latest' ],
+    queryFn: async() => {
+      if (!publicClient) {
+        return null;
+      }
+      return publicClient.getBlock({ blockTag: 'latest' });
+    },
+    enabled: publicClient !== undefined && (apiQuery.isError || apiQuery.errorUpdateCount > 0),
+  });
+
   const rpcQuery = useQuery<RpcResponseType, unknown, Block | null>({
     queryKey: [ 'RPC', 'block', { heightOrHash } ],
     queryFn: async() => {
@@ -71,7 +83,7 @@ export default function useBlockQuery({ heightOrHash }: Params): BlockQuery {
         size: Number(block.size),
         hash: block.hash,
         parent_hash: block.parentHash,
-        difficulty: block.difficulty.toString(),
+        difficulty: block.difficulty?.toString() ?? null,
         total_difficulty: block.totalDifficulty?.toString() ?? null,
         gas_used: block.gasUsed.toString(),
         gas_limit: block.gasLimit.toString(),
@@ -91,7 +103,7 @@ export default function useBlockQuery({ heightOrHash }: Params): BlockQuery {
       };
     },
     placeholderData: GET_BLOCK,
-    enabled: publicClient !== undefined && (apiQuery.isError || apiQuery.errorUpdateCount > 0),
+    enabled: !latestBlockQuery.isPending,
     retry: false,
     refetchOnMount: false,
   });
@@ -120,5 +132,9 @@ export default function useBlockQuery({ heightOrHash }: Params): BlockQuery {
   return {
     ...query,
     isDegradedData: isRpcQuery,
+    isFutureBlock: Boolean(
+      !heightOrHash.startsWith('0x') &&
+      latestBlockQuery.data && Number(latestBlockQuery.data.number) < Number(heightOrHash),
+    ),
   };
 }

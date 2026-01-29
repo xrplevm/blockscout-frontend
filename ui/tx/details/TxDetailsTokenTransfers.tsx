@@ -1,4 +1,4 @@
-import { GridItem, Flex, Box } from '@chakra-ui/react';
+import { Flex } from '@chakra-ui/react';
 import React from 'react';
 
 import type { TokenTransfer } from 'types/api/tokenTransfer';
@@ -44,31 +44,29 @@ const TxDetailsTokenTransfers = ({ data, txHash, isOverflow }: Props) => {
             >
               { title }
             </DetailedInfo.ItemLabel>
-            <DetailedInfo.ItemValue position="relative">
+            <DetailedInfo.ItemValue position="relative" multiRow>
               <Flex
                 flexDirection="column"
                 alignItems="flex-start"
-                rowGap={ 5 }
+                rowGap={ 1 }
                 w="100%"
                 overflow="hidden"
               >
                 { items.map((item, index) => <TokenTransferSnippet key={ index } data={ item }/>) }
               </Flex>
+              { isOverflow && (
+                <>
+                  { /* FIXME use non-navigation icon */ }
+                  <IconSvg name="navigation/tokens" boxSize={ 6 }/>
+                  <Link href={ viewAllUrl }>
+                    View all
+                  </Link>
+                </>
+              ) }
             </DetailedInfo.ItemValue>
           </React.Fragment>
         );
       }) }
-      { isOverflow && (
-        <>
-          <Box hideBelow="lg"><GridItem></GridItem></Box>
-          <GridItem fontSize="sm" alignItems="center" display="inline-flex" pl={{ base: '28px', lg: 0 }}>
-            <IconSvg name="token" boxSize={ 6 }/>
-            <Link href={ viewAllUrl }>
-              View all
-            </Link>
-          </GridItem>
-        </>
-      ) }
     </>
   );
 };

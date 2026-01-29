@@ -7,8 +7,8 @@ import { route } from 'nextjs-routes';
 import { Link } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import { Hint } from 'toolkit/components/Hint/Hint';
+import { TruncatedText } from 'toolkit/components/truncation/TruncatedText';
 import IconSvg, { type IconName } from 'ui/shared/IconSvg';
-import TruncatedValue from 'ui/shared/TruncatedValue';
 
 export type Props = {
   className?: string;
@@ -26,10 +26,10 @@ export type Props = {
   icon?: IconName;
 };
 
-const Container = ({ href, children }: { href?: Route; children: React.JSX.Element }) => {
+const Container = ({ href, children, className }: { href?: Route; children: React.JSX.Element; className?: string }) => {
   if (href) {
     return (
-      <Link href={ route(href) } variant="plain">
+      <Link href={ route(href) } variant="plain" className={ className }>
         { children }
       </Link>
     );
@@ -54,11 +54,11 @@ const StatsWidget = ({
   href,
 }: Props) => {
   return (
-    <Container href={ !isLoading ? href : undefined }>
+    <Container href={ !isLoading ? href : undefined } className={ href ? className : undefined }>
       <Flex
-        className={ className }
+        className={ href ? undefined : className }
         alignItems="center"
-        bgColor={ isLoading ? { _light: 'blackAlpha.50', _dark: 'whiteAlpha.50' } : { _light: 'gray.50', _dark: 'whiteAlpha.100' } }
+        bgColor={ isLoading ? { _light: 'blackAlpha.50', _dark: 'whiteAlpha.50' } : { _light: 'theme.stats.bg._light', _dark: 'theme.stats.bg._dark' } }
         p={ 3 }
         borderRadius="base"
         justifyContent="space-between"
@@ -77,7 +77,12 @@ const StatsWidget = ({
             flexShrink={ 0 }
           />
         ) }
-        <Box w={{ base: '100%', lg: icon ? 'calc(100% - 48px)' : '100%' }}>
+        <Box
+          w={{
+            base: `calc(100% - ${ hint ? '24px' : '0px' })`,
+            lg: `calc(100% - ${ icon ? '48px' : '0px' } - ${ hint ? '24px' : '0px' })`,
+          }}
+        >
           <Skeleton
             loading={ isLoading }
             color="text.secondary"
@@ -95,7 +100,7 @@ const StatsWidget = ({
           >
             { valuePrefix && <chakra.span whiteSpace="pre">{ valuePrefix }</chakra.span> }
             { typeof value === 'string' ? (
-              <TruncatedValue isLoading={ isLoading } value={ value }/>
+              <TruncatedText text={ value } loading={ isLoading }/>
             ) : (
               value
             ) }
@@ -113,7 +118,7 @@ const StatsWidget = ({
         </Box>
         { typeof hint === 'string' ? (
           <Skeleton loading={ isLoading } alignSelf="center" borderRadius="base">
-            <Hint label={ hint } boxSize={ 6 } color={{ _light: 'gray.600', _dark: 'gray.400' }}/>
+            <Hint label={ hint } boxSize={ 5 } color="icon.secondary"/>
           </Skeleton>
         ) : hint }
       </Flex>

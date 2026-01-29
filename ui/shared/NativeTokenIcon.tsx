@@ -23,7 +23,7 @@ const NativeTokenIcon = ({ className }: Props) => {
       }}
       src="/static/xrp-logo.png"
       alt={ `${ config.chain.currency.symbol } logo` }
-      fallback={ <TokenLogoPlaceholder borderRadius="base" className={ className }/> }
+      fallback={ <TokenLogoPlaceholder/> }
     />
   );
 };

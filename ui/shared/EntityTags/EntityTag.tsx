@@ -3,6 +3,7 @@ import React from 'react';
 
 import type { EntityTag as TEntityTag } from './types';
 
+import { useMultichainContext } from 'lib/contexts/multichain';
 import * as mixpanel from 'lib/mixpanel/index';
 import { Link, LinkExternalIcon } from 'toolkit/chakra/link';
 import { Skeleton } from 'toolkit/chakra/skeleton';
@@ -10,19 +11,21 @@ import { Tag } from 'toolkit/chakra/tag';
 
 import EntityTagIcon from './EntityTagIcon';
 import EntityTagTooltip from './EntityTagTooltip';
-import { getTagLinkParams } from './utils';
+import { getTagName, getTagLinkParams } from './utils';
 
 interface Props extends HTMLChakraProps<'span'> {
   data: TEntityTag;
+  addressHash?: string;
   isLoading?: boolean;
   noLink?: boolean;
 }
 
-const EntityTag = ({ data, isLoading, noLink, ...rest }: Props) => {
+const EntityTag = ({ data, addressHash, isLoading, noLink, ...rest }: Props) => {
+  const multichainContext = useMultichainContext();
 
-  const linkParams = !noLink ? getTagLinkParams(data) : undefined;
+  const linkParams = !noLink ? getTagLinkParams(data, multichainContext) : undefined;
   const hasLink = Boolean(linkParams);
-  const iconColor = data.meta?.textColor ?? 'gray.400';
+  const iconColor = data.meta?.textColor ?? 'icon.secondary';
 
   const handleLinkClick = React.useCallback(() => {
     if (!linkParams?.href) {
@@ -45,7 +48,7 @@ const EntityTag = ({ data, isLoading, noLink, ...rest }: Props) => {
       return `@${ data.meta.warpcastHandle }`;
     }
 
-    return data.name;
+    return getTagName(data, addressHash);
   })();
 
   return (

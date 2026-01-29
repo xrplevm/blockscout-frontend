@@ -1,9 +1,9 @@
 import React from 'react';
 
 import PeersystPageWrapper from 'theme/components/PeersystPageWrapper';
+import { ContentLoader } from 'toolkit/components/loaders/ContentLoader';
 import ContractVerificationForm from 'ui/contractVerification/ContractVerificationForm';
 import useFormConfigQuery from 'ui/contractVerification/useFormConfigQuery';
-import ContentLoader from 'ui/shared/ContentLoader';
 import DataFetchAlert from 'ui/shared/DataFetchAlert';
 import PageTitle from 'ui/shared/Page/PageTitle';
 

@@ -2,14 +2,12 @@ import React from 'react';
 
 import type { AddressEpochRewardsItem } from 'types/api/address';
 
-import getCurrencyValue from 'lib/getCurrencyValue';
-import { Skeleton } from 'toolkit/chakra/skeleton';
 import AddressEntity from 'ui/shared/entities/address/AddressEntity';
-import BlockEntity from 'ui/shared/entities/block/BlockEntity';
-import TokenEntity from 'ui/shared/entities/token/TokenEntity';
+import EpochEntity from 'ui/shared/entities/epoch/EpochEntity';
 import EpochRewardTypeTag from 'ui/shared/EpochRewardTypeTag';
 import ListItemMobileGrid from 'ui/shared/ListItemMobile/ListItemMobileGrid';
 import TimeWithTooltip from 'ui/shared/time/TimeWithTooltip';
+import TokenValue from 'ui/shared/value/TokenValue';
 
 type Props = {
   item: AddressEpochRewardsItem;
@@ -17,24 +15,12 @@ type Props = {
 };
 
 const AddressEpochRewardsListItem = ({ item, isLoading }: Props) => {
-  const { valueStr } = getCurrencyValue({ value: item.amount, accuracy: 2, decimals: item.token.decimals });
   return (
     <ListItemMobileGrid.Container gridTemplateColumns="100px auto">
 
-      <ListItemMobileGrid.Label isLoading={ isLoading }>Block</ListItemMobileGrid.Label>
-      <ListItemMobileGrid.Value>
-        <BlockEntity
-          number={ Number(item.block_number) }
-          isLoading={ isLoading }
-          noIcon
-        />
-      </ListItemMobileGrid.Value>
-
       <ListItemMobileGrid.Label isLoading={ isLoading }>Epoch #</ListItemMobileGrid.Label>
       <ListItemMobileGrid.Value>
-        <Skeleton loading={ isLoading }>
-          { item.epoch_number }
-        </Skeleton>
+        <EpochEntity number={ String(item.epoch_number) } noIcon isLoading={ isLoading }/>
       </ListItemMobileGrid.Value>
 
       <ListItemMobileGrid.Label isLoading={ isLoading }>Age</ListItemMobileGrid.Label>
@@ -62,10 +48,11 @@ const AddressEpochRewardsListItem = ({ item, isLoading }: Props) => {
 
       <ListItemMobileGrid.Label isLoading={ isLoading }>Value</ListItemMobileGrid.Label>
       <ListItemMobileGrid.Value>
-        <Skeleton loading={ isLoading } display="flex" alignItems="center" gap={ 2 }>
-          { valueStr }
-          <TokenEntity token={ item.token } isLoading={ isLoading } onlySymbol width="auto" noCopy/>
-        </Skeleton>
+        <TokenValue
+          amount={ item.amount }
+          token={ item.token }
+          loading={ isLoading }
+        />
       </ListItemMobileGrid.Value>
 
     </ListItemMobileGrid.Container>

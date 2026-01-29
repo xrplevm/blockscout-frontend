@@ -1,4 +1,3 @@
-import { Grid } from '@chakra-ui/react';
 import React from 'react';
 
 import type { Pool } from 'types/api/pools';
@@ -15,12 +14,7 @@ type Props = {
 
 const PoolInfo = ({ data, isPlaceholderData }: Props) => {
   return (
-    <Grid
-      columnGap={ 8 }
-      rowGap={{ base: 1, lg: 3 }}
-      templateColumns={{ base: 'minmax(0, 1fr)', lg: 'minmax(min-content, 220px) minmax(0, 1fr)' }}
-      overflow="hidden"
-    >
+    <DetailedInfo.Container>
       <DetailedInfo.ItemLabel
         isLoading={ isPlaceholderData }
         hint="The base token in a liquidity pool pair"
@@ -35,6 +29,7 @@ const PoolInfo = ({ data, isPlaceholderData }: Props) => {
             name: data.base_token_symbol,
             symbol: data.base_token_symbol,
             icon_url: data.base_token_icon_url,
+            reputation: null,
           }}
           isLoading={ isPlaceholderData }
         />
@@ -54,6 +49,7 @@ const PoolInfo = ({ data, isPlaceholderData }: Props) => {
             name: data.quote_token_symbol,
             symbol: data.quote_token_symbol,
             icon_url: data.quote_token_icon_url,
+            reputation: null,
           }}
           isLoading={ isPlaceholderData }
         />
@@ -144,7 +140,7 @@ const PoolInfo = ({ data, isPlaceholderData }: Props) => {
       </DetailedInfo.ItemValue>
 
       <DetailedInfoSponsoredItem isLoading={ isPlaceholderData }/>
-    </Grid>
+    </DetailedInfo.Container>
   );
 };
 

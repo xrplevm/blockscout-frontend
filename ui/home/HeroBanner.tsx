@@ -4,27 +4,30 @@ import { Box, Flex, Heading } from '@chakra-ui/react';
 import React from 'react';
 
 import config from 'configs/app';
+import useIsMobile from 'lib/hooks/useIsMobile';
 import RewardsButton from 'ui/rewards/RewardsButton';
 import AdBanner from 'ui/shared/ad/AdBanner';
-import SearchBar from 'ui/snippets/searchBar/SearchBar';
+import SearchBar from 'ui/snippets/searchBar/SearchBarDesktop';
+import SearchBarMobile from 'ui/snippets/searchBar/SearchBarMobile';
 import UserProfileDesktop from 'ui/snippets/user/profile/UserProfileDesktop';
 import UserWalletDesktop from 'ui/snippets/user/wallet/UserWalletDesktop';
 
 export const BACKGROUND_DEFAULT =
-  'radial-gradient(103.03% 103.03% at 0% 0%, rgba(183, 148, 244, 0.8) 0%, rgba(0, 163, 196, 0.8) 100%), var(--chakra-colors-blue-400)';
+  'radial-gradient(circle, rgba(121, 25, 255, 1) 100%, rgba(25, 255, 132, 1) 100%)';
 const TEXT_COLOR_DEFAULT = 'white';
 const BORDER_DEFAULT = 'none';
 
 const HeroBanner = () => {
+
+  const isMobile = useIsMobile();
+
   const background = {
     _light:
       config.UI.homepage.heroBanner?.background?.[0] ||
-      config.UI.homepage.plate.background ||
       BACKGROUND_DEFAULT,
     _dark:
       config.UI.homepage.heroBanner?.background?.[1] ||
       config.UI.homepage.heroBanner?.background?.[0] ||
-      config.UI.homepage.plate.background ||
       BACKGROUND_DEFAULT,
   };
 
@@ -32,13 +35,11 @@ const HeroBanner = () => {
     _light:
       // light mode
       config.UI.homepage.heroBanner?.text_color?.[0] ||
-      config.UI.homepage.plate.textColor ||
       TEXT_COLOR_DEFAULT,
     // dark mode
     _dark:
       config.UI.homepage.heroBanner?.text_color?.[1] ||
       config.UI.homepage.heroBanner?.text_color?.[0] ||
-      config.UI.homepage.plate.textColor ||
       TEXT_COLOR_DEFAULT,
   };
 
@@ -84,9 +85,14 @@ const HeroBanner = () => {
             </Box>
           ) }
         </Flex>
-        <SearchBar isHomepage/>
+        <Box display={{ base: 'flex', lg: 'none' }}>
+          <SearchBarMobile isHeroBanner/>
+        </Box>
+        <Box display={{ base: 'none', lg: 'flex' }}>
+          <SearchBar isHeroBanner/>
+        </Box>
       </Box>
-      <AdBanner platform="mobile" w="fit-content" flexShrink={ 0 } borderRadius="md" overflow="hidden" display={{ base: 'none', lg: 'block ' }}/>
+      { !isMobile && <AdBanner format="mobile" w="fit-content" flexShrink={ 0 } borderRadius="md" overflow="hidden"/> }
     </Flex>
   );
 };
