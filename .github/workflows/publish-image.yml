@@ -44,7 +44,7 @@ permissions:
 jobs:
     run:
         name: Run
-        runs-on: build
+        runs-on: ubuntu-latest
         steps:
             -   name: Check out the repo
                 uses: actions/checkout@v4
