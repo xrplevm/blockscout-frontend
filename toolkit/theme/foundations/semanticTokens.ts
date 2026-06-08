@@ -504,11 +504,11 @@ const semanticTokens: ThemingConfig['semanticTokens'] = {
     },
     table: {
       header: {
-        bg: { value: { _light: '{colors.white}', _dark: '{colors.gray.800}' } },
+        bg: { value: { _light: '#FFFFFF', _dark: '{colors.gray.800}' } },
         fg: { value: { _light: '{colors.blackAlpha.700}', _dark: '{colors.whiteAlpha.700}' } },
       },
       row: {
-        bg: { value: { _light: '{colors.white}', _dark: '{colors.gray.800}' } },
+        bg: { value: { _light: '#FFFFFF', _dark: '{colors.gray.800}' } },
       },
     },
     checkbox: {
