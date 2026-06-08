@@ -238,6 +238,7 @@ const Footer = () => {
         { renderProjectInfo({ lg: 'info' }) }
         { renderRecaptcha({ lg: 'recaptcha' }) }
 
+        { /* Honduras CBDC: hide the default Blockscout footer links (Submit an issue, Discord, Donate, etc.)
         <Grid
           gridArea={{ lg: 'links-bottom' }}
           gap={ 1 }
@@ -258,6 +259,7 @@ const Footer = () => {
         >
           { BLOCKSCOUT_LINKS.map(link => <FooterLinkItem { ...link } key={ link.text }/>) }
         </Grid>
+        */ }
       </Grid>
     </Box>
   );

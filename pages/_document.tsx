@@ -60,7 +60,7 @@ class MyDocument extends Document {
           ) }
 
           { /* FAVICON */ }
-          <link rel="icon" type="image/svg+xml" href="/cbdc/icon-light.svg"/>
+          <link rel="icon" type="image/svg+xml" href="/cbdc/favicon-bch.svg"/>
           <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png"/>
           <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png"/>
           <link rel="icon" type="image/png" sizes="48x48" href="/assets/favicon/favicon-48x48.png"/>
