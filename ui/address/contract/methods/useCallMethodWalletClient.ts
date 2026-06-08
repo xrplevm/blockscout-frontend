@@ -1,14 +1,17 @@
 import React from 'react';
 import { getAddress, type Abi } from 'viem';
-import { useAccount, useWalletClient, useSwitchChain } from 'wagmi';
+import { useAccount, useSwitchChain, useWriteContract, useSendTransaction } from 'wagmi';
 
 import type { FormSubmitResult, SmartContractMethod } from './types';
 
 import config from 'configs/app';
 import { useMultichainContext } from 'lib/contexts/multichain';
 import useRewardsActivity from 'lib/hooks/useRewardsActivity';
+import useWallet from 'lib/web3/useWallet';
 
 import { getNativeCoinValue } from './utils';
+
+const feature = config.features.blockchainInteraction;
 
 interface Params {
   item: SmartContractMethod;
@@ -19,23 +22,23 @@ interface Params {
 export default function useCallMethodWalletClient(): (params: Params) => Promise<FormSubmitResult> {
   const multichainContext = useMultichainContext();
   const chainConfig = (multichainContext?.chain.app_config ?? config).chain;
+  const targetChainId = chainConfig?.id ? Number(chainConfig.id) : undefined;
 
-  const { data: walletClient } = useWalletClient({ chainId: Number(chainConfig?.id) });
   const { isConnected, chainId, address: account } = useAccount();
   const { switchChainAsync } = useSwitchChain();
   const { trackTransaction, trackTransactionConfirm } = useRewardsActivity();
+  const { writeContractAsync } = useWriteContract();
+  const { sendTransactionAsync } = useSendTransaction();
+
+  const { type: walletType } = useWallet({ source: 'Smart contracts' });
 
   return React.useCallback(async({ args, item, addressHash }) => {
     if (!isConnected) {
       throw new Error('Wallet is not connected');
     }
 
-    if (!walletClient) {
-      throw new Error('Wallet Client is not defined');
-    }
-
-    if (chainId && String(chainId) !== chainConfig?.id) {
-      await switchChainAsync({ chainId: Number(chainConfig?.id) });
+    if (chainId && targetChainId && chainId !== targetChainId) {
+      await switchChainAsync({ chainId: targetChainId });
     }
 
     const address = getAddress(addressHash);
@@ -50,9 +53,17 @@ export default function useCallMethodWalletClient(): (params: Params) => Promise
       // if the fallback method acts as a read method, it can only have one input of type bytes
       // so we pass the input value as data without encoding it
       const data = typeof _args[0] === 'string' && _args[0].startsWith('0x') ? _args[0] as `0x${ string }` : undefined;
-      const hash = await walletClient.sendTransaction({
+
+      // seems like Dynamic WaaS (assigned when user signed up with email) does not estimate gas for transactions
+      // so we pass 0 as gas here
+      const estimatedGas = feature.isEnabled && feature.connectorType === 'dynamic' && walletType === 'dynamicwaas' ?
+        BigInt(0) : undefined;
+
+      const hash = await sendTransactionAsync({
         to: address,
         value,
+        gas: estimatedGas,
+        chainId: targetChainId,
         ...(data ? { data } : {}),
       });
 
@@ -69,7 +80,12 @@ export default function useCallMethodWalletClient(): (params: Params) => Promise
       throw new Error('Method name is not defined');
     }
 
-    const hash = await walletClient.writeContract({
+    // seems like Dynamic WaaS (assigned when user signed up with email) does not estimate gas for transactions
+    // so we pass 0 as gas here
+    const estimatedGas = feature.isEnabled && feature.connectorType === 'dynamic' && walletType === 'dynamicwaas' ?
+      BigInt(0) : undefined;
+
+    const hash = await writeContractAsync({
       args: _args,
       // Here we provide the ABI as an array containing only one item from the submitted form.
       // This is a workaround for the issue with the "viem" library.
@@ -83,6 +99,8 @@ export default function useCallMethodWalletClient(): (params: Params) => Promise
       address,
       value,
       account,
+      gas: estimatedGas,
+      chainId: targetChainId,
     });
 
     if (activityResponse?.token) {
@@ -90,5 +108,16 @@ export default function useCallMethodWalletClient(): (params: Params) => Promise
     }
 
     return { source: 'wallet_client', data: { hash } };
-  }, [ chainId, chainConfig, isConnected, switchChainAsync, walletClient, account, trackTransaction, trackTransactionConfirm ]);
+  }, [
+    isConnected,
+    chainId,
+    targetChainId,
+    trackTransaction,
+    account,
+    walletType,
+    writeContractAsync,
+    switchChainAsync,
+    sendTransactionAsync,
+    trackTransactionConfirm,
+  ]);
 }

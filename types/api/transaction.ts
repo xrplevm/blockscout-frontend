@@ -54,6 +54,7 @@ export type Transaction = {
   token_transfers: Array<TokenTransfer> | null;
   token_transfers_overflow: boolean;
   exchange_rate: string | null;
+  historic_exchange_rate: string | null;
   method: string | null;
   transaction_types: Array<TransactionType>;
   transaction_tag: string | null;
@@ -109,6 +110,8 @@ export type Transaction = {
   authorization_list?: Array<TxAuthorization>;
   // Interop
   op_interop_messages?: Array<InteropTransactionInfo>;
+  // FHE operations
+  fhe_operations_count?: number;
 };
 
 type ArbitrumTransactionData = {

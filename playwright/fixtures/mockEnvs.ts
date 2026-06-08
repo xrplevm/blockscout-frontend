@@ -31,20 +31,20 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
   ],
   shibariumRollup: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'shibarium' ],
-    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_PARENT_CHAIN', '{"baseUrl":"https://localhost:3101"}' ],
   ],
   zkEvmRollup: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'zkEvm' ],
-    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_PARENT_CHAIN', '{"baseUrl":"https://localhost:3101"}' ],
   ],
   zkSyncRollup: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'zkSync' ],
-    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_PARENT_CHAIN', '{"baseUrl":"https://localhost:3101"}' ],
     [ 'NEXT_PUBLIC_VIEWS_CONTRACT_EXTRA_VERIFICATION_METHODS', 'none' ],
   ],
   scrollRollup: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'scroll' ],
-    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_PARENT_CHAIN', '{"baseUrl":"https://localhost:3101"}' ],
   ],
   bridgedTokens: [
     [ 'NEXT_PUBLIC_BRIDGED_TOKENS_CHAINS', '[{"id":"1","title":"Ethereum","short_title":"ETH","base_url":"https://eth.blockscout.com/token/"},{"id":"56","title":"Binance Smart Chain","short_title":"BSC","base_url":"https://bscscan.com/token/"},{"id":"99","title":"POA","short_title":"POA","base_url":"https://blockscout.com/poa/core/token/"}]' ],
@@ -89,6 +89,7 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
   ],
   nameService: [
     [ 'NEXT_PUBLIC_NAME_SERVICE_API_HOST', 'http://localhost:3008' ],
+    [ 'NEXT_PUBLIC_NAME_SERVICE_PROTOCOLS', '["ens","duck"]' ],
   ],
   rewardsService: [
     [ 'NEXT_PUBLIC_REWARDS_SERVICE_API_HOST', 'http://localhost:3009' ],
@@ -102,7 +103,7 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
   ],
   interop: [
     [ 'NEXT_PUBLIC_ROLLUP_TYPE', 'optimistic' ],
-    [ 'NEXT_PUBLIC_ROLLUP_L1_BASE_URL', 'https://localhost:3101' ],
+    [ 'NEXT_PUBLIC_ROLLUP_PARENT_CHAIN', '{"baseUrl":"https://localhost:3101"}' ],
     [ 'NEXT_PUBLIC_ROLLUP_L2_WITHDRAWAL_URL', 'https://localhost:3102' ],
     [ 'NEXT_PUBLIC_INTEROP_ENABLED', 'true' ],
   ],
@@ -113,7 +114,7 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
   celo: [
     [ 'NEXT_PUBLIC_CELO_ENABLED', 'true' ],
   ],
-  opSuperchain: [
+  multichain: [
     [ 'NEXT_PUBLIC_MULTICHAIN_ENABLED', 'true' ],
     [ 'NEXT_PUBLIC_MULTICHAIN_CLUSTER', 'test' ],
     [ 'NEXT_PUBLIC_MULTICHAIN_AGGREGATOR_API_HOST', 'http://localhost:3012' ],
@@ -135,5 +136,9 @@ export const ENVS_MAP: Record<string, Array<[string, string]>> = {
   ],
   colorThemeOverrides: [
     [ 'NEXT_PUBLIC_COLOR_THEME_OVERRIDES', '{"bg":{"primary":{"_light":{"value":"rgba(254,253,253)"},"_dark":{"value":"rgba(25,25,26)"}}},"text":{"primary":{"_light":{"value":"rgba(16,17,18,0.80)"},"_dark":{"value":"rgba(222,217,217)"}},"secondary":{"_light":{"value":"rgba(138,136,136)"},"_dark":{"value":"rgba(133,133,133)"}}},"hover":{"_light":{"value":"rgba(104,200,158)"},"_dark":{"value":"rgba(104,200,158)"}},"selected":{"control":{"text":{"_light":{"value":"rgba(25,25,26)"},"_dark":{"value":"rgba(247,250,252)"}},"bg":{"_light":{"value":"rgba(242,239,239)"},"_dark":{"value":"rgba(255,255,255,0.06)"}}},"option":{"bg":{"_light":{"value":"rgba(84,75,75)"},"_dark":{"value":"rgba(87,87,87)"}}}},"icon":{"primary":{"_light":{"value":"rgba(138,136,136)"},"_dark":{"value":"rgba(133,133,133)"}},"secondary":{"_light":{"value":"rgba(176,176,176)"},"_dark":{"value":"rgba(105,103,103)"}}},"button":{"primary":{"_light":{"value":"rgba(105,103,103)"},"_dark":{"value":"rgba(133,133,133)"}}},"link":{"primary":{"_light":{"value":"rgba(57,146,108)"},"_dark":{"value":"rgba(57,146,108)"}}},"graph":{"line":{"_light":{"value":"rgba(105,103,103)"},"_dark":{"value":"rgba(57,146,108)"}},"gradient":{"start":{"_light":{"value":"rgba(105,103,103,0.3)"},"_dark":{"value":"rgba(57,146,108,0.3)"}},"stop":{"_light":{"value":"rgba(105,103,103,0)"},"_dark":{"value":"rgba(57,146,108,0)"}}}},"stats":{"bg":{"_light":{"value":"rgba(242,239,239)"},"_dark":{"value":"rgba(255,255,255,0.06)"}}},"topbar":{"bg":{"_light":{"value":"rgba(242,239,239)"},"_dark":{"value":"rgba(255,255,255,0.06)"}}},"navigation":{"text":{"selected":{"_light":{"value":"rgba(25,25,26)"},"_dark":{"value":"rgba(247,250,252)"}}},"bg":{"selected":{"_light":{"value":"rgba(242,239,239)"},"_dark":{"value":"rgba(255,255,255,0.06)"}}}},"tabs":{"text":{"primary":{"_light":{"value":"rgba(25,25,26)"},"_dark":{"value":"rgba(222,217,217)"}}}}}' ],
+  ],
+  crossChainTxs: [
+    [ 'NEXT_PUBLIC_INTERCHAIN_INDEXER_API_HOST', 'http://localhost:3014' ],
+    [ 'NEXT_PUBLIC_CROSS_CHAIN_TXS_ENABLED', 'true' ],
   ],
 };

@@ -1,5 +1,5 @@
 import type * as bens from '@blockscout/bens-types';
-import type { QuickSearchResultBlock, QuickSearchResultToken } from 'types/client/multichain-aggregator';
+import type { QuickSearchResultBlock, QuickSearchResultToken } from 'types/client/multichainAggregator';
 import type { QuickSearchResultItem } from 'types/client/search';
 
 import useApiQuery from 'lib/api/useApiQuery';
@@ -66,6 +66,7 @@ export default function useSearchMultichain({ searchTerm, enabled }: Props) {
             symbol: item.symbol ?? '',
             icon_url: item.icon_url ?? null,
             is_smart_contract_verified: false,
+            is_smart_contract_address: false,
             // As of now, there can be only one chain in the object
             chain_id: Object.keys(item.chain_infos)[0],
             reputation: null,

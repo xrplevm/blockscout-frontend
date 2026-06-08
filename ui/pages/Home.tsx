@@ -4,6 +4,7 @@ import React from 'react';
 import config from 'configs/app';
 import useIsMobile from 'lib/hooks/useIsMobile';
 import { useColorModeValue } from 'toolkit/chakra/color-mode';
+import { HomeRpcDataContextProvider } from 'ui/home/fallbacks/rpcDataContext';
 import HeroBanner from 'ui/home/HeroBanner';
 import Highlights from 'ui/home/Highlights';
 import ChainIndicators from 'ui/home/indicators/ChainIndicators';
@@ -34,25 +35,27 @@ const Home = () => {
   })();
 
   return (
-    <Box as="main">
-      <HeroBanner/>
-      <Flex flexDir={{ base: 'column', lg: 'row' }} columnGap={ 2 } rowGap={ 1 } mt={ 3 } _empty={{ mt: 0 }}>
-        <Stats/>
-        <ChainIndicators/>
-      </Flex>
-      { !isMobile && config.UI.homepage.highlights && <Highlights mt={ 3 }/> }
-      { isMobile && <AdBanner mt={ 6 } mx="auto" justifyContent="center" format="mobile"/> }
-      <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 6 }
-        backgroundColor={ bgColor }
-        borderRadius="md"
-        padding={{ base: 6, lg: 8 }}
-      >
-        { leftWidget }
-        <Box flexGrow={ 1 }>
-          <Transactions/>
-        </Box>
-      </Flex>
-    </Box>
+    <HomeRpcDataContextProvider>
+      <Box as="main">
+        <HeroBanner/>
+        <Flex flexDir={{ base: 'column', lg: 'row' }} columnGap={ 2 } rowGap={ 1 } mt={ 3 } _empty={{ mt: 0 }}>
+          <Stats/>
+          <ChainIndicators/>
+        </Flex>
+        { !isMobile && config.UI.homepage.highlights && <Highlights mt={ 3 }/> }
+        { isMobile && <AdBanner mt={ 6 } mx="auto" justifyContent="center" format="mobile"/> }
+        <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 6 }
+          backgroundColor={ bgColor }
+          borderRadius="md"
+          padding={{ base: 6, lg: 8 }}
+        >
+          { leftWidget }
+          <Box flexGrow={ 1 }>
+            <Transactions/>
+          </Box>
+        </Flex>
+      </Box>
+    </HomeRpcDataContextProvider>
   );
 };
 
