@@ -23,12 +23,15 @@ on:
             - filecoin
             - immutable
             - mega_eth
+            - multichain_dev
+            - multichain_prod
             - neon_devnet
+            - numine
             - optimism
             - optimism_sepolia
-            - optimism_superchain
             - polygon
             - rootstock
+            - rootstock_testnet
             - scroll_sepolia
             - shibarium
             - stability

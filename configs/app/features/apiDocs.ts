@@ -15,14 +15,14 @@ const title = 'API documentation';
 
 const config: Feature<{
   tabs: Array<ApiDocsTabId>;
-  coreApiSwaggerUrl: string;
+  alertMessage: string | undefined;
 }> = (() => {
   if (tabs) {
     return Object.freeze({
       title,
       isEnabled: true,
       tabs,
-      coreApiSwaggerUrl: getEnvValue('NEXT_PUBLIC_API_SPEC_URL') || `https://raw.githubusercontent.com/blockscout/blockscout-api-v2-swagger/main/swagger.yaml`,
+      alertMessage: getEnvValue('NEXT_PUBLIC_API_DOCS_ALERT_MESSAGE'),
     });
   }
 

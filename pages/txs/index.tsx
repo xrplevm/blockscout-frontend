@@ -7,12 +7,16 @@ import PageNextJs from 'nextjs/PageNextJs';
 import config from 'configs/app';
 
 const Transactions = dynamic(() => {
-  if (config.features.opSuperchain.isEnabled) {
-    return import('ui/optimismSuperchain/txs/OpSuperchainTxs');
+  if (config.features.multichain.isEnabled) {
+    return import('ui/multichain/txs/MultichainTxs');
   }
 
   if (config.features.zetachain.isEnabled) {
     return import('ui/pages/TransactionsZetaChain');
+  }
+
+  if (config.features.crossChainTxs.isEnabled) {
+    return import('ui/crossChain/txs/Transactions');
   }
 
   return import('ui/pages/Transactions');

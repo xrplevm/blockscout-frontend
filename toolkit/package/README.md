@@ -32,7 +32,7 @@ Ensure you have the following peer dependencies installed:
 {
   "dependencies": {
     "@blockscout/ui-toolkit": "latest",
-    "@chakra-ui/react": ">=3.15.0",
+    "@chakra-ui/react": ">=3.33.0",
     "@emotion/react": ">=11.14.0",
     "@uidotdev/usehooks": ">=2.4.1",
     "d3": ">=7.6.1",
@@ -46,7 +46,7 @@ Ensure you have the following peer dependencies installed:
     "react-hook-form": ">=7.52.1"
   },
   "devDependencies": {
-    "@chakra-ui/cli": ">=3.15.0",
+    "@chakra-ui/cli": ">=3.33.0",
     "@types/node": "^20",
     "@types/react": "18.3.12",
     "@types/react-dom": "18.3.1",
@@ -176,4 +176,4 @@ For issues, feature requests, or questions, please open an issue in the reposito
 
 ## License
 
-This project is licensed under the GNU General Public License v3.
+This project is licensed under the Blockscout Software Licence. See the [LICENSE](https://raw.githubusercontent.com/blockscout/frontend/refs/heads/main/LICENSE) file for full terms.

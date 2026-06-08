@@ -3,7 +3,7 @@ import React from 'react';
 
 import type { ItemsProps } from './types';
 import type { SearchResultAddressOrContract, SearchResultMetadataTag } from 'types/api/search';
-import type * as multichain from 'types/client/multichain-aggregator';
+import type * as multichain from 'types/client/multichainAggregator';
 
 import { toBech32Address } from 'lib/address/bech32';
 import dayjs from 'lib/date/dayjs';
@@ -26,7 +26,7 @@ const SearchBarSuggestAddress = ({ data, isMobile, searchTerm, addressFormat }: 
     if ('chain_infos' in data) {
       return contract.isContract(data);
     }
-    return data.type === 'contract';
+    return data.type === 'contract' || data.is_smart_contract_address;
   })();
 
   const isVerified = (() => {

@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie';
 
+import config from 'configs/app';
 import { isBrowser } from 'toolkit/utils/isBrowser';
 
 /**
@@ -25,7 +26,9 @@ export enum NAMES {
   HIDE_ADD_TO_WALLET_BUTTON = 'hide_add_to_wallet_button',
   UUID = 'uuid',
   SHOW_SCAM_TOKENS = 'show_scam_tokens',
+  SHOW_POOR_REPUTATION_TOKENS = 'show_poor_reputation_tokens',
   APP_PROFILE = 'app_profile',
+  TABLE_VIEW_ON_MOBILE = 'table_view_on_mobile',
 }
 
 /**
@@ -37,6 +40,11 @@ export const PRIVATE_MODE_DISALLOWED: ReadonlyArray<NAMES> = [
   NAMES.ADBLOCK_DETECTED,
   NAMES.MIXPANEL_DEBUG,
 ];
+
+export const getDefaultAttributes = () => ({
+  path: '/',
+  secure: config.app.protocol === 'https',
+});
 
 export function get(name?: NAMES | undefined | null, serverCookie?: string) {
   if (!isBrowser()) {
@@ -70,13 +78,11 @@ export function set(name: NAMES, value: string, attributes: Cookies.CookieAttrib
     return;
   }
 
-  attributes.path = '/';
-
-  return Cookies.set(name, value, attributes);
+  return Cookies.set(name, value, { ...getDefaultAttributes(), ...attributes });
 }
 
 export function remove(name: NAMES, attributes: Cookies.CookieAttributes = {}) {
-  return Cookies.remove(name, attributes);
+  return Cookies.remove(name, { ...getDefaultAttributes(), ...attributes });
 }
 
 export function getFromCookieString(cookieString: string, name?: NAMES | undefined | null) {

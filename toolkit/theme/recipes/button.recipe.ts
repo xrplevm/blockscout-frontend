@@ -14,21 +14,39 @@ export const recipe = defineRecipe({
   variants: {
     variant: {
       solid: {
-        bg: 'purple.500',
-        color: 'white',
+        bg: 'button.solid.bg',
+        color: 'button.solid.text',
         _hover: {
           bg: 'hover',
         },
         _loading: {
           opacity: 1,
           '& .chakra-spinner': {
-            borderColor: 'gray.200',
+            borderColor: 'button.solid.text',
             borderBottomColor: 'spinner.track',
             borderInlineStartColor: 'spinner.track',
           },
         },
         _expanded: {
           bg: 'hover',
+        },
+      },
+      solid_danger: {
+        bg: 'red.600',
+        color: 'button.solid.text',
+        _hover: {
+          bg: 'red.500',
+        },
+        _loading: {
+          opacity: 1,
+          '& .chakra-spinner': {
+            borderColor: 'button.solid.text',
+            borderBottomColor: 'spinner.track',
+            borderInlineStartColor: 'spinner.track',
+          },
+        },
+        _expanded: {
+          bg: 'red.500',
         },
       },
       outline: {
@@ -46,6 +64,26 @@ export const recipe = defineRecipe({
           opacity: 1,
           '& .chakra-spinner': {
             borderColor: 'button.outline.fg',
+            borderBottomColor: 'spinner.track',
+            borderInlineStartColor: 'spinner.track',
+          },
+        },
+      },
+      outline_danger: {
+        borderWidth: '2px',
+        borderStyle: 'solid',
+        bg: 'transparent',
+        color: 'red.600',
+        borderColor: 'red.600',
+        _hover: {
+          bg: 'transparent',
+          color: 'red.500',
+          borderColor: 'red.500',
+        },
+        _loading: {
+          opacity: 1,
+          '& .chakra-spinner': {
+            borderColor: 'red.600',
             borderBottomColor: 'spinner.track',
             borderInlineStartColor: 'spinner.track',
           },

@@ -13,7 +13,6 @@ import type { AddressProfileAPIConfig } from 'types/client/addressProfileAPIConf
 import type { GasRefuelProviderConfig } from 'types/client/gasRefuelProviderConfig';
 import { GAS_UNITS } from 'types/client/gasTracker';
 import type { GasUnit } from 'types/client/gasTracker';
-import type { MultichainProviderConfig } from 'types/client/multichainProviderConfig';
 import { PROVIDERS as TX_INTERPRETATION_PROVIDERS } from 'types/client/txInterpretation';
 import { VALIDATORS_CHAIN_TYPE } from 'types/client/validators';
 import type { ValidatorsChainType } from 'types/client/validators';
@@ -29,14 +28,6 @@ import metaSchema from './schemas/meta';
 import * as uiSchemas from './schemas/ui';
 import * as featuresSchemas from './schemas/features';
 import servicesSchema from './schemas/services';
-
-const multichainProviderConfigSchema: yup.ObjectSchema<MultichainProviderConfig> = yup.object({
-    name: yup.string().required(),
-    url_template: yup.string().required(),
-    logo: yup.string().required(),
-    dapp_id: yup.string(),
-    promo: yup.boolean(),
-});
 
 const schema = yup
   .object()
@@ -79,11 +70,6 @@ const schema = yup
     NEXT_PUBLIC_SAFE_TX_SERVICE_URL: yup.string().test(urlTest),
     NEXT_PUBLIC_IS_SUAVE_CHAIN: yup.boolean(),
     NEXT_PUBLIC_METASUITES_ENABLED: yup.boolean(),
-    NEXT_PUBLIC_MULTICHAIN_BALANCE_PROVIDER_CONFIG: yup
-      .array()
-      .transform(replaceQuotes)
-      .json()
-      .of(multichainProviderConfigSchema),
     NEXT_PUBLIC_GAS_REFUEL_PROVIDER_CONFIG: yup
       .mixed()
       .test('shape', 'Invalid schema were provided for NEXT_PUBLIC_GAS_REFUEL_PROVIDER_CONFIG, it should have name and url template', (data) => {
@@ -103,7 +89,6 @@ const schema = yup
     NEXT_PUBLIC_DATA_AVAILABILITY_ENABLED: yup.boolean(),
     NEXT_PUBLIC_ADVANCED_FILTER_ENABLED: yup.boolean(),
     NEXT_PUBLIC_CELO_ENABLED: yup.boolean(),
-    NEXT_PUBLIC_IS_ACCOUNT_SUPPORTED: yup.boolean(),
     NEXT_PUBLIC_DEX_POOLS_ENABLED: yup.boolean()
       .when('NEXT_PUBLIC_CONTRACT_INFO_API_HOST', {
         is: (value: string) => Boolean(value),
@@ -114,7 +99,6 @@ const schema = yup
           value => value === undefined,
         ),
       }),
-    NEXT_PUBLIC_SAVE_ON_GAS_ENABLED: yup.boolean(),
     NEXT_PUBLIC_ADDRESS_USERNAME_TAG: yup
       .mixed()
       .test('shape', 'Invalid schema were provided for NEXT_PUBLIC_ADDRESS_USERNAME_TAG, it should have api_url_template', (data) => {
@@ -150,6 +134,8 @@ const schema = yup
 
     // Misc
     NEXT_PUBLIC_USE_NEXT_JS_PROXY: yup.boolean(),
+    NEXT_PUBLIC_API_KEYS_ALERT_MESSAGE: yup.string(),
+    NEXT_PUBLIC_API_DOCS_ALERT_MESSAGE: yup.string(),
   })
   .concat(apisSchema)
   .concat(chainSchema)
@@ -159,15 +145,19 @@ const schema = yup
   .concat(uiSchemas.footerSchema)
   .concat(uiSchemas.miscSchema)
   .concat(uiSchemas.viewsSchema)
+  .concat(featuresSchemas.accountSchema)
   .concat(featuresSchemas.address3rdPartyWidgetsConfigSchema)
   .concat(featuresSchemas.adsSchema)
   .concat(featuresSchemas.apiDocsSchema)
   .concat(featuresSchemas.beaconChainSchema)
   .concat(featuresSchemas.bridgedTokensSchema)
+  .concat(featuresSchemas.crossChainTxsSchema)
   .concat(featuresSchemas.defiDropdownSchema)
   .concat(featuresSchemas.highlightsConfigSchema)
   .concat(featuresSchemas.marketplaceSchema)
   .concat(featuresSchemas.megaEthSchema)
+  .concat(featuresSchemas.multichainButtonSchema)
+  .concat(featuresSchemas.nameServicesSchema)
   .concat(featuresSchemas.rollupSchema)
   .concat(featuresSchemas.tacSchema)
   .concat(featuresSchemas.userOpsSchema)

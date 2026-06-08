@@ -58,6 +58,10 @@ const DEFAULT_THEME_COLORS = {
     primary: {
       _light: { value: '{colors.purple.600}' },
       _dark: { value: '{colors.purple.600}' },
+      text: {
+        _light: { value: '{colors.white}' },
+        _dark: { value: '{colors.white}' },
+      },
     },
   },
   link: {

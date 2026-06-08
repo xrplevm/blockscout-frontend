@@ -16,9 +16,10 @@ export type ViewMode = 'default' | 'compact';
 
 export interface SelectOption<Value extends string = string> {
   label: string;
-  renderLabel?: () => React.ReactNode;
+  renderLabel?: (place: 'item' | 'value-text') => React.ReactNode;
   value: Value;
   icon?: React.ReactNode;
+  afterElement?: React.ReactNode;
 };
 
 export interface SelectControlProps extends ChakraSelect.ControlProps {
@@ -165,7 +166,7 @@ export const SelectValueText = React.forwardRef<
                 WebkitBoxOrient: 'vertical',
                 display: '-webkit-box',
               }}>
-                { item.renderLabel ? item.renderLabel() : context.collection.stringifyItem(item) }
+                { item.renderLabel ? item.renderLabel('value-text') : context.collection.stringifyItem(item) }
               </span>
             ) }
           </Flex>
@@ -241,11 +242,13 @@ export interface SelectProps extends SelectRootProps {
   loading?: boolean;
   errorText?: string;
   contentProps?: SelectContentProps;
+  contentHeader?: React.ReactNode;
+  itemFilter?: (item: SelectOption) => boolean;
   mode?: ViewMode;
 }
 
 export const Select = React.forwardRef<HTMLDivElement, SelectProps>((props, ref) => {
-  const { collection, placeholder, portalled = true, loading, errorText, contentProps, mode, ...rest } = props;
+  const { collection, placeholder, portalled = true, loading, errorText, contentProps, contentHeader, itemFilter, mode, ...rest } = props;
   return (
     <SelectRoot
       ref={ ref }
@@ -263,11 +266,17 @@ export const Select = React.forwardRef<HTMLDivElement, SelectProps>((props, ref)
         />
       </SelectControl>
       <SelectContent portalled={ portalled } { ...contentProps }>
-        { collection.items.map((item: SelectOption) => (
-          <SelectItem item={ item } key={ item.value }>
-            { item.renderLabel ? item.renderLabel() : item.label }
-          </SelectItem>
-        )) }
+        { contentHeader }
+        { collection.items
+          .filter(itemFilter ?? (() => true))
+          .map((item: SelectOption) => (
+            <React.Fragment key={ item.value }>
+              <SelectItem item={ item }>
+                { item.renderLabel ? item.renderLabel('item') : item.label }
+              </SelectItem>
+              { item.afterElement }
+            </React.Fragment>
+          )) }
       </SelectContent>
     </SelectRoot>
   );
@@ -283,7 +292,7 @@ export interface SelectAsyncProps extends Omit<SelectProps, 'collection'> {
 }
 
 export const SelectAsync = React.forwardRef<HTMLDivElement, SelectAsyncProps>((props, ref) => {
-  const { placeholder, portalled = true, loading, loadOptions, extraControls, onValueChange, errorText, mode, ...rest } = props;
+  const { placeholder, portalled = true, loading, loadOptions, extraControls, onValueChange, errorText, mode, contentHeader, ...rest } = props;
 
   const [ collection, setCollection ] = React.useState<ListCollection<SelectOption>>(createListCollection<SelectOption>({ items: [] }));
   const [ inputValue, setInputValue ] = React.useState('');
@@ -331,9 +340,10 @@ export const SelectAsync = React.forwardRef<HTMLDivElement, SelectAsyncProps>((p
           />
           { extraControls }
         </Box>
+        { contentHeader }
         { collection.items.map((item) => (
           <SelectItem item={ item } key={ item.value }>
-            { item.renderLabel ? item.renderLabel() : item.label }
+            { item.renderLabel ? item.renderLabel('item') : item.label }
           </SelectItem>
         )) }
       </SelectContent>
