@@ -98,8 +98,8 @@ const DEFAULT_THEME_COLORS = {
   },
   stats: {
     bg: {
-      _light: { value: '{colors.gray.50}' },
-      _dark: { value: '{colors.whiteAlpha.100}' },
+      _light: { value: 'transparent' },
+      _dark: { value: 'transparent' },
     },
   },
   topbar: {

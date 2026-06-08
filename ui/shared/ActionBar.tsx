@@ -23,7 +23,7 @@ const ActionBar = ({ children, className, showShadow }: Props) => {
   return (
     <Flex
       className={ className }
-      backgroundColor={{ _light: 'white', _dark: 'gray.800' }}
+      backgroundColor={{ _light: '#FFFFFF', _dark: 'gray.800' }}
       pt={ 6 }
       mt={ -6 }
       pb={{ base: 6, lg: 3 }}

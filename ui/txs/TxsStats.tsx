@@ -6,11 +6,8 @@ import config from 'configs/app';
 import useApiQuery from 'lib/api/useApiQuery';
 import { useMultichainContext } from 'lib/contexts/multichain';
 import getStatsLabelFromTitle from 'lib/stats/getStatsLabelFromTitle';
-import { HOMEPAGE_STATS } from 'stubs/stats';
 import { TXS_STATS, TXS_STATS_MICROSERVICE } from 'stubs/tx';
-import { thinsp } from 'toolkit/utils/htmlEntities';
 import StatsWidget from 'ui/shared/stats/StatsWidget';
-import calculateUsdValue from 'ui/shared/value/calculateUsdValue';
 
 interface Props extends BoxProps {}
 
@@ -37,12 +34,6 @@ const TxsStats = (props: Props) => {
     },
   });
 
-  const statsQuery = useApiQuery('general:stats', {
-    queryOptions: {
-      placeholderData: HOMEPAGE_STATS,
-    },
-  });
-
   if ((isStatsFeatureEnabled && !txsStatsQuery.data) || (!isStatsFeatureEnabled && !txsStatsApiQuery.data)) {
     return null;
   }
@@ -55,27 +46,11 @@ const TxsStats = (props: Props) => {
 
   const pendingTxns = isStatsFeatureEnabled ? txsStatsQuery.data?.pending_transactions_30m?.value : txsStatsApiQuery.data?.pending_transactions_count;
 
-  // in microservice data, fee values are already divided by 10^decimals
-  const txFeeSum24h = isStatsFeatureEnabled ?
-    Number(txsStatsQuery.data?.transactions_fee_24h?.value) :
-    Number(txsStatsApiQuery.data?.transaction_fees_sum_24h) / (10 ** chainConfig.chain.currency.decimals);
-
-  const avgFee = isStatsFeatureEnabled ? txsStatsQuery.data?.average_transactions_fee_24h?.value : txsStatsApiQuery.data?.transaction_fees_avg_24h;
-
-  const txFeeAvg = avgFee ? calculateUsdValue({
-    amount: avgFee,
-    exchangeRate: statsQuery.data?.coin_price,
-    // in microservice data, fee values are already divided by 10^decimals
-    decimals: isStatsFeatureEnabled ? '0' : String(chainConfig.chain.currency.decimals),
-  }) : null;
-
   const itemsCount = [
     txCount24h,
     operationalTxns24hArbitrum,
     operationalTxns24hOptimistic,
     pendingTxns,
-    txFeeSum24h,
-    txFeeAvg,
   ].filter(item => item !== null && item !== undefined).length;
 
   return (
@@ -130,39 +105,6 @@ const TxsStats = (props: Props) => {
           value={ Number(pendingTxns).toLocaleString() }
           period={ isStatsFeatureEnabled ? '30min' : '1h' }
           isLoading={ isLoading }
-        />
-      ) }
-      { txFeeSum24h != null && (
-        <StatsWidget
-          label={ txsStatsQuery.data?.transactions_fee_24h?.title ?
-            getStatsLabelFromTitle(txsStatsQuery.data?.transactions_fee_24h?.title) :
-            'Transactions fees' }
-          value={ txFeeSum24h.toLocaleString(undefined, { maximumFractionDigits: 2 }) }
-          valuePostfix={ thinsp + chainConfig.chain.currency.symbol }
-          period="24h"
-          isLoading={ isLoading }
-          href={
-            chainConfig.features.stats.isEnabled ?
-              { pathname: '/stats/[id]', query: { id: 'txnsFee', ...(multichainContext?.chain.id ? { chain_id: multichainContext.chain.id } : {}) } } :
-              undefined
-          }
-        />
-      ) }
-      { txFeeAvg && (
-        <StatsWidget
-          label={ txsStatsQuery.data?.average_transactions_fee_24h?.title ?
-            getStatsLabelFromTitle(txsStatsQuery.data?.average_transactions_fee_24h?.title) :
-            'Avg. transaction fee' }
-          value={ txFeeAvg.usdStr ? txFeeAvg.usdStr : txFeeAvg.valueStr }
-          valuePrefix={ txFeeAvg.usdStr ? '$' : undefined }
-          valuePostfix={ txFeeAvg.usdStr ? undefined : thinsp + chainConfig.chain.currency.symbol }
-          period="24h"
-          isLoading={ isLoading }
-          href={
-            chainConfig.features.stats.isEnabled ?
-              { pathname: '/stats/[id]', query: { id: 'averageTxnFee', ...(multichainContext?.chain.id ? { chain_id: multichainContext.chain.id } : {}) } } :
-              undefined
-          }
         />
       ) }
     </Box>
