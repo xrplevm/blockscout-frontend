@@ -17,7 +17,7 @@ import AdBanner from 'ui/shared/ad/AdBanner';
 const rollupFeature = config.features.rollup;
 
 const Home = () => {
-  const bgColor = useColorModeValue('white', 'gray.800');
+  const bgColor = useColorModeValue('#FFFFFF', 'gray.800');
   const isMobile = useIsMobile();
 
   const leftWidget = (() => {
