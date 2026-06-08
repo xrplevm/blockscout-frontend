@@ -37,7 +37,7 @@ const NetworkLogo = ({ className }: Props) => {
       aria-label="Link to main page"
     >
       <Image
-        h="24px"
+        h="32px"
         skeletonWidth="120px"
         src={ logoSrc }
         alt={ `${ config.chain.name } network logo` }

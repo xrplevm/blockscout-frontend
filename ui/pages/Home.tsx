@@ -3,7 +3,6 @@ import React from 'react';
 
 import config from 'configs/app';
 import useIsMobile from 'lib/hooks/useIsMobile';
-import { useColorModeValue } from 'toolkit/chakra/color-mode';
 import HeroBanner from 'ui/home/HeroBanner';
 import Highlights from 'ui/home/Highlights';
 import ChainIndicators from 'ui/home/indicators/ChainIndicators';
@@ -17,7 +16,6 @@ import AdBanner from 'ui/shared/ad/AdBanner';
 const rollupFeature = config.features.rollup;
 
 const Home = () => {
-  const bgColor = useColorModeValue('white', 'gray.800');
   const isMobile = useIsMobile();
 
   const leftWidget = (() => {
@@ -42,11 +40,7 @@ const Home = () => {
       </Flex>
       { !isMobile && config.UI.homepage.highlights && <Highlights mt={ 3 }/> }
       { isMobile && <AdBanner mt={ 6 } mx="auto" justifyContent="center" format="mobile"/> }
-      <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 6 }
-        backgroundColor={ bgColor }
-        borderRadius="md"
-        padding={{ base: 6, lg: 8 }}
-      >
+      <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 6 }>
         { leftWidget }
         <Box flexGrow={ 1 }>
           <Transactions/>

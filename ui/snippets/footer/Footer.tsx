@@ -90,7 +90,7 @@ const Footer = () => {
 
   const fetch = useFetch();
 
-  const logo = useColorModeValue('peersyst-light.svg', 'peersyst-dark.svg');
+  const logo = useColorModeValue('bank-logo-light.svg', 'bank-logo-dark.svg');
 
   const { isPlaceholderData, data: linksData } = useQuery<unknown, ResourceError<unknown>, Array<CustomLinksGroup>>({
     queryKey: [ 'footer-links' ],
@@ -124,12 +124,12 @@ const Footer = () => {
     (gridArea?: GridProps['gridArea']) => {
       return (
         <Box gridArea={ gridArea }>
-          <Link fontSize="xs" href="https://www.peersyst.com">
-            <Image src={ `/static/${ logo }` } alt="Peersyst" w={ 36 }/>
+          <Link fontSize="xs" href="https://www.bch.hn">
+            <Image src={ `/cbdc/${ logo }` } alt="Banco Central de Honduras" w={ 40 }/>
           </Link>
           <Text mt={ 3 } fontSize="xs">
-            The XRP Ledger Ethereum Virtual Machine (EVM) sidechain is a fast and secure blockchain that brings web3 applications to the XRP
-            Ledger community.
+            Explorador de bloques del Banco Central de Honduras para la red de moneda digital:
+            consulta bloques, transacciones y direcciones de forma rápida y segura.
           </Text>
           <VStack mt={ 6 } alignItems="start">
             { apiVersionUrl && (
