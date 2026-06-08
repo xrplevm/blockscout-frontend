@@ -36,7 +36,13 @@ const Home = () => {
   return (
     <Box as="main">
       <HeroBanner/>
-      <Flex flexDir={{ base: 'column', lg: 'row' }} columnGap={ 2 } rowGap={ 1 } mt={ 3 } _empty={{ mt: 0 }}>
+      <Flex flexDir={{ base: 'column', lg: 'row' }} columnGap={ 2 } rowGap={ 1 } mt={ 3 } _empty={{ mt: 0 }}
+        backgroundColor={ bgColor }
+        borderRadius="lg"
+        borderWidth="1px"
+        borderColor="border.divider"
+        padding={{ base: 4, lg: 6 }}
+      >
         <Stats/>
         <ChainIndicators/>
       </Flex>
@@ -44,7 +50,9 @@ const Home = () => {
       { isMobile && <AdBanner mt={ 6 } mx="auto" justifyContent="center" format="mobile"/> }
       <Flex mt={ 8 } direction={{ base: 'column', lg: 'row' }} columnGap={ 12 } rowGap={ 6 }
         backgroundColor={ bgColor }
-        borderRadius="md"
+        borderRadius="lg"
+        borderWidth="1px"
+        borderColor="border.divider"
         padding={{ base: 6, lg: 8 }}
       >
         { leftWidget }
