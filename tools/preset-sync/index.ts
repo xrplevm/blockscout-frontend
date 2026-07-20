@@ -17,9 +17,11 @@ const PRESETS = {
   immutable: 'https://explorer.immutable.com',
   mega_eth: 'https://megaeth.blockscout.com',
   mekong: 'https://mekong.blockscout.com',
+  multichain_dev: 'https://superchain.k8s-dev.blockscout.com',
+  // multichain_prod: 'https://multichain.blockscout.com',
   neon_devnet: 'https://neon-devnet.blockscout.com',
+  numine: 'https://numine.blockscout.com',
   optimism: 'https://optimism.blockscout.com',
-  optimism_interop_0: 'https://optimism-interop-alpha-0.blockscout.com',
   optimism_sepolia: 'https://optimism-sepolia.blockscout.com',
   polygon: 'https://polygon.blockscout.com',
   rari_testnet: 'https://rari-testnet.cloud.blockscout.com',
@@ -64,6 +66,9 @@ const IGNORED_ENVS = [
   'NEXT_PUBLIC_HOMEPAGE_PLATE_TEXT_COLOR',
   'NEXT_PUBLIC_HOMEPAGE_PLATE_BACKGROUND',
   'NEXT_PUBLIC_VIEWS_CONTRACT_LANGUAGE_FILTERS',
+
+  'NEXT_PUBLIC_API_SPEC_URL',
+  'NEXT_PUBLIC_ROLLUP_L1_BASE_URL',
 ];
 
 function parseScriptArgs() {

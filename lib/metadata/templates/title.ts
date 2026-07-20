@@ -3,6 +3,7 @@ import { getFeaturePayload } from 'configs/app/features/types';
 import type { Route } from 'nextjs-routes';
 
 import config from 'configs/app';
+import { layerLabels } from 'lib/rollups/utils';
 
 const dappEntityName = (getFeaturePayload(config.features.marketplace)?.titles.entity_name ?? '').toLowerCase();
 
@@ -43,15 +44,15 @@ const TEMPLATE_MAP: Record<Route['pathname'], string> = {
   '/account/verified-addresses': '%network_name% - my verified addresses',
   '/public-tags/submit': '%network_name% - public tag requests',
   '/withdrawals': '%network_name% withdrawals - track on %network_name% explorer',
-  '/txn-withdrawals': '%network_name% L2 to L1 message relayer',
+  '/txn-withdrawals': `${ layerLabels.current } to ${ layerLabels.parent } message relayer`,
   '/visualize/sol2uml': '%network_name% Solidity UML diagram',
   '/csv-export': '%network_name% export data to CSV',
   '/deposits': '%network_name% deposits - track on %network_name% explorer',
   '/output-roots': '%network_name% output roots',
   '/dispute-games': '%network_name% dispute games',
   '/batches': '%network_name% txn batches',
-  '/batches/[number]': '%network_name% L2 txn batch %number%',
-  '/batches/celestia/[height]/[commitment]': '%network_name% L2 txn batch %height% %commitment%',
+  '/batches/[number]': `%network_name% ${ layerLabels.current } txn batch %number%`,
+  '/batches/celestia/[height]/[commitment]': `%network_name% ${ layerLabels.current } txn batch %height% %commitment%`,
   '/blobs/[hash]': '%network_name% blob %hash% details',
   '/ops': 'User operations on %network_name% - %network_name% explorer',
   '/op/[hash]': '%network_name% user operation %hash%',
@@ -73,6 +74,7 @@ const TEMPLATE_MAP: Record<Route['pathname'], string> = {
   '/operations': '%network_name% operations',
   '/operation/[id]': '%network_name% operation %id%',
   '/cc/tx/[hash]': '%network_name% cross-chain transaction %hash% details',
+  '/cross-chain-tx/[id]': '%network_name% cross-chain transaction %id% details',
 
   // multichain routes
   '/chain/[chain_slug]/accounts/label/[slug]': '%network_name% addresses search by label',
@@ -86,6 +88,7 @@ const TEMPLATE_MAP: Record<Route['pathname'], string> = {
   '/chain/[chain_slug]/token/[hash]/instance/[id]': '%network_name% token NFT instance',
   '/chain/[chain_slug]/tx/[hash]': '%network_name% transaction %hash% details',
   '/chain/[chain_slug]/visualize/sol2uml': '%network_name% Solidity UML diagram',
+  '/ecosystems': '%network_name% ecosystems',
 
   // service routes, added only to make typescript happy
   '/login': '%network_name% login',

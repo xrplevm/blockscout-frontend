@@ -4,6 +4,7 @@ import React from 'react';
 import type { NavItemInternal, NavItem, NavGroupItem } from 'types/client/navigation';
 
 import config from 'configs/app';
+import { layerLabels } from 'lib/rollups/utils';
 import { rightLineArrow } from 'toolkit/utils/htmlEntities';
 
 const marketplaceFeature = config.features.marketplace;
@@ -98,13 +99,13 @@ export default function useNavItems(): ReturnType {
       isActive: pathname === '/validators' || pathname === '/validators/[id]',
     } : null;
     const rollupDeposits = {
-      text: `Deposits (L1${ rightLineArrow }L2)`,
+      text: `Deposits (${ layerLabels.parent }${ rightLineArrow }${ layerLabels.current })`,
       nextRoute: { pathname: '/deposits' as const },
       icon: 'navigation/deposits',
       isActive: pathname === '/deposits',
     };
     const rollupWithdrawals = {
-      text: `Withdrawals (L2${ rightLineArrow }L1)`,
+      text: `Withdrawals (${ layerLabels.current }${ rightLineArrow }${ layerLabels.parent })`,
       nextRoute: { pathname: '/withdrawals' as const },
       icon: 'navigation/withdrawals',
       isActive: pathname === '/withdrawals',
@@ -271,6 +272,12 @@ export default function useNavItems(): ReturnType {
           icon: 'navigation/chain_stats',
           isActive: pathname.startsWith('/stats'),
         },
+        config.features.multichain.isEnabled && {
+          text: 'Ecosystems',
+          nextRoute: { pathname: '/ecosystems' as const },
+          icon: 'navigation/ecosystems',
+          isActive: pathname.startsWith('/ecosystems'),
+        },
         megaEthFeature.isEnabled && megaEthFeature.socketUrl.metrics && {
           text: 'Uptime',
           nextRoute: { pathname: '/uptime' as const },
@@ -312,7 +319,7 @@ export default function useNavItems(): ReturnType {
     } : null;
 
     const otherNavItems: Array<NavItem> | Array<Array<NavItem>> = [
-      config.features.opSuperchain.isEnabled ? {
+      config.features.multichain.isEnabled ? {
         text: 'Verify contract',
         url: 'https://vera.blockscout.com',
       } : {

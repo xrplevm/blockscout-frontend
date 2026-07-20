@@ -3,6 +3,7 @@ import React from 'react';
 
 import type { Transaction } from 'types/api/transaction';
 
+import { layerLabels } from 'lib/rollups/utils';
 import { Skeleton } from 'toolkit/chakra/skeleton';
 import * as DetailedInfo from 'ui/shared/DetailedInfo/DetailedInfo';
 import DetailedInfoNativeCoinValue from 'ui/shared/DetailedInfo/DetailedInfoNativeCoinValue';
@@ -21,14 +22,16 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
         <>
           <DetailedInfo.ItemLabel
 
-            hint="L1 fee that pays for rollup costs"
+            hint={ `${ layerLabels.parent } fee that pays for rollup costs` }
             isLoading={ isLoading }
           >
-            L1 data fee
+            { layerLabels.parent } data fee
           </DetailedInfo.ItemLabel>
           <DetailedInfoNativeCoinValue
             amount={ data.scroll?.l1_fee }
             exchangeRate={ data.exchange_rate }
+            historicalExchangeRate={ data.historic_exchange_rate }
+            hasExchangeRateToggle
             loading={ isLoading }
           />
         </>
@@ -37,7 +40,7 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
       { data.scroll?.l2_fee !== undefined && (
         <>
           <DetailedInfo.ItemLabel
-            hint="L2 execution fee"
+            hint={ `${ layerLabels.current } execution fee` }
             isLoading={ isLoading }
           >
             Execution fee
@@ -45,6 +48,8 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
           <DetailedInfoNativeCoinValue
             amount={ data.scroll?.l2_fee.value }
             exchangeRate={ data.exchange_rate }
+            historicalExchangeRate={ data.historic_exchange_rate }
+            hasExchangeRateToggle
             loading={ isLoading }
           />
         </>
@@ -56,11 +61,13 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
             hint="Commitment scalar"
             isLoading={ isLoading }
           >
-            L1 commit scalar
+            { layerLabels.parent } commit scalar
           </DetailedInfo.ItemLabel>
           <DetailedInfoNativeCoinValue
             amount={ String(data.scroll?.l1_fee_commit_scalar) }
             exchangeRate={ data.exchange_rate }
+            historicalExchangeRate={ data.historic_exchange_rate }
+            hasExchangeRateToggle
             loading={ isLoading }
           />
         </>
@@ -72,11 +79,13 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
             hint="Additional gas overhead of a data commitment transaction"
             isLoading={ isLoading }
           >
-            L1 Fee Overhead
+            { layerLabels.parent } Fee Overhead
           </DetailedInfo.ItemLabel>
           <DetailedInfoNativeCoinValue
             amount={ String(data.scroll?.l1_fee_overhead) }
             exchangeRate={ data.exchange_rate }
+            historicalExchangeRate={ data.historic_exchange_rate }
+            hasExchangeRateToggle
             loading={ isLoading }
           />
         </>
@@ -84,10 +93,10 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
       { (data.scroll?.l1_base_fee !== undefined || data.scroll?.l1_fee_scalar !== undefined) && (
         <>
           <DetailedInfo.ItemLabel
-            hint="L1 gas fees"
+            hint={ `${ layerLabels.parent } gas fees` }
             isLoading={ isLoading }
           >
-            L1 gas fees
+            { layerLabels.parent } gas fees
           </DetailedInfo.ItemLabel>
           <DetailedInfo.ItemValue>
             { data.scroll?.l1_base_fee !== undefined && (
@@ -121,10 +130,10 @@ export const TxInfoScrollFees = ({ data, isLoading }: Props) => {
       { (data.scroll?.l1_blob_base_fee !== undefined || data.scroll?.l1_fee_blob_scalar !== undefined) && (
         <>
           <DetailedInfo.ItemLabel
-            hint="L1 blob fees"
+            hint={ `${ layerLabels.parent } blob fees` }
             isLoading={ isLoading }
           >
-            L1 blob fees
+            { layerLabels.parent } blob fees
           </DetailedInfo.ItemLabel>
           <DetailedInfo.ItemValue>
             { data.scroll?.l1_blob_base_fee !== undefined && (

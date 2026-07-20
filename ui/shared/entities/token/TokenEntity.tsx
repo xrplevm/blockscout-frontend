@@ -72,6 +72,16 @@ const Icon = (props: IconProps) => {
     );
   }
 
+  const shield = (() => {
+    if ('shield' in props) {
+      return props.shield;
+    }
+
+    if (props.chain) {
+      return props.chain.logo ? { src: props.chain.logo } : { name: 'networks/icon-placeholder' as const };
+    }
+  })();
+
   return (
     <EntityBase.Icon
       { ...styles }
@@ -79,7 +89,7 @@ const Icon = (props: IconProps) => {
       src={ props.token.icon_url ?? undefined }
       alt={ `${ props.token.name || 'token' } logo` }
       fallback={ <TokenLogoPlaceholder/> }
-      shield={ props.shield ?? (props.chain ? { src: props.chain.logo } : undefined) }
+      shield={ shield }
       hint={ props.chain && props.shield !== false ? getChainTooltipText(props.chain, 'Token on ') : undefined }
       { ...props }
     />
