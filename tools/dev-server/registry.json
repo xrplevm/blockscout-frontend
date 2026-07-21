@@ -28,6 +28,7 @@
   "staging_multichain": "https://superchain.k8s-dev.blockscout.com",
   "tac": "https://explorer.tac.build",
   "tac_spb": "https://spb.explorer.tac.build",
+  "xrplevm": "https://explorer.testnet.xrplevm.org",
   "zetachain": "https://zetascan.com",
   "zetachain_testnet": "https://testnet.zetascan.com",
   "zilliqa": "https://zilliqa.blockscout.com",

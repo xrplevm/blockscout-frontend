@@ -53,6 +53,7 @@ on:
             - staging_multichain
             - tac
             - tac_spb
+            - xrplevm
             - zetachain
             - zetachain_testnet
             - zilliqa

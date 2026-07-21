@@ -38,6 +38,7 @@ const schema = yup
     NEXT_PUBLIC_NETWORK_NAME: yup.string().required(),
     NEXT_PUBLIC_NETWORK_SHORT_NAME: yup.string(),
     NEXT_PUBLIC_IS_TESTNET: yup.boolean(),
+    NEXT_PUBLIC_IS_DEVNET: yup.boolean(),
 
     // 3. UI views configuration
     // Some settings that we actually support in multichain mode
