@@ -1,0 +1,54 @@
+import type { schemas } from '@blockscout/api-types';
+
+import { BLOCK_HASH } from 'src/slices/block/stubs/list';
+import { TOKEN_TRANSFER_ERC_20, TOKEN_TRANSFER_ERC_20_TOTAL } from 'src/slices/token-transfer/stubs';
+import { TOKEN_INFO_ERC_20 } from 'src/slices/token/stubs';
+
+export const CELO_EPOCH_ITEM: schemas['CeloEpoch'] = {
+  timestamp: '2025-06-10T01:27:52.000000Z',
+  number: 1739,
+  end_block_number: 48563551,
+  start_block_number: 48477132,
+  type: 'L1',
+  is_finalized: true,
+  distribution: {
+    carbon_offsetting_transfer: TOKEN_TRANSFER_ERC_20_TOTAL,
+    community_transfer: TOKEN_TRANSFER_ERC_20_TOTAL,
+    transfers_total: TOKEN_TRANSFER_ERC_20_TOTAL,
+    reserve_bolster_transfer: null,
+  },
+};
+
+const CELO_EPOCH_REWARD: schemas['CeloEpochAggregatedElectionReward'] = {
+  count: 10,
+  total: '157705500305820107521',
+  token: TOKEN_INFO_ERC_20,
+};
+
+export const CELO_EPOCH: schemas['CeloEpochDetailed'] = {
+  timestamp: '2025-06-10T01:27:52.000000Z',
+  number: 1739,
+  start_block_number: 48477132,
+  start_processing_block_hash: BLOCK_HASH,
+  start_processing_block_number: 48563546,
+  end_processing_block_hash: BLOCK_HASH,
+  end_processing_block_number: 48563552,
+  end_block_number: 48563551,
+  type: 'L1',
+  is_finalized: true,
+  distribution: {
+    carbon_offsetting_transfer: TOKEN_TRANSFER_ERC_20,
+    community_transfer: TOKEN_TRANSFER_ERC_20,
+    transfers_total: {
+      token: TOKEN_INFO_ERC_20,
+      total: TOKEN_TRANSFER_ERC_20_TOTAL,
+    },
+    reserve_bolster_transfer: null,
+  },
+  aggregated_election_rewards: {
+    group: CELO_EPOCH_REWARD,
+    validator: CELO_EPOCH_REWARD,
+    voter: CELO_EPOCH_REWARD,
+    delegated_payment: CELO_EPOCH_REWARD,
+  },
+};

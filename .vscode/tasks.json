@@ -6,7 +6,7 @@
         // DEV SERVER
         {
             "type": "shell",
-            "command": "yarn dev:preset ${input:dev_config_preset}",
+            "command": "pnpm dev:preset ${input:dev_config_preset}",
             "problemMatcher": [],
             "label": "dev server",
             "detail": "start local dev server",
@@ -20,27 +20,6 @@
             "icon": {
                 "color": "terminal.ansiMagenta",
                 "id": "server-process"
-            },
-            "runOptions": {
-                "instanceLimit": 1
-            }
-        },
-        {
-            "type": "shell",
-            "command": "yarn dev:preset:sync --name=${input:dev_config_preset}",
-            "problemMatcher": [],
-            "label": "dev preset sync",
-            "detail": "synchronize dev preset",
-            "presentation": {
-                "reveal": "always",
-                "panel": "shared",
-                "focus": true,
-                "close": false,
-                "revealProblems": "onProblem",
-            },
-            "icon": {
-                "color": "terminal.ansiMagenta",
-                "id": "repo-sync"
             },
             "runOptions": {
                 "instanceLimit": 1
@@ -94,7 +73,7 @@
         // PW TESTS
         {
             "type": "shell",
-            "command": "${input:pwDebugFlag} yarn test:pw:local ${relativeFileDirname}/${fileBasename} ${input:pwArgs}",
+            "command": "${input:pwDebugFlag} pnpm test:pw:local ${relativeFileDirname}/${fileBasename} ${input:pwArgs}",
             "problemMatcher": [],
             "label": "pw: local",
             "detail": "run visual components tests for current file",
@@ -115,7 +94,7 @@
         },
         {
             "type": "shell",
-            "command": "yarn test:pw:docker ${relativeFileDirname}/${fileBasename} ${input:pwArgs}",
+            "command": "pnpm test:pw:docker ${relativeFileDirname}/${fileBasename} ${input:pwArgs}",
             "problemMatcher": [],
             "label": "pw: docker",
             "detail": "run visual components tests for current file",
@@ -136,7 +115,7 @@
         },
         {
             "type": "shell",
-            "command": "yarn test:pw:docker ${input:pwArgs}",
+            "command": "pnpm test:pw:docker ${input:pwArgs}",
             "problemMatcher": [],
             "label": "pw: docker all",
             "detail": "run visual components tests",
@@ -178,7 +157,7 @@
         },
         {
             "type": "shell",
-            "command": "yarn test:pw:detect-affected",
+            "command": "pnpm test:pw:detect-affected",
             "problemMatcher": [],
             "label": "pw: detect affected",
             "detail": "detect PW tests affected by changes in current branch",
@@ -201,7 +180,7 @@
         // VITEST TESTS
         {
             "type": "npm",
-            "script": "test:vitest",
+            "script": "test:vitest:watch",
             "problemMatcher": [],
             "label": "vitest",
             "detail": "run unit tests",
@@ -222,7 +201,7 @@
         },
         {
             "type": "shell",
-            "command": "yarn test:vitest ${relativeFileDirname}/${fileBasename}",
+            "command": "pnpm test:vitest ${relativeFileDirname}/${fileBasename}",
             "problemMatcher": [],
             "label": "vitest: file",
             "detail": "run unit tests for current file",
@@ -265,7 +244,7 @@
         },
         {
             "type": "shell",
-            "command": "yarn start:docker:preset ${input:dev_config_preset}",
+            "command": "pnpm start:docker:preset ${input:dev_config_preset}",
             "problemMatcher": [],
             "label": "docker: run",
             "detail": "run docker container with env preset",
@@ -336,46 +315,44 @@
             "id": "dev_config_preset",
             "description": "Choose dev server config preset:",
             "options": [
-              "all",
-              "main",
-              "localhost",
+              // presets:start — generated from tools/dev-server/registry.json (run `pnpm presets:sync`)
               "arbitrum",
               "arbitrum_sepolia",
-              "arbitrum_nova",
               "base",
               "blackfort_testnet",
               "celo",
               "celo_sepolia",
-              "garnet",
-              "gnosis",
-              "immutable",
               "eth",
               "eth_sepolia",
               "filecoin",
+              "garnet",
+              "gnosis",
+              "immutable",
               "mega_eth",
-              "mekong",
-              "multichain_dev",
-              "multichain_prod",
+              "multichain",
               "neon_devnet",
               "numine",
               "optimism",
               "optimism_sepolia",
               "polygon",
-              "rari_testnet",
+              "rootstock",
               "rootstock_testnet",
+              "robinhood",
               "scroll_sepolia",
               "shibarium",
               "stability_testnet",
+              "staging",
+              "staging_multichain",
               "tac",
               "tac_spb",
               "zetachain",
               "zetachain_testnet",
-              "zkevm",
               "zilliqa",
               "zksync",
               "zora",
+              // presets:end
             ],
-            "default": "main"
+            "default": "staging"
         },
     ],
 }

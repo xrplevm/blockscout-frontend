@@ -9,18 +9,24 @@ declare module 'yup' {
 
 import * as yup from 'yup';
 
-import type { AddressProfileAPIConfig } from 'types/client/addressProfileAPIConfig';
-import type { GasRefuelProviderConfig } from 'types/client/gasRefuelProviderConfig';
-import { GAS_UNITS } from 'types/client/gasTracker';
-import type { GasUnit } from 'types/client/gasTracker';
-import { PROVIDERS as TX_INTERPRETATION_PROVIDERS } from 'types/client/txInterpretation';
-import { VALIDATORS_CHAIN_TYPE } from 'types/client/validators';
-import type { ValidatorsChainType } from 'types/client/validators';
-import type { WalletType } from 'types/client/wallets';
-import { SUPPORTED_WALLETS } from 'types/client/wallets';
-import type { TxExternalTxsConfig } from 'types/client/externalTxsConfig';
+type AddressProfileAPIConfig = {
+  api_url_template: string;
+  tag_link_template?: string;
+  tag_icon?: string;
+  tag_bg_color?: string;
+  tag_text_color?: string;
+};
+import type { GasRefuelProviderConfig } from 'src/features/get-gas-button/types/client';
+import { GAS_UNITS } from 'src/slices/gas/types/config';
+import type { GasUnit } from 'src/slices/gas/types/config';
+import { PROVIDERS as TX_INTERPRETATION_PROVIDERS } from 'src/features/tx-interpretation/common/types/config';
+import { VALIDATORS_CHAIN_TYPE } from 'src/features/validators/types/config';
+import type { ValidatorsChainType } from 'src/features/validators/types/config';
+import type { WalletType } from 'src/features/web3-wallet/types/config';
+import { SUPPORTED_WALLETS } from 'src/features/web3-wallet/types/config';
+import type { TxExternalTxsConfig } from 'src/features/external-txs/types/client';
 
-import { replaceQuotes } from 'configs/app/utils';
+import { replaceQuotes } from 'src/config/utils/envs';
 import { urlTest, protocols } from './utils';
 import apisSchema from './schemas/apis';
 import chainSchema from './schemas/chain';
@@ -131,8 +137,28 @@ const schema = yup
       }),
     NEXT_PUBLIC_FLASHBLOCKS_SOCKET_URL: yup.string().test(urlTest),
     NEXT_PUBLIC_HOT_CONTRACTS_ENABLED: yup.boolean(),
+    NEXT_PUBLIC_USERCENTRICS_CONFIG: yup
+      .mixed()
+      .test('shape', 'Invalid schema for NEXT_PUBLIC_USERCENTRICS_CONFIG, it should have settingsId or rulesetId', (data) => {
+        const isUndefined = data === undefined;
+        const valueSchema = yup.object().transform(replaceQuotes).json().shape({
+          settingsId: yup.string(),
+          rulesetId: yup.string(),
+        });
+        return isUndefined || valueSchema.isValidSync(data);
+      }),
+    NEXT_PUBLIC_USERCENTRICS_DRAFT: yup.boolean().when('NEXT_PUBLIC_USERCENTRICS_CONFIG', {
+      is: (value: string) => Boolean(value),
+      then: (schema) => schema,
+      otherwise: (schema) => schema.test(
+        'not-exist',
+        'NEXT_PUBLIC_USERCENTRICS_DRAFT can only be used with NEXT_PUBLIC_USERCENTRICS_CONFIG',
+        value => value === undefined,
+      ),
+    }),
 
     // Misc
+    NEXT_PUBLIC_PRO_API_SUPPORTED: yup.boolean(),
     NEXT_PUBLIC_USE_NEXT_JS_PROXY: yup.boolean(),
     NEXT_PUBLIC_API_KEYS_ALERT_MESSAGE: yup.string(),
     NEXT_PUBLIC_API_DOCS_ALERT_MESSAGE: yup.string(),

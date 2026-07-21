@@ -3,12 +3,12 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const withRoutes = require('nextjs-routes/config')({
-  outDir: 'nextjs',
+  outDir: 'src/server',
 });
 
-const headers = require('./nextjs/headers');
-const redirects = require('./nextjs/redirects');
-const rewrites = require('./nextjs/rewrites');
+const headers = require('./src/server/headers');
+const redirects = require('./src/server/redirects');
+const rewrites = require('./src/server/rewrites');
 
 /** @type {import('next').NextConfig} */
 const moduleExports = {
@@ -16,6 +16,22 @@ const moduleExports = {
     'react-syntax-highlighter',
   ],
   reactStrictMode: true,
+  // Turbopack config (Next.js 16 default bundler) – mirrors webpack customizations below
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: [ '@svgr/webpack' ],
+        as: '*.js',
+      },
+    },
+    // Stub Node built-ins only in browser bundles; Node (SSR, instrumentation) keeps real modules
+    resolveAlias: {
+      fs: { browser: './src/server/empty-module.js' },
+      net: { browser: './src/server/empty-module.js' },
+      tls: { browser: './src/server/empty-module.js' },
+    },
+  },
+  // Used when BUNDLE_ANALYZER=true (run: next build --webpack) or for custom webpack tooling
   webpack(config) {
     config.module.rules.push(
       {
@@ -45,13 +61,22 @@ const moduleExports = {
   headers,
   output: 'standalone',
   productionBrowserSourceMaps: false,
-  serverExternalPackages: ["@opentelemetry/sdk-node", "@opentelemetry/auto-instrumentations-node"],
+  serverExternalPackages: [
+    '@opentelemetry/sdk-node',
+    '@opentelemetry/auto-instrumentations-node',
+    'pino-pretty',
+    'lokijs',
+    'encoding',
+  ],
   experimental: {
     staleTimes: {
       dynamic: 30,
       'static': 180,
     },
   },
+
+  // workaround for passing outDir to nextjs-routes CLI
+  outDir: 'src/shared/router',
 };
 
 module.exports = withBundleAnalyzer(withRoutes(moduleExports));

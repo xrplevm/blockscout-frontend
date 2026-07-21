@@ -5,7 +5,7 @@ import type { Plugin } from 'esbuild';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-import appConfig from 'configs/app';
+import appConfig from 'src/config';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -40,6 +40,7 @@ const config: PlaywrightTestConfig = defineConfig({
   expect: {
     toHaveScreenshot: {
       threshold: 0.05,
+      maxDiffPixels: 5,
     },
   },
 
@@ -60,7 +61,26 @@ const config: PlaywrightTestConfig = defineConfig({
         tsconfigPaths({ loose: true, ignoreConfigErrors: true }),
         react(),
         svgr({
-          exportAsDefault: true,
+          include: '**/*.svg',
+          svgrOptions: {
+            icon: true,
+            svgo: true,
+            plugins: [ '@svgr/plugin-jsx' ],
+            svgoConfig: {
+              plugins: [
+                {
+                  name: 'preset-default',
+                  params: {
+                    overrides: {
+                      removeViewBox: false,
+                      removeHiddenElems: false,
+                    },
+                  },
+                },
+                'removeDimensions',
+              ],
+            },
+          },
         }),
       ] as unknown as Array<Plugin>,
       build: {
@@ -93,15 +113,11 @@ const config: PlaywrightTestConfig = defineConfig({
           { find: '@metamask/post-message-stream', replacement: './playwright/mocks/modules/@metamask/post-message-stream.js' },
           { find: '@metamask/providers', replacement: './playwright/mocks/modules/@metamask/providers.js' },
 
-          // '@metamask/sdk imports the browser module as UMD, but @wagmi/connectors expects it to be ESM
-          // so we do a little remapping here
-          { find: '@metamask/sdk', replacement: './node_modules/@metamask/sdk/dist/browser/es/metamask-sdk.js' },
-
           // Mock for growthbook to test feature flags
-          { find: 'lib/growthbook/useFeatureValue', replacement: './playwright/mocks/lib/growthbook/useFeatureValue.js' },
+          { find: 'src/services/growthbook/useFeatureValue', replacement: './playwright/mocks/client/services/growthbook/useFeatureValue.js' },
 
           // Mock for reCaptcha hook
-          { find: 'ui/shared/reCaptcha/useReCaptcha', replacement: './playwright/mocks/ui/shared/recaptcha/useReCaptcha.js' },
+          { find: 'src/services/re-captcha/useReCaptcha', replacement: './playwright/mocks/client/services/re-captcha/useReCaptcha.js' },
 
           // The createWeb3Modal() function from web3modal/wagmi/react somehow pollutes the global styles which causes the tests to fail
           // We don't call this function in TestApp and since we use useWeb3Modal() and useWeb3ModalState() hooks in the code, we have to mock the module

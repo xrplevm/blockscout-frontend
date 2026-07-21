@@ -8,12 +8,9 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
-    "baseUrl": ".",
+    "rootDir": "../../../",
     "paths": {
-      "configs/*": ["../../../configs/*"],
-      "lib/*": ["../../../lib/*"],
-      "toolkit/*": ["../../../toolkit/*"],
-      "types/*": ["../../../types/*"]
+      "src/*": ["../../../src/*"],
     },
     "types": ["node"],
     "allowImportingTsExtensions": true,

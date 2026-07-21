@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: LicenseRef-Blockscout
+
+import type { schemas } from '@blockscout/api-types';
+import type { TransactionsSortingValue } from 'src/slices/tx/types/api';
+
+import compareBns from 'src/shared/numbers/compareBns';
+import { collator } from 'src/shared/texts/collator';
+
+export default function sortTxs(sorting: TransactionsSortingValue | undefined) {
+  return function sortingFn(tx1: schemas['Transaction'], tx2: schemas['Transaction']) {
+    switch (sorting) {
+      case 'value-desc':
+        return compareBns(tx2.value, tx1.value);
+      case 'value-asc':
+        return compareBns(tx1.value, tx2.value);
+      case 'fee-desc':
+        return compareBns(tx2.fee.value || 0, tx1.fee.value || 0);
+      case 'fee-asc':
+        return compareBns(tx1.fee.value || 0, tx2.fee.value || 0);
+      case 'block_number-asc': {
+        if (tx1.block_number && tx2.block_number) {
+          return tx1.block_number - tx2.block_number;
+        }
+        return 0;
+      }
+      default:
+        return 0;
+    }
+  };
+}
+
+export function sortTxsFromSocket(sorting: TransactionsSortingValue | undefined) {
+  if (sorting && sorting !== 'default') {
+    return sortTxs(sorting);
+  }
+
+  return function sortingFn(tx1: schemas['Transaction'], tx2: schemas['Transaction']) {
+    if (!tx1.timestamp) {
+      return -1;
+    }
+
+    if (!tx2.timestamp) {
+      return 1;
+    }
+
+    return collator.compare(tx2.timestamp, tx1.timestamp);
+  };
+}
