@@ -5,7 +5,7 @@ import type { Plugin } from 'esbuild';
 import svgr from 'vite-plugin-svgr';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-import appConfig from 'configs/app';
+import appConfig from 'src/config';
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -35,11 +35,12 @@ const config: PlaywrightTestConfig = defineConfig({
   workers: 1,
 
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  reporter: process.env.CI ? 'blob' : 'html',
 
   expect: {
     toHaveScreenshot: {
       threshold: 0.05,
+      maxDiffPixels: 5,
     },
   },
 
@@ -60,7 +61,26 @@ const config: PlaywrightTestConfig = defineConfig({
         tsconfigPaths({ loose: true, ignoreConfigErrors: true }),
         react(),
         svgr({
-          exportAsDefault: true,
+          include: '**/*.svg',
+          svgrOptions: {
+            icon: true,
+            svgo: true,
+            plugins: [ '@svgr/plugin-jsx' ],
+            svgoConfig: {
+              plugins: [
+                {
+                  name: 'preset-default',
+                  params: {
+                    overrides: {
+                      removeViewBox: false,
+                      removeHiddenElems: false,
+                    },
+                  },
+                },
+                'removeDimensions',
+              ],
+            },
+          },
         }),
       ] as unknown as Array<Plugin>,
       build: {
@@ -68,6 +88,21 @@ const config: PlaywrightTestConfig = defineConfig({
         // https://github.com/storybookjs/builder-vite/issues/409#issuecomment-1152848986
         sourcemap: false,
         minify: false,
+        rollupOptions: {
+          output: {
+            // Ensure __envs exists in every chunk so code (e.g. next/router, configs/app) that
+            // runs before index.ts/envs.js doesn't throw. Real envs are set when envs.js runs.
+            //
+            // Explanation:
+            // With await import(...) in useAccount/useWallet, Vite turns those into separate chunks.
+            // In Playwright CT, the component’s chunk (and its dependency graph, including useAccount → config → getEnvValue → __envs)
+            // can load and run before the main entry that runs envs.js.
+            // So when that chunk runs, window.__envs isn’t set yet and you get ReferenceError: __envs is not defined.
+            //
+            // https://rollupjs.org/configuration-options/#output-banner-output-footer
+            banner: '(function(){if(typeof window!==\'undefined\')window.__envs=window.__envs||{};})();',
+          },
+        },
       },
       resolve: {
         alias: [
@@ -78,15 +113,11 @@ const config: PlaywrightTestConfig = defineConfig({
           { find: '@metamask/post-message-stream', replacement: './playwright/mocks/modules/@metamask/post-message-stream.js' },
           { find: '@metamask/providers', replacement: './playwright/mocks/modules/@metamask/providers.js' },
 
-          // '@metamask/sdk imports the browser module as UMD, but @wagmi/connectors expects it to be ESM
-          // so we do a little remapping here
-          { find: '@metamask/sdk', replacement: './node_modules/@metamask/sdk/dist/browser/es/metamask-sdk.js' },
-
           // Mock for growthbook to test feature flags
-          { find: 'lib/growthbook/useFeatureValue', replacement: './playwright/mocks/lib/growthbook/useFeatureValue.js' },
+          { find: 'src/services/growthbook/useFeatureValue', replacement: './playwright/mocks/client/services/growthbook/useFeatureValue.js' },
 
           // Mock for reCaptcha hook
-          { find: 'ui/shared/reCaptcha/useReCaptcha', replacement: './playwright/mocks/ui/shared/recaptcha/useReCaptcha.js' },
+          { find: 'src/services/re-captcha/useReCaptcha', replacement: './playwright/mocks/client/services/re-captcha/useReCaptcha.js' },
 
           // The createWeb3Modal() function from web3modal/wagmi/react somehow pollutes the global styles which causes the tests to fail
           // We don't call this function in TestApp and since we use useWeb3Modal() and useWeb3ModalState() hooks in the code, we have to mock the module

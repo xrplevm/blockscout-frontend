@@ -3,12 +3,12 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const withRoutes = require('nextjs-routes/config')({
-  outDir: 'nextjs',
+  outDir: 'src/server',
 });
 
-const headers = require('./nextjs/headers');
-const redirects = require('./nextjs/redirects');
-const rewrites = require('./nextjs/rewrites');
+const headers = require('./src/server/headers');
+const redirects = require('./src/server/redirects');
+const rewrites = require('./src/server/rewrites');
 
 /** @type {import('next').NextConfig} */
 const moduleExports = {
@@ -16,6 +16,22 @@ const moduleExports = {
     'react-syntax-highlighter',
   ],
   reactStrictMode: true,
+  // Turbopack config (Next.js 16 default bundler) – mirrors webpack customizations below
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: [ '@svgr/webpack' ],
+        as: '*.js',
+      },
+    },
+    // Stub Node built-ins only in browser bundles; Node (SSR, instrumentation) keeps real modules
+    resolveAlias: {
+      fs: { browser: './src/server/empty-module.js' },
+      net: { browser: './src/server/empty-module.js' },
+      tls: { browser: './src/server/empty-module.js' },
+    },
+  },
+  // Used when BUNDLE_ANALYZER=true (run: next build --webpack) or for custom webpack tooling
   webpack(config) {
     config.module.rules.push(
       {
@@ -25,6 +41,14 @@ const moduleExports = {
     );
     config.resolve.fallback = { fs: false, net: false, tls: false };
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
+    
+    config.experiments = { ...config.experiments, topLevelAwait: true };
+    // Tell webpack the target supports async/await so it stops warning about top-level await
+    // Top-level await is belong to ES2017 specification that is adopted by all major browsers and Node.js.
+    config.output.environment = {
+      ...config.output.environment,
+      asyncFunction: true,
+    };
 
     return config;
   },
@@ -36,14 +60,23 @@ const moduleExports = {
   redirects,
   headers,
   output: 'standalone',
-  productionBrowserSourceMaps: true,
-  serverExternalPackages: ["@opentelemetry/sdk-node", "@opentelemetry/auto-instrumentations-node"],
+  productionBrowserSourceMaps: false,
+  serverExternalPackages: [
+    '@opentelemetry/sdk-node',
+    '@opentelemetry/auto-instrumentations-node',
+    'pino-pretty',
+    'lokijs',
+    'encoding',
+  ],
   experimental: {
     staleTimes: {
       dynamic: 30,
       'static': 180,
     },
   },
+
+  // workaround for passing outDir to nextjs-routes CLI
+  outDir: 'src/shared/router',
 };
 
 module.exports = withBundleAnalyzer(withRoutes(moduleExports));

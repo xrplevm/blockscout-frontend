@@ -3,11 +3,11 @@ import jsPlugin from '@eslint/js';
 import nextJsPlugin from '@next/eslint-plugin-next';
 import stylisticPlugin from '@stylistic/eslint-plugin';
 import reactQueryPlugin from '@tanstack/eslint-plugin-query';
+import boundariesPlugin from 'eslint-plugin-boundaries';
 import consistentDefaultExportNamePlugin from 'eslint-plugin-consistent-default-export-name';
 import importPlugin from 'eslint-plugin-import';
 import importHelpersPlugin from 'eslint-plugin-import-helpers';
 import jsxA11yPlugin from 'eslint-plugin-jsx-a11y';
-import noCyrillicStringPlugin from 'eslint-plugin-no-cyrillic-string';
 import playwrightPlugin from 'eslint-plugin-playwright';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
@@ -19,10 +19,39 @@ import { fileURLToPath } from 'node:url';
 
 import tseslint from 'typescript-eslint';
 
+const SPDX_HEADER = '// SPDX-License-Identifier: LicenseRef-Blockscout';
+
+const spdxLicenseRule = {
+  meta: {
+    type: 'layout',
+    fixable: 'code',
+    messages: { missing: `File must start with: ${ SPDX_HEADER }` },
+    schema: [],
+  },
+  create(context) {
+    return {
+      Program() {
+        const src = context.sourceCode.getText();
+        if (src.startsWith(SPDX_HEADER + '\n')) {
+          return;
+        }
+        context.report({
+          loc: { line: 1, column: 0 },
+          messageId: 'missing',
+          fix: (fixer) => fixer.replaceTextRange([ 0, 0 ], SPDX_HEADER + '\n\n'),
+        });
+      },
+    };
+  },
+};
+
 const RESTRICTED_MODULES = {
   paths: [
-    { name: 'dayjs', message: 'Please use lib/date/dayjs.ts instead of directly importing dayjs' },
-    { name: '@chakra-ui/icons', message: 'Using @chakra-ui/icons is prohibited. Please use regular svg-icon instead (see examples in "icons/" folder)' },
+    { name: 'dayjs', message: 'Please use src/shared/date-and-time/dayjs.ts instead of directly importing dayjs' },
+    {
+      name: '@chakra-ui/icons',
+      message: 'Using @chakra-ui/icons is prohibited. Please use regular svg-icon instead (see examples in "src/sprite/icons/" folder)',
+    },
     { name: '@metamask/providers', message: 'Please lazy-load @metamask/providers or use useProvider hook instead' },
     { name: '@metamask/post-message-stream', message: 'Please lazy-load @metamask/post-message-stream or use useProvider hook instead' },
     { name: 'playwright/TestApp', message: 'Please use render() fixture from test() function of playwright/lib module' },
@@ -41,7 +70,7 @@ const RESTRICTED_MODULES = {
         'Rating', 'RatingGroup', 'Textarea', 'Progress', 'ProgressCircle',
         'EmptyState',
       ],
-      message: 'Please use corresponding component or hook from "toolkit" instead',
+      message: 'Please use corresponding component or hook from "src/toolkit" instead',
     },
     {
       name: 'next/link',
@@ -50,13 +79,20 @@ const RESTRICTED_MODULES = {
     },
   ],
   patterns: [
-    'icons/*',
+    'src/sprite/icons/*',
   ],
 };
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const gitignorePath = path.resolve(__dirname, '.gitignore');
+
+/** @see src/ARCH_REDESIGN.md §8 — dependency layers for migrated code */
+const ARCH_BOUNDARY_ELEMENTS = [
+  { type: 'src-api', pattern: 'src/api/**', mode: 'full' },
+  { type: 'src-slices', pattern: 'src/slices/**', mode: 'full' },
+  { type: 'src-features', pattern: 'src/features/**', mode: 'full' },
+];
 
 /** @type {import('eslint').Linter.Config[]} */
 export default tseslint.config(
@@ -73,7 +109,12 @@ export default tseslint.config(
 
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
 
-  { settings: { react: { version: 'detect' } } },
+  {
+    settings: {
+      react: { version: 'detect' },
+      'boundaries/elements': ARCH_BOUNDARY_ELEMENTS,
+    },
+  },
 
   jsPlugin.configs.recommended,
 
@@ -289,6 +330,46 @@ export default tseslint.config(
     },
   },
 
+  // I have to disable this rule because of performance issues:
+  //    https://github.com/import-js/eslint-plugin-import/issues/3060
+  // Examples in our CI:
+  //    before: 1m15s - https://github.com/blockscout/frontend/actions/runs/23210591334/job/67457992864
+  //    after: 4m27s - https://github.com/blockscout/frontend/actions/runs/25108323146/job/73585871924
+  //
+  // {
+  //   files: [ 'src/**' ],
+  //   plugins: {
+  //     'import': importPlugin,
+  //   },
+  //   rules: {
+  //     'import/no-cycle': [ 'error', { maxDepth: 10 } ],
+  //   },
+  // },
+
+  /*
+   * ARCH_REDESIGN.md §6 — two hard boundaries enforced as ESLint errors.
+   */
+  {
+    files: [
+      'src/**/*.{ts,tsx}',
+    ],
+    plugins: {
+      boundaries: boundariesPlugin,
+    },
+    rules: {
+      'boundaries/element-types': [ 'error', {
+        'default': 'allow',
+        rules: [
+          {
+            from: 'src-api',
+            disallow: [ 'src-slices', 'src-features' ],
+            importKind: 'value',
+          },
+        ],
+      } ],
+    },
+  },
+
   {
     plugins: {
       'import-helpers': importHelpersPlugin,
@@ -301,20 +382,16 @@ export default tseslint.config(
           groups: [
             'module',
             '/types/',
-            [ '/^nextjs/' ],
+            [ '/^src/server/' ],
+            [ '/^src/api/' ],
+            [ '/^src/shell/' ],
+            [ '/^src/slices/' ],
+            [ '/^src/features/' ],
+            [ '/^src/config/', '/^src/services/', '/^src/shared/', '/^src/sprite/' ],
+            [ '/^src/toolkit/' ],
             [
-              '/^configs/',
-              '/^data/',
               '/^deploy/',
-              '/^icons/',
-              '/^lib/',
-              '/^mocks/',
-              '/^pages/',
               '/^playwright/',
-              '/^stubs/',
-              '/^theme/',
-              '/^toolkit/',
-              '/^ui/',
               '/^vitest/',
             ],
             [ 'parent', 'sibling', 'index' ],
@@ -322,15 +399,6 @@ export default tseslint.config(
           alphabetize: { order: 'asc', ignoreCase: true },
         },
       ],
-    },
-  },
-
-  {
-    plugins: {
-      'no-cyrillic-string': noCyrillicStringPlugin,
-    },
-    rules: {
-      'no-cyrillic-string/no-cyrillic-string': 'error',
     },
   },
 
@@ -346,7 +414,7 @@ export default tseslint.config(
       'consistent-default-export-name': consistentDefaultExportNamePlugin,
     },
     files: [
-      'ui/**/[A-Z]*.tsx',
+      'src/**/*.tsx',
     ],
     ignores: [
       '**/*.pw.*',
@@ -419,6 +487,9 @@ export default tseslint.config(
       '@stylistic/template-curly-spacing': [ 'error', 'always' ],
       '@stylistic/wrap-iife': [ 'error', 'inside' ],
     },
+    ignores: [
+      'next-env.d.ts',
+    ],
   },
 
   {
@@ -434,7 +505,7 @@ export default tseslint.config(
       'no-redeclare': 'off',
 
       // rules customizations
-      eqeqeq: [ 'error', 'allow-null' ],
+      eqeqeq: [ 'error' ],
       'id-match': [ 'error', '^[\\w$]+$' ],
       'max-len': [ 'error', 160, 4 ],
       'no-console': 'error',
@@ -451,24 +522,34 @@ export default tseslint.config(
       'one-var': [ 'error', 'never' ],
       'prefer-const': 'error',
 
-      // restricted imports and properties
+      // restricted imports, properties and syntax
+      'no-restricted-syntax': [ 'error',
+        {
+          selector: 'CallExpression[callee.property.name=\'localeCompare\']',
+          message: 'Use the shared collator from src/shared/texts/collator.ts (collator.compare) instead of String.prototype.localeCompare.',
+        },
+        {
+          selector: 'NewExpression[callee.object.name=\'Intl\'][callee.property.name=\'Collator\']',
+          message: 'Use the shared collator from src/shared/texts/collator.ts instead of constructing Intl.Collator inline.',
+        },
+      ],
       'no-restricted-imports': [ 'error', RESTRICTED_MODULES ],
       'no-restricted-properties': [ 2, {
         object: 'process',
         property: 'env',
         // FIXME: restrict the rule only NEXT_PUBLIC variables
-        message: 'Please use configs/app/index.ts to import any NEXT_PUBLIC environment variables. For other properties please disable this rule for a while.',
+        message: 'Please use src/config/index.ts to import any NEXT_PUBLIC environment variables. For other properties please disable this rule for a while.',
       } ],
     },
   },
   {
     files: [
-      'pages/**',
-      'nextjs/**',
+      'src/pages/**',
+      'src/server/**',
       'playwright/**',
       'deploy/scripts/**',
       'deploy/tools/**',
-      'middleware.ts',
+      'proxy.ts',
       'instrumentation*.ts',
       '*.config.ts',
       '*.config.js',
@@ -480,13 +561,36 @@ export default tseslint.config(
   },
   {
     files: [
-      'toolkit/chakra/**',
-      'toolkit/components/**',
-      'toolkit/package/**',
+      'src/toolkit/chakra/**',
+      'src/toolkit/components/**',
+      'src/toolkit/package/**',
     ],
     rules: {
       // for toolkit components allow to import @chakra-ui/react directly
       'no-restricted-imports': 'off',
+    },
+  },
+
+  {
+    plugins: { 'spdx-license': { rules: { header: spdxLicenseRule } } },
+    files: [ '**/*.{ts,tsx,js}' ],
+    ignores: [
+      '**/*.d.ts',
+      '**/*.pw.tsx',
+      '**/*.spec.{ts,tsx}',
+      '**/*.config.{ts,js}',
+      '**.config.{ts,js}',
+      '**/mocks/**',
+      '**/mocks.ts',
+      'playwright/**',
+      '**/stubs/**',
+      '**/stubs.ts',
+      'vitest/**',
+      'tools/**',
+      '.agents/**',
+    ],
+    rules: {
+      'spdx-license/header': 'error',
     },
   },
 );

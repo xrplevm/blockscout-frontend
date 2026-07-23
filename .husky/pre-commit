@@ -5,12 +5,15 @@
 echo 🧿 Running file linter...
 npx lint-staged
 
+echo 🧿 Running spelling checker...
+git diff --diff-filter=ACMRT --cached --name-only | npx cspell --config cspell.jsonc --file-list stdin --no-must-find-files
+
 # format svg
 echo 🧿 Running svg formatter...
 for file in `git diff --diff-filter=ACMRT --cached --name-only | grep ".svg\$"`
     do 
         echo "Formatting $file" 
-        ./node_modules/.bin/svgo -q $file --config svgo.config.format.js
+        ./node_modules/.bin/svgo -q $file --config svgo-format.config.js
         git add $file
     done
 

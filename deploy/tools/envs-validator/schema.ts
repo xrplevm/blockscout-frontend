@@ -9,19 +9,24 @@ declare module 'yup' {
 
 import * as yup from 'yup';
 
-import type { AddressProfileAPIConfig } from 'types/client/addressProfileAPIConfig';
-import type { GasRefuelProviderConfig } from 'types/client/gasRefuelProviderConfig';
-import { GAS_UNITS } from 'types/client/gasTracker';
-import type { GasUnit } from 'types/client/gasTracker';
-import type { MultichainProviderConfig } from 'types/client/multichainProviderConfig';
-import { PROVIDERS as TX_INTERPRETATION_PROVIDERS } from 'types/client/txInterpretation';
-import { VALIDATORS_CHAIN_TYPE } from 'types/client/validators';
-import type { ValidatorsChainType } from 'types/client/validators';
-import type { WalletType } from 'types/client/wallets';
-import { SUPPORTED_WALLETS } from 'types/client/wallets';
-import type { TxExternalTxsConfig } from 'types/client/externalTxsConfig';
+type AddressProfileAPIConfig = {
+  api_url_template: string;
+  tag_link_template?: string;
+  tag_icon?: string;
+  tag_bg_color?: string;
+  tag_text_color?: string;
+};
+import type { GasRefuelProviderConfig } from 'src/features/get-gas-button/types/client';
+import { GAS_UNITS } from 'src/slices/gas/types/config';
+import type { GasUnit } from 'src/slices/gas/types/config';
+import { PROVIDERS as TX_INTERPRETATION_PROVIDERS } from 'src/features/tx-interpretation/common/types/config';
+import { VALIDATORS_CHAIN_TYPE } from 'src/features/validators/types/config';
+import type { ValidatorsChainType } from 'src/features/validators/types/config';
+import type { WalletType } from 'src/features/web3-wallet/types/config';
+import { SUPPORTED_WALLETS } from 'src/features/web3-wallet/types/config';
+import type { TxExternalTxsConfig } from 'src/features/external-txs/types/client';
 
-import { replaceQuotes } from 'configs/app/utils';
+import { replaceQuotes } from 'src/config/utils/envs';
 import { urlTest, protocols } from './utils';
 import apisSchema from './schemas/apis';
 import chainSchema from './schemas/chain';
@@ -29,14 +34,6 @@ import metaSchema from './schemas/meta';
 import * as uiSchemas from './schemas/ui';
 import * as featuresSchemas from './schemas/features';
 import servicesSchema from './schemas/services';
-
-const multichainProviderConfigSchema: yup.ObjectSchema<MultichainProviderConfig> = yup.object({
-    name: yup.string().required(),
-    url_template: yup.string().required(),
-    logo: yup.string().required(),
-    dapp_id: yup.string(),
-    promo: yup.boolean(),
-});
 
 const schema = yup
   .object()
@@ -79,11 +76,6 @@ const schema = yup
     NEXT_PUBLIC_SAFE_TX_SERVICE_URL: yup.string().test(urlTest),
     NEXT_PUBLIC_IS_SUAVE_CHAIN: yup.boolean(),
     NEXT_PUBLIC_METASUITES_ENABLED: yup.boolean(),
-    NEXT_PUBLIC_MULTICHAIN_BALANCE_PROVIDER_CONFIG: yup
-      .array()
-      .transform(replaceQuotes)
-      .json()
-      .of(multichainProviderConfigSchema),
     NEXT_PUBLIC_GAS_REFUEL_PROVIDER_CONFIG: yup
       .mixed()
       .test('shape', 'Invalid schema were provided for NEXT_PUBLIC_GAS_REFUEL_PROVIDER_CONFIG, it should have name and url template', (data) => {
@@ -103,7 +95,6 @@ const schema = yup
     NEXT_PUBLIC_DATA_AVAILABILITY_ENABLED: yup.boolean(),
     NEXT_PUBLIC_ADVANCED_FILTER_ENABLED: yup.boolean(),
     NEXT_PUBLIC_CELO_ENABLED: yup.boolean(),
-    NEXT_PUBLIC_IS_ACCOUNT_SUPPORTED: yup.boolean(),
     NEXT_PUBLIC_DEX_POOLS_ENABLED: yup.boolean()
       .when('NEXT_PUBLIC_CONTRACT_INFO_API_HOST', {
         is: (value: string) => Boolean(value),
@@ -114,7 +105,6 @@ const schema = yup
           value => value === undefined,
         ),
       }),
-    NEXT_PUBLIC_SAVE_ON_GAS_ENABLED: yup.boolean(),
     NEXT_PUBLIC_ADDRESS_USERNAME_TAG: yup
       .mixed()
       .test('shape', 'Invalid schema were provided for NEXT_PUBLIC_ADDRESS_USERNAME_TAG, it should have api_url_template', (data) => {
@@ -147,9 +137,31 @@ const schema = yup
       }),
     NEXT_PUBLIC_FLASHBLOCKS_SOCKET_URL: yup.string().test(urlTest),
     NEXT_PUBLIC_HOT_CONTRACTS_ENABLED: yup.boolean(),
+    NEXT_PUBLIC_USERCENTRICS_CONFIG: yup
+      .mixed()
+      .test('shape', 'Invalid schema for NEXT_PUBLIC_USERCENTRICS_CONFIG, it should have settingsId or rulesetId', (data) => {
+        const isUndefined = data === undefined;
+        const valueSchema = yup.object().transform(replaceQuotes).json().shape({
+          settingsId: yup.string(),
+          rulesetId: yup.string(),
+        });
+        return isUndefined || valueSchema.isValidSync(data);
+      }),
+    NEXT_PUBLIC_USERCENTRICS_DRAFT: yup.boolean().when('NEXT_PUBLIC_USERCENTRICS_CONFIG', {
+      is: (value: string) => Boolean(value),
+      then: (schema) => schema,
+      otherwise: (schema) => schema.test(
+        'not-exist',
+        'NEXT_PUBLIC_USERCENTRICS_DRAFT can only be used with NEXT_PUBLIC_USERCENTRICS_CONFIG',
+        value => value === undefined,
+      ),
+    }),
 
     // Misc
+    NEXT_PUBLIC_PRO_API_SUPPORTED: yup.boolean(),
     NEXT_PUBLIC_USE_NEXT_JS_PROXY: yup.boolean(),
+    NEXT_PUBLIC_API_KEYS_ALERT_MESSAGE: yup.string(),
+    NEXT_PUBLIC_API_DOCS_ALERT_MESSAGE: yup.string(),
   })
   .concat(apisSchema)
   .concat(chainSchema)
@@ -159,15 +171,19 @@ const schema = yup
   .concat(uiSchemas.footerSchema)
   .concat(uiSchemas.miscSchema)
   .concat(uiSchemas.viewsSchema)
+  .concat(featuresSchemas.accountSchema)
   .concat(featuresSchemas.address3rdPartyWidgetsConfigSchema)
   .concat(featuresSchemas.adsSchema)
   .concat(featuresSchemas.apiDocsSchema)
   .concat(featuresSchemas.beaconChainSchema)
   .concat(featuresSchemas.bridgedTokensSchema)
+  .concat(featuresSchemas.crossChainTxsSchema)
   .concat(featuresSchemas.defiDropdownSchema)
   .concat(featuresSchemas.highlightsConfigSchema)
   .concat(featuresSchemas.marketplaceSchema)
   .concat(featuresSchemas.megaEthSchema)
+  .concat(featuresSchemas.multichainButtonSchema)
+  .concat(featuresSchemas.nameServicesSchema)
   .concat(featuresSchemas.rollupSchema)
   .concat(featuresSchemas.tacSchema)
   .concat(featuresSchemas.userOpsSchema)

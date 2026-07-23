@@ -1,26 +1,35 @@
 import * as yup from 'yup';
-import { CHAIN_INDICATOR_IDS, ChainIndicatorId, HeroBannerConfig, HeroBannerButtonState, HOME_STATS_WIDGET_IDS, HomeStatsWidgetId } from 'types/homepage';
-import { replaceQuotes } from 'configs/app/utils';
+import { CHAIN_INDICATOR_IDS, type ChainIndicatorId, type HeroBannerConfig, type HeroBannerButtonState, type HeroBannerSearchBorderColorState, HOME_STATS_WIDGET_IDS, type HomeStatsWidgetId } from 'src/slices/home/types/config';
+import { replaceQuotes } from 'src/config/utils/envs';
 import { getYupValidationErrorMessage, urlTest } from '../utils';
-import { NavigationLayout, NavigationPromoBannerConfig, NavItemExternal } from 'types/client/navigation';
-import { FeaturedNetwork, NETWORK_GROUPS, NetworkExplorer } from 'types/networks';
-import { CustomLink, CustomLinksGroup } from 'types/footerLinks';
-import { COLOR_THEME_IDS } from 'types/settings';
-import { FontFamily } from 'types/ui';
-import { ContractCodeIde, SMART_CONTRACT_EXTRA_VERIFICATION_METHODS, type SmartContractVerificationMethodExtra } from 'types/client/contract';
-import type { AddressFormat, AddressViewId } from 'types/views/address';
-import { ADDRESS_FORMATS, ADDRESS_VIEWS_IDS, IDENTICON_TYPES } from 'types/views/address';
-import { BLOCK_FIELDS_IDS } from 'types/views/block';
-import type { BlockFieldId } from 'types/views/block';
-import type { TxAdditionalFieldsId, TxFieldsId } from 'types/views/tx';
-import { TX_ADDITIONAL_FIELDS_IDS, TX_FIELDS_IDS } from 'types/views/tx';
-import type { VerifiedContractsFilter } from 'types/api/contracts';
-import * as regexp from 'toolkit/utils/regexp';
-import { NftMarketplaceItem } from 'types/views/nft';
+import { NavigationLayout, NavigationPromoBannerConfig, NavItemExternal } from 'src/shell/navigation/types';
+import type { FeaturedNetwork } from 'src/shell/top-bar/chain-menu/types';
+import { NETWORK_GROUPS } from 'src/shell/top-bar/chain-menu/types';
+import { AlternativeExplorer } from 'src/features/alternative-explorers/types/client';
+import { CustomLink, CustomLinksGroup } from 'src/shell/footer/types';
+import { COLOR_THEME_IDS } from 'src/shell/top-bar/settings/color-theme/config';
+import type { FontFamily } from 'src/config/misc';
+import type { ContractCodeIde } from 'src/slices/contract/types/config';
+import { SMART_CONTRACT_EXTRA_VERIFICATION_METHODS, type SmartContractVerificationMethodExtra } from 'src/slices/contract/types/config';
+import type { AddressFormat, AddressViewId } from 'src/slices/address/types/config';
+import { ADDRESS_FORMATS, ADDRESS_VIEWS_IDS, IDENTICON_TYPES } from 'src/slices/address/types/config';
+import { BLOCK_FIELDS_IDS } from 'src/slices/block/types/config';
+import type { BlockFieldId } from 'src/slices/block/types/config';
+import type { TxAdditionalFieldsId, TxFieldsId, TxViewId } from 'src/slices/tx/types/config';
+import { TX_ADDITIONAL_FIELDS_IDS, TX_FIELDS_IDS, TX_VIEWS_IDS } from 'src/slices/tx/types/config';
+import * as regexp from 'src/toolkit/utils/regexp';
+import { NftMarketplaceItem } from 'src/slices/token/types/client';
 
 const heroBannerButtonStateSchema: yup.ObjectSchema<HeroBannerButtonState> = yup.object({
     background: yup.array().max(2).of(yup.string()),
     text_color: yup.array().max(2).of(yup.string()),
+  });
+
+const heroBannerSearchBorderColorSchema: yup.ObjectSchema<HeroBannerSearchBorderColorState> = yup.object({
+    _empty: yup.array().max(2).of(yup.string()),
+    _hover: yup.array().max(2).of(yup.string()),
+    _focus: yup.array().max(2).of(yup.string()),
+    _filled: yup.array().max(2).of(yup.string()),
   });
 
 const heroBannerSchema: yup.ObjectSchema<HeroBannerConfig> = yup.object()
@@ -36,8 +45,11 @@ const heroBannerSchema: yup.ObjectSchema<HeroBannerConfig> = yup.object()
         _selected: heroBannerButtonStateSchema,
       }),
       search: yup.object({
+        background: yup.array().max(2).of(yup.string()),
         border_width: yup.array().max(2).of(yup.string()),
+        border_color: heroBannerSearchBorderColorSchema,
       }),
+      text: yup.string(),
     });
 
 export const homepageSchema = yup.object({
@@ -211,7 +223,21 @@ export const miscSchema = yup.object({
     NEXT_PUBLIC_HIDE_INDEXING_ALERT_BLOCKS: yup.boolean(),
     NEXT_PUBLIC_HIDE_INDEXING_ALERT_INT_TXS: yup.boolean(),
     NEXT_PUBLIC_HIDE_NATIVE_COIN_PRICE: yup.boolean(),
-    NEXT_PUBLIC_MAINTENANCE_ALERT_MESSAGE: yup.string(),
+    NEXT_PUBLIC_MAINTENANCE_ALERT_MESSAGE: yup
+    .mixed()
+    .test(
+      'shape',
+      'Invalid schema were provided for NEXT_PUBLIC_MAINTENANCE_ALERT_MESSAGE, it should be either an array of strings or a string',
+      (data) => {
+        const isStringSchema = yup.string();
+        const isArrayOfStringsSchema = yup
+          .array()
+          .transform(replaceQuotes)
+          .json()
+          .of(yup.string());
+
+        return isStringSchema.isValidSync(data) || isArrayOfStringsSchema.isValidSync(data);
+      }),
     NEXT_PUBLIC_COLOR_THEME_DEFAULT: yup.string().oneOf(COLOR_THEME_IDS),
     NEXT_PUBLIC_COLOR_THEME_OVERRIDES: yup.object().transform(replaceQuotes).json(),
     NEXT_PUBLIC_FONT_FAMILY_HEADING: yup
@@ -229,7 +255,7 @@ export const miscSchema = yup.object({
     NEXT_PUBLIC_MAX_CONTENT_WIDTH_ENABLED: yup.boolean(),
 });
 
-const networkExplorerSchema: yup.ObjectSchema<NetworkExplorer> = yup
+const networkExplorerSchema: yup.ObjectSchema<AlternativeExplorer> = yup
   .object({
     title: yup.string().required(),
     logo: yup.string().test(urlTest),
@@ -321,6 +347,14 @@ export const viewsSchema = yup.object({
       .json()
       .of(yup.string<TxAdditionalFieldsId>().oneOf(TX_ADDITIONAL_FIELDS_IDS)),
     NEXT_PUBLIC_VIEWS_TX_GROUPED_FEES: yup.boolean(),
+    NEXT_PUBLIC_VIEWS_TX_HIDDEN_VIEWS: yup
+      .array()
+      .transform(replaceQuotes)
+      .json()
+      .of(yup.string<TxViewId>().oneOf(TX_VIEWS_IDS)),
+
+    NEXT_PUBLIC_INTERNAL_TXS_ENABLED: yup.boolean(),
+
     NEXT_PUBLIC_VIEWS_NFT_MARKETPLACES: yup
       .array()
       .transform(replaceQuotes)

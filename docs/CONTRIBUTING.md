@@ -34,7 +34,7 @@ Please note that we accept contributions for newly submitted issues or those lab
 
 4. Install dependencies
     ```sh
-    yarn
+    pnpm
     ```
 
 &nbsp;
@@ -42,7 +42,7 @@ Please note that we accept contributions for newly submitted issues or those lab
 ## Toolkit
 
 We are using following technology stack in the project
-- [Yarn](https://yarnpkg.com/) as package manager
+- [pnpm](https://pnpm.io/) as the package manager
 - [ReactJS](https://reactjs.org/) as UI library
 - [Next.js](https://nextjs.org/) as application framework
 - [Chakra](https://chakra-ui.com/) as component library; our theme customization can be found in `/theme` folder
@@ -62,15 +62,19 @@ A. Custom configuration:
 
 1. Create `.env.local` file in the root folder and include all required environment variables from the [list](./ENVS.md)
 2. Optionally, clone `.env.example` and name it `.env.secrets`. Fill it with necessary secrets for integrating with [external services](./ENVS.md#external-services-configuration). Include only secrets you need.
-3. Use `yarn dev` command to start the Dev Server.
+3. Use `pnpm dev` command to start the Dev Server.
 4. Open your browser and navigate to the URL provided in the command line output (by default, it is `http://localhost:3000`).
 
-B. Pre-defined configuration:
+B. Pre-defined configuration (fetched from a live instance):
 
-1. Optionally, clone `.env.example` file into `configs/envs/.env.secrets`. Fill it with necessary secrets for integrating with [external services](./ENVS.md#external-services-configuration). Include only secrets your need.
-2. Choose one of the predefined configurations located in the `/configs/envs` folder.
-3. Start your local Dev Server using the `yarn dev:preset <config_preset_name>` command.
+1. Optionally, clone `.env.example` file into `.env.secrets` (repo root). Fill it with necessary secrets for integrating with [external services](./ENVS.md#external-services-configuration). Include only secrets you need. (Most public keys already come from the fetched instance config.)
+2. Choose an instance alias from `tools/dev-server/registry.json` (for example, `eth` or `base`).
+3. Start your local Dev Server using the `pnpm dev:preset <alias>` command — it fetches that instance's config from `<url>/node-api/config` at startup and writes it to `.env.tmp`. To run against a local backend instead, use `pnpm dev:local`.
 4. Open your browser and navigate to the URL provided in the command line output (by default, it is `http://localhost:3000`).
+
+To add or override an ENV for your branch (e.g. a new variable not yet on the instance), put it in the committed `.env.extra` file — it is layered over the fetched config for both the dev server and the review deploy. Personal, local-only overrides go in `.env.local` (git-ignored).
+
+To add or remove an instance preset, edit `tools/dev-server/registry.json` (the `alias` → `URL` map) and run `pnpm presets:sync` to regenerate the dropdowns in the deploy workflows and `.vscode/tasks.json`. CI (`pnpm presets:lint`) fails if they drift from the registry.
 
 
 &nbsp;
@@ -97,20 +101,20 @@ These are the steps that you have to follow to make everything work:
     - `features` - the particular feature of the app
     - `services` - some 3rd party service integration which is not related to one particular feature
 3. If a new variable is meant to store the URL of an external API service, remember to include its value in the Content-Security-Policy document header. Refer to `nextjs/csp/policies/app.ts` for details.
-4. For local development purposes add the variable with its appropriate values to pre-defined ENV configs `configs/envs` where it is needed
+4. For local development and the review deploy, add the variable with its appropriate value to the committed `.env.extra` file — it is layered over the fetched instance config in both
 5. Add the variable to CI configs where it is needed
     - `deploy/values/review/values.yaml.gotmpl` - review development environment
-    - `deploy/values/review-l2/values.yaml.gotmpl` - review development environment for L2 networks
+    - `deploy/values/review-2/values.yaml.gotmpl` - review development environment (second instance)
 6. If your variable is meant to receive a link to some external resource (image or JSON-config file), extend the array `ASSETS_ENVS` in `deploy/scripts/download_assets.sh` with your variable name
 7. Add validation schema for the new variable into the file `deploy/tools/envs-validator/schema.ts`
 8. Check if modified validation schema is valid by doing the following steps:
     - change your current directory to `deploy/tools/envs-validator`
-    - install deps with `yarn` command
+    - install deps with `pnpm` command
     - add your variable into `./test/.env.base` test preset or create a new test preset if needed
     - if your variable contains a link to the external JSON config file:
       - add example of file content into `./test/assets` directory; the file name should be constructed by stripping away prefix `NEXT_PUBLIC_` and postfix `_URL` if any, and converting the remaining string to lowercase (for example, `NEXT_PUBLIC_MARKETPLACE_CONFIG_URL` will become `marketplace_config.json`)
       - in the main script `index.ts` extend array `envsWithJsonConfig` with your variable name
-    - run `yarn test` command to see the validation result
+    - run `pnpm test` command to see the validation result
 9. Don't forget to mention in the PR notes that new ENV variable was added  
 
 &nbsp;
@@ -138,7 +142,7 @@ We have 3 pre-configured projects. You can run your test with the desired projec
 - `mobile` - project for testing on mobile devices, uses Safari mobile browser; add tag `+@mobile` to run test with this project
 - `dark-color-mode` - project for testing app in the dark color mode, uses desktop Chrome desktop device with forced dark color mode; add tag `+@dark-mode` to run test with this project.
 
-*Note* that, since we are developing not on the same operating system as our CI system, we have to use Docker to generate or update the screenshots. In order to do that use `yarn test:pw:docker <path-to-file> --update-snapshots` command. Please **do not commit** any screenshots generated via `yarn test:pw:local` command, their associated tests will fail in the CI run.
+*Note* that, since we are developing not on the same operating system as our CI system, we have to use Docker to generate or update the screenshots. In order to do that use `pnpm test:pw:docker <path-to-file> --update-snapshots` command. Please **do not commit** any screenshots generated via `pnpm test:pw:local` command, their associated tests will fail in the CI run.
 
 &nbsp;
 
@@ -186,22 +190,22 @@ We have 3 pre-configured projects. You can run your test with the desired projec
 | Command | Description |
 | --- | --- |
 | **Running and building** |
-| `yarn dev` | run local Dev Server with user's configuration |
-| `yarn dev:preset <config_preset_name>` | run local Dev Server with predefined configuration |
-| `yarn build:docker` | build a docker image locally |
-| `yarn start:docker:local` | start an application from previously built local docker image with user's configuration |
-| `yarn start:docker:preset <config_preset_name>` | start an application from previously built local docker image with predefined configuration |
+| `pnpm dev` | run local Dev Server with user's configuration |
+| `pnpm dev:preset <config_preset_name>` | run local Dev Server with predefined configuration |
+| `pnpm build:docker` | build a docker image locally |
+| `pnpm start:docker:local` | start an application from previously built local docker image with user's configuration |
+| `pnpm start:docker:preset <config_preset_name>` | start an application from previously built local docker image with predefined configuration |
 | **Linting and formatting** |
-| `yarn lint:eslint` | lint project files with ESLint |
-| `yarn lint:eslint:fix` | lint project files with ESLint and automatically fix problems |
-| `yarn lint:tsc` | compile project typescript files using TypeScript Compiler |
-| `yarn svg:format` | format and optimize SVG icons in the `/icons` folder using SVGO tool |
-| `yarn svg:build-sprite` | build SVG icons sprite |
+| `pnpm lint:eslint` | lint project files with ESLint |
+| `pnpm lint:eslint:fix` | lint project files with ESLint and automatically fix problems |
+| `pnpm lint:tsc` | compile project typescript files using TypeScript Compiler |
+| `pnpm svg:format` | format and optimize SVG icons in the `/icons` folder using SVGO tool |
+| `pnpm svg:build-sprite` | build SVG icons sprite |
 | **Testing** |
-| `yarn test:vitest` | run all Vitest unit tests |
-| `yarn test:pw:local` | run Playwright component tests locally |
-| `yarn test:pw:docker` | run Playwright component tests in docker container |
-| `yarn test:pw:ci` | run Playwright component tests in CI |
+| `pnpm test:vitest` | run all Vitest unit tests |
+| `pnpm test:pw:local` | run Playwright component tests locally |
+| `pnpm test:pw:docker` | run Playwright component tests in docker container |
+| `pnpm test:pw:ci` | run Playwright component tests in CI |
 
 &nbsp;
 

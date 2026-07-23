@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: LicenseRef-Blockscout
+
+import { Box } from '@chakra-ui/react';
+import React from 'react';
+
+import type { schemas } from '@blockscout/api-types';
+import type { SmartContract } from 'src/slices/contract/types/api';
+
+import { Alert } from 'src/toolkit/chakra/alert';
+import { Link } from 'src/toolkit/chakra/link';
+import { space } from 'src/toolkit/utils/htmlEntities';
+
+import ConflictingImplementationsModal from './ConflictingImplementationsModal';
+import { PROXY_TYPES } from './utils';
+
+interface Props {
+  type: NonNullable<schemas['ProxyType']>;
+  isLoading?: boolean;
+  conflictingImplementations?: SmartContract['conflicting_implementations'];
+}
+
+const ContractCodeProxyPattern = ({ type, isLoading, conflictingImplementations }: Props) => {
+  const proxyInfo = PROXY_TYPES[type];
+
+  if (!proxyInfo) {
+    return null;
+  }
+
+  const status = conflictingImplementations && conflictingImplementations.length > 0 ? 'warning' : 'success';
+
+  return (
+    <Alert status={ status } whiteSpace="pre-wrap" loading={ isLoading } descriptionProps={{ flexDir: 'column' }}>
+      { proxyInfo.link ? (
+        <Box>
+          This proxy smart-contract is detected via <Link href={ proxyInfo.link } external>{ proxyInfo.name }</Link>
+          { proxyInfo.description && ` - ${ proxyInfo.description }` }
+        </Box>
+      ) : (
+        <Box>
+          This proxy smart-contract is detected via { proxyInfo.name }
+          { proxyInfo.description && ` - ${ proxyInfo.description }` }
+        </Box>
+      ) }
+      { conflictingImplementations && conflictingImplementations.length > 0 && (
+        <Box mt={ 1 } whiteSpace="pre-wrap">
+          <span>This contract contains more than one proxy implementation address.{ space }</span>
+          <ConflictingImplementationsModal data={ conflictingImplementations }>
+            <Link>View details</Link>
+          </ConflictingImplementationsModal>
+        </Box>
+      ) }
+    </Alert>
+  );
+};
+
+export default React.memo(ContractCodeProxyPattern);

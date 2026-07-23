@@ -2,9 +2,9 @@ import type { TestFixture, Page } from '@playwright/test';
 import { isEqual } from 'es-toolkit';
 import type { PublicRpcSchema } from 'viem';
 
-import { getEnvValue } from 'configs/app/utils';
+import { getEnvValue } from 'src/config/utils/envs';
 
-type Params = Array<PublicRpcSchema[number]>;
+type Params = Array<PublicRpcSchema[number] & { status?: number }>;
 
 export type MockRpcResponseFixture = (params: Params) => Promise<void>;
 
@@ -44,6 +44,20 @@ const fixture: TestFixture<MockRpcResponseFixture, { page: Page }> = async({ pag
       });
 
       if (rpcMock) {
+        if (rpcMock.status && rpcMock.status !== 200) {
+          return route.fulfill({
+            status: rpcMock.status,
+            json: {
+              id,
+              jsonrpc: '2.0',
+              error: {
+                code: -32000,
+                message: 'Internal error',
+              },
+            },
+          });
+        }
+
         return route.fulfill({
           status: 200,
           json: {

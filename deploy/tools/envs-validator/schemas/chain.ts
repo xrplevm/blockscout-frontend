@@ -1,7 +1,7 @@
 import * as yup from 'yup';
 import { urlTest } from '../utils';
-import { replaceQuotes } from 'configs/app/utils';
-import type { NetworkVerificationTypeEnvs } from 'types/networks';
+import { replaceQuotes } from 'src/config/utils/envs';
+import type { NetworkVerificationTypeEnvs } from 'src/slices/chain/verification-type/types/config';
 
 // Blockchain parameters schema
 export default yup.object({
@@ -33,10 +33,10 @@ export default yup.object({
     NEXT_PUBLIC_NETWORK_VERIFICATION_TYPE: yup
       .string<NetworkVerificationTypeEnvs>().oneOf([ 'validation', 'mining', 'fee reception' ])
       .when('NEXT_PUBLIC_ROLLUP_TYPE', {
-        is: (value: string) => value === 'arbitrum' || value === 'zkEvm',
+        is: (value: string) => value === 'arbitrum',
         then: (schema) => schema.test(
           'not-exist',
-          'NEXT_PUBLIC_NETWORK_VERIFICATION_TYPE can not be set for Arbitrum and ZkEVM rollups',
+          'NEXT_PUBLIC_NETWORK_VERIFICATION_TYPE can not be set for Arbitrum rollups',
           value => value === undefined,
         ),
         otherwise: (schema) => schema,
@@ -51,4 +51,5 @@ export default yup.object({
         name: yup.string().required(),
       }).noUnknown(true)),
     NEXT_PUBLIC_IS_TESTNET: yup.boolean(),
+    NEXT_PUBLIC_IS_DEVNET: yup.boolean(),
 });

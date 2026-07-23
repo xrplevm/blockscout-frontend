@@ -1,5 +1,16 @@
 import * as yup from 'yup';
-import { protocols, urlTest } from '../utils';
+import { getYupValidationErrorMessage, protocols, urlTest } from '../utils';
+import { replaceQuotes } from 'src/config/utils/envs';
+import { StatsApiResourceNameRefetchInterval } from 'src/features/chain-stats/types/config';
+
+const statsApiRefetchIntervalSchema = yup.object<Record<StatsApiResourceNameRefetchInterval, number>>()
+  .transform(replaceQuotes)
+  .json()
+  .shape({
+    'stats:counters': yup.number().integer().positive(),
+    'stats:pages_main': yup.number().integer().positive(),
+  })
+  .exact();
 
 export default yup.object({
     NEXT_PUBLIC_API_PROTOCOL: yup.string().oneOf(protocols),
@@ -10,18 +21,59 @@ export default yup.object({
 
     NEXT_PUBLIC_STATS_API_HOST: yup.string().test(urlTest),
     NEXT_PUBLIC_STATS_API_BASE_PATH: yup.string(),
+    NEXT_PUBLIC_STATS_API_REFETCH_INTERVAL: yup
+      .mixed()
+      .test(
+        'shape', 
+        (ctx) => {
+          try {
+            statsApiRefetchIntervalSchema.validateSync(ctx.originalValue);
+            throw new Error('Unknown validation error');
+          } catch (error: unknown) {
+            const message = getYupValidationErrorMessage(error);
+            return 'Invalid schema was provided for NEXT_PUBLIC_STATS_API_REFETCH_INTERVAL' + (message ? `: ${ message }` : '');
+          }
+        },
+        (data) => {
+          const isUndefined = data === undefined;
+          return isUndefined || statsApiRefetchIntervalSchema.isValidSync(data);
+        })
+      .when('NEXT_PUBLIC_STATS_API_HOST', {
+        is: (value: string) => Boolean(value),
+        then: (schema) => schema,
+        otherwise: (schema) => schema.test(
+          'not-exist',
+          'NEXT_PUBLIC_STATS_API_REFETCH_INTERVAL can only be used with NEXT_PUBLIC_STATS_API_HOST',
+          value => value === undefined,
+        ),
+      }),
 
     NEXT_PUBLIC_VISUALIZE_API_HOST: yup.string().test(urlTest),
     NEXT_PUBLIC_VISUALIZE_API_BASE_PATH: yup.string(),
 
     NEXT_PUBLIC_CONTRACT_INFO_API_HOST: yup.string().test(urlTest),
-
-    NEXT_PUBLIC_NAME_SERVICE_API_HOST: yup.string().test(urlTest),
-
-    NEXT_PUBLIC_CLUSTERS_API_HOST: yup.string().test(urlTest),
-    NEXT_PUBLIC_CLUSTERS_CDN_URL: yup.string().test(urlTest),
+    NEXT_PUBLIC_CONTRACT_INFO_INSTANCE_ID: yup.string()
+      .when('NEXT_PUBLIC_CONTRACT_INFO_API_HOST', {
+        is: (value: string) => Boolean(value),
+        then: (schema) => schema,
+        otherwise: (schema) => schema.test(
+          'not-exist',
+          'NEXT_PUBLIC_CONTRACT_INFO_INSTANCE_ID can only be used with NEXT_PUBLIC_CONTRACT_INFO_API_HOST',
+          value => value === undefined,
+        ),
+      }),
 
     NEXT_PUBLIC_ADMIN_SERVICE_API_HOST: yup.string().test(urlTest),
+    NEXT_PUBLIC_ADMIN_RS_INSTANCE_ID: yup.string()
+      .when('NEXT_PUBLIC_ADMIN_SERVICE_API_HOST', {
+        is: (value: string) => Boolean(value),
+        then: (schema) => schema,
+        otherwise: (schema) => schema.test(
+          'not-exist',
+          'NEXT_PUBLIC_ADMIN_RS_INSTANCE_ID can only be used with NEXT_PUBLIC_ADMIN_SERVICE_API_HOST',
+          value => value === undefined,
+        ),
+      }),
 
     NEXT_PUBLIC_REWARDS_SERVICE_API_HOST: yup.string().test(urlTest),
 

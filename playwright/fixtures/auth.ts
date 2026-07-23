@@ -1,7 +1,7 @@
 import type { BrowserContext, TestFixture } from '@playwright/test';
 
-import config from 'configs/app';
-import * as cookies from 'lib/cookies';
+import config from 'src/config';
+import * as cookies from 'src/shared/storage/cookies';
 
 export function authenticateUser(context: BrowserContext) {
   context.addCookies([ { name: cookies.NAMES.API_TOKEN, value: 'foo', domain: config.app.host, path: '/' } ]);

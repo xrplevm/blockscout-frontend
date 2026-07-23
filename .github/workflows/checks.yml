@@ -3,17 +3,18 @@ on:
   workflow_call:
   workflow_dispatch:
   pull_request:
-    types: [ opened, synchronize, unlabeled ]
+    types: [ opened, synchronize, unlabeled, ready_for_review ]
     paths-ignore:
       - '.github/ISSUE_TEMPLATE/**'
       - '.husky/**'
       - '.vscode/**'
+      - '.agents/**'
+      - '.cursor/**'
       - 'deploy/**'
       - 'docs/**'
       - 'public/**'
-      - 'stub/**'
       - 'tools/**'
-      
+
 # concurrency:
 #   group: ${{ github.workflow }}__${{ github.job }}__${{ github.ref }}
 #   cancel-in-progress: true
@@ -22,42 +23,52 @@ permissions:
   contents: read
   pull-requests: write
 
+# pnpm deps: rely on actions/setup-node cache: pnpm (content-addressable store, keyed on
+# pnpm-lock.yaml). Always run pnpm install --frozen-lockfile in each job — with a warm store
+# it is mostly linking. Caching only the repo-root node_modules tarball omits workspace
+# package node_modules symlinks and breaks tsc/vite in toolkit and deploy/tools/* packages.
+
 jobs:
   code_quality:
     name: Code quality
     runs-on: ubuntu-latest
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip checks') && !(github.event.action == 'unlabeled' && github.event.label.name != 'skip checks') }}
+    # Draft PRs are skipped (spec-first workflow opens PRs as drafts early); checks run on
+    # ready_for_review, and workflow_dispatch always allows a manual run on any PR.
+    if: ${{ github.event.pull_request.draft != true && !contains(github.event.pull_request.labels.*.name, 'skip checks') && !(github.event.action == 'unlabeled' && github.event.label.name != 'skip checks') }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
 
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'yarn'
+          cache: 'pnpm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            node_modules
-          key: node_modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-  
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Generate Chakra types
-        if: steps.cache-node-modules.outputs.cache-hit == 'true'
-        run: yarn chakra:typegen
+      - parallel:
+          - name: Run ESLint
+            run: pnpm lint:eslint
 
-      - name: Run ESLint
-        run: yarn lint:eslint
+          - name: Compile TypeScript
+            run: pnpm lint:tsc
 
-      - name: Compile TypeScript
-        run: yarn lint:tsc
+          - name: Check licenses
+            run: pnpm lint:license:check
+
+          - name: Check spelling
+            run: pnpm lint:cspell --no-progress
+
+          - name: Check preset lists are in sync with registry
+            run: pnpm presets:lint
 
   toolkit_build_check:
     name: Toolkit build check
@@ -67,56 +78,41 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'yarn'
+          cache: 'pnpm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            node_modules
-          key: node_modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      
       - name: Install project dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Generate Chakra types
-        if: steps.cache-node-modules.outputs.cache-hit == 'true'
-        run: yarn chakra:typegen
+      - parallel:
+          - name: Type check the package
+            run: pnpm --filter @blockscout/ui-toolkit typecheck
 
-      - name: Install package dependencies
-        run: |
-          cd ./toolkit/package
-          yarn --frozen-lockfile
-
-      - name: Type check the package
-        run: |
-          cd ./toolkit/package
-          yarn typecheck
-
-      - name: Build the package
-        run: |
-          cd ./toolkit/package
-          yarn build
+          - name: Build the package
+            run: pnpm --filter @blockscout/ui-toolkit build
 
       - name: Verify build output
         run: |
-          cd ./toolkit/package
+          cd ./src/toolkit/package
           if [ ! -d "dist" ]; then
             echo "Build failed: dist directory not found"
             exit 1
           fi
-          
+
           if [ ! -f "dist/index.js" ]; then
             echo "Build failed: dist/index.js not found"
             exit 1
           fi
-          
+
           if [ ! -f "dist/index.d.ts" ]; then
             echo "Build failed: dist/index.d.ts not found"
             exit 1
@@ -130,38 +126,23 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'yarn'
+          cache: 'pnpm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            node_modules
-          key: node_modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-    
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-
-      - name: Generate Chakra types
-        if: steps.cache-node-modules.outputs.cache-hit == 'true'
-        run: yarn chakra:typegen
-
-      - name: Install script dependencies
-        run: cd ./deploy/tools/envs-validator && yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Run validation tests
-        run: |
-          set +e
-          cd ./deploy/tools/envs-validator && yarn test
-          exitcode="$?"
-          echo "exitcode=$exitcode" >> $GITHUB_OUTPUT
-          exit "$exitcode"
+        run: pnpm --filter envs-validator test
 
   vitest_tests:
     name: Unit tests
@@ -173,30 +154,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'yarn'
+          cache: 'pnpm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            node_modules
-          key: node_modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-    
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-
-      - name: Generate Chakra types
-        if: steps.cache-node-modules.outputs.cache-hit == 'true'
-        run: yarn chakra:typegen
+        run: pnpm install --frozen-lockfile
 
       - name: Run Vitest
-        run: yarn test:vitest ${{ github.event_name == 'pull_request' && '--changed=origin/main' || '' }} --passWithNoTests
+        run: pnpm test:vitest ${{ github.event_name == 'pull_request' && '--changed=origin/main' || '' }} --passWithNoTests
 
   pw_affected_tests:
     name: Resolve affected Playwright tests
@@ -209,36 +183,26 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'yarn'
+          cache: 'pnpm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            node_modules
-          key: node_modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-      
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
-      - name: Generate Chakra types
-        if: steps.cache-node-modules.outputs.cache-hit == 'true'
-        run: yarn chakra:typegen
-
-      - name: Install script dependencies 
-        run: cd ./deploy/tools/affected-tests && yarn --frozen-lockfile
-      
       - name: Run script
-        run: yarn test:pw:detect-affected
+        run: pnpm test:pw:detect-affected
 
       - name: Upload result file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-affected-tests
           path: ./playwright/affected-tests.txt
@@ -249,9 +213,9 @@ jobs:
     needs: [ code_quality, envs_validation, pw_affected_tests ]
     if: |
       always() &&
-      needs.code_quality.result == 'success' && 
-      needs.envs_validation.result == 'success' && 
-      (needs.pw_affected_tests.result == 'success' || needs.pw_affected_tests.result == 'skipped') 
+      needs.code_quality.result == 'success' &&
+      needs.envs_validation.result == 'success' &&
+      (needs.pw_affected_tests.result == 'success' || needs.pw_affected_tests.result == 'skipped')
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.57.0-noble
@@ -270,46 +234,126 @@ jobs:
         with:
           lfs: 'true'
 
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
           node-version: 22.14.0
-          cache: 'yarn'
+          cache: 'pnpm'
 
-      - name: Cache node_modules
-        uses: actions/cache@v4
-        id: cache-node-modules
-        with:
-          path: |
-            node_modules
-          key: node_modules-${{ runner.os }}-${{ hashFiles('yarn.lock') }}
-    
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-
-      - name: Generate Chakra types
-        if: steps.cache-node-modules.outputs.cache-hit == 'true'
-        run: yarn chakra:typegen
+        run: pnpm install --frozen-lockfile
 
       - name: Download affected tests list
         if: ${{ needs.pw_affected_tests.result == 'success' }}
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         continue-on-error: true
         with:
           name: playwright-affected-tests
           path: ./playwright
 
       - name: Run PlayWright
-        run: yarn test:pw:ci --affected=${{ github.event_name == 'pull_request' }} --pass-with-no-tests
+        run: pnpm test:pw:ci --affected=${{ github.event_name == 'pull_request' }} --pass-with-no-tests
         env:
           HOME: /root
           PW_PROJECT: ${{ matrix.project }}
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
+      - name: Upload blob report to GitHub Actions Artifacts
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
         with:
-          name: playwright-report-${{ matrix.project }}
+          name: blob-report-${{ matrix.project }}
+          path: blob-report
+          retention-days: 1
+
+  pw_report:
+    name: Generate Playwright report
+    # Merge reports after pw_tests job, even if some shards have failed
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    needs: [ pw_tests ]
+    steps:
+      - name: Download blob reports from GitHub Actions Artifacts
+        id: download-reports
+        uses: actions/download-artifact@v5
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/all-blob-reports
+          pattern: blob-report-*
+          merge-multiple: true
+
+      - name: Check for downloaded reports
+        id: check-reports
+        run: |
+          if [ -d "$RUNNER_TEMP/all-blob-reports" ] && [ -n "$(ls -A "$RUNNER_TEMP/all-blob-reports" 2>/dev/null)" ]; then
+            echo "has_reports=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_reports=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout repo
+        if: steps.check-reports.outputs.has_reports == 'true'
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        if: steps.check-reports.outputs.has_reports == 'true'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.1
+          cache: true
+
+      - name: Setup node
+        if: steps.check-reports.outputs.has_reports == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.14.0
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        if: steps.check-reports.outputs.has_reports == 'true'
+        run: pnpm install --frozen-lockfile
+
+      - name: Merge into HTML Report
+        if: steps.check-reports.outputs.has_reports == 'true'
+        run: npx playwright merge-reports --reporter html "$RUNNER_TEMP/all-blob-reports"
+
+      - name: Upload HTML report artifact
+        # Upload HTML report to GitHub Actions Artifacts only for pull requests from forks
+        if: steps.check-reports.outputs.has_reports == 'true' && (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository)
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-html-report
           path: playwright-report
-          retention-days: 10
+          retention-days: 7
+
+      - name: Configure AWS credentials
+        if: steps.check-reports.outputs.has_reports == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Upload HTML report to S3
+        # Upload HTML report to S3 only for pull requests from the main repository or for non-pull requests events
+        if: steps.check-reports.outputs.has_reports == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        run: |
+          export "SHORT_SHA=`echo ${GITHUB_SHA} | cut -c1-8`"
+          aws s3 cp playwright-report/ s3://${{ vars.AWS_BUCKET_NAME }}/report-${SHORT_SHA} --recursive
+          echo "PLAYWRIGHT_URL=https://${{ vars.AWS_BUCKET_NAME }}.s3.${{ vars.AWS_REGION }}.amazonaws.com/report-${SHORT_SHA}/index.html" >> "$GITHUB_ENV"
+
+      - name: Add link to job summary
+        if: steps.check-reports.outputs.has_reports == 'true'
+        run: |
+          echo "### Playwright report" >> $GITHUB_STEP_SUMMARY
+          if [ -n "${{ env.PLAYWRIGHT_URL }}" ]; then
+            echo "[View report (S3)](${{ env.PLAYWRIGHT_URL }})" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Download the **playwright-html-report** artifact below to view the report (open \`index.html\` in a browser)." >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "[Read about ducks](https://animalkingdom.org/animals/ducks/)" >> $GITHUB_STEP_SUMMARY
