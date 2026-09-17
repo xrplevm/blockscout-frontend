@@ -7,7 +7,7 @@ disambiguation between easily-confused terms, etymology, and scope. Folder
 paths and env var names are intentionally **not** listed — paths follow
 predictably from feature names (`src/features/<kebab-case-name>/`), and env
 vars are documented in `docs/ENVS.md`. Architectural concepts like
-**slice** and **feature** are defined in `.agents/rules/architecture.mdc`.
+**slice** and **feature** are defined in `.agents/rules/architecture.md`.
 
 **Kinds** in the table below:
 
@@ -36,9 +36,10 @@ vars are documented in `docs/ENVS.md`. Architectural concepts like
 | **Connect Wallet** | feature | Lets users write to contracts, sign transactions, and connect a wallet to the explorer. Previously named `blockchain-interaction`; the current config key is `connectWallet`. Distinct from **Web3 Wallet**. |
 | **Dispute Games** | entity | Part of the Optimism **Fault Proof System**. On-chain games used to challenge and resolve disputed L2 output roots. |
 | **Easter Eggs** | feature | Hidden mini-games wired to claim links for badge rewards. |
+| **Eden** | chain | A rollup built on `ev-reth` / evstack. Introduces the **Sponsored Transaction** type. |
 | **Epoch** | entity | A consensus time period specific to **Celo**. Has its own index and detail pages. Always refers to a Celo epoch in this codebase — not a generic blockchain concept. |
 | **Fault Proof System** | feature | Optimism's mechanism for proving the correctness of L2 state transitions on L1 via **Dispute Games**. |
-| **Flashblocks** | feature | MegaETH's sub-second block streaming mechanism. |
+| **Flashblocks** | feature | Code name for the sub-second pre-confirmation block streaming feature. Surfaced to users as **Subblocks** or **Flashblocks** on OP Stack chains, whichever name the chain uses (OP Labs renamed it from "Flashblocks"), and as **mini-blocks** on MegaETH. The `flashblocks` code name and `FLASHBLOCKS` env vars are retained. |
 | **Hot Contracts** | feature | Ranked list of the most recently and frequently interacted-with smart contracts on the network. |
 | **Interchain Indexer** | service | Microservice that indexes cross-chain messages and token transfers across heterogeneous chains. General-purpose interop indexer, not ZetaChain-specific. Provides "Cross chain txs" feature. Distinct from **CCTX**. |
 | **Interop Messages** | entity | **Deprecated** Cross-rollup messages passed between OP Stack chains using the native interoperability protocol. Distinct from **Interchain Indexer** messages. |
@@ -52,6 +53,7 @@ vars are documented in `docs/ENVS.md`. Architectural concepts like
 | **Rewards** | feature | The Blockscout Merits program — a token rewards and incentives system operated by Blockscout. Entirely distinct from **Block Reward** (on-chain block-producer payouts). |
 | **Rollup** | concept | A chain that settles transactions on a parent (L1) chain. Introduces specific entities: deposits, withdrawals, transaction batches, output roots. Contrast with **Chain Variant**. |
 | **SolidityScan** | service | Third-party smart contract security vulnerability scanner integrated into contract detail pages. |
+| **Sponsored Transaction** | entity | **Eden**-specific transaction type (EIP-2718 type `0x76`): an executor submits an ordered batch of calls, while a separate sponsor signs for and pays the fee. No equivalent on standard EVM chains. |
 | **SUAVE** | chain | MEV-focused chain developed by Flashbots, built around a trusted execution environment (TEE) architecture. Introduces the **Kettle** entity. |
 | **TAC (Ton Application Chain)** | chain | A chain that bridges the TON blockchain and EVM ecosystems. Introduces the **Operation** entity. |
 | **Tx Actions** | feature | Structured per-transaction action breakdown rendered on the tx details page — a first-party Blockscout interpretation of what a tx did. Distinct from **Tx Interpretation** (natural-language summary) and from raw calldata. |

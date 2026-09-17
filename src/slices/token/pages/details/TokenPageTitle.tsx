@@ -25,6 +25,7 @@ import sortMetadataTags from 'src/features/address-metadata/components/tag/sort'
 import useAddressMetadataInfoQuery from 'src/features/address-metadata/hooks/useAddressMetadataInfoQuery';
 import AlternativeExplorers from 'src/features/alternative-explorers/components/AlternativeExplorers';
 import { useMultichainContext } from 'src/features/multichain/context';
+import TokenActionButton from 'src/features/token-action-button/components/TokenActionButton';
 import TokenVerifiedInfo from 'src/features/verified-tokens/pages/token/TokenVerifiedInfo';
 import TokenAddToWallet from 'src/features/web3-wallet/components/TokenAddToWallet';
 
@@ -45,14 +46,9 @@ interface Props {
 
 const TokenPageTitle = ({ tokenQuery, addressQuery, verifiedInfoQuery, hash }: Props) => {
   const multichainContext = useMultichainContext();
-  const addressHash = !tokenQuery.isPlaceholderData ? (tokenQuery.data?.address_hash || '') : '';
 
   const addressesForMetadataQuery = React.useMemo(() => ([ hash ].filter(Boolean)), [ hash ]);
   const addressMetadataQuery = useAddressMetadataInfoQuery(addressesForMetadataQuery);
-
-  const isLoading = tokenQuery.isPlaceholderData ||
-    addressQuery.isPlaceholderData ||
-    (config.features.verifiedTokens.isEnabled && verifiedInfoQuery.isPending);
 
   const tokenSymbolText = tokenQuery.data?.symbol ? ` (${ tokenQuery.data.symbol })` : '';
 
@@ -94,6 +90,11 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, verifiedInfoQuery, hash }: P
     multichainContext?.chain?.app_config,
   ]);
 
+  const isTagsLoading = tokenQuery.isPlaceholderData ||
+    addressQuery.isPlaceholderData ||
+    (config.features.addressMetadata.isEnabled && addressMetadataQuery.isPending) ||
+    (config.features.verifiedTokens.isEnabled && verifiedInfoQuery.isPending);
+
   const contentAfter = (
     <>
       { tokenQuery.data && <TokenEntity.Reputation value={ tokenQuery.data.reputation } ml={ 0 }/> }
@@ -113,32 +114,39 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, verifiedInfoQuery, hash }: P
         </Tooltip>
       ) }
       <MetadataTags
-        isLoading={ isLoading || (config.features.addressMetadata.isEnabled && addressMetadataQuery.isPending) }
+        isLoading={ isTagsLoading }
         tags={ tags }
         addressHash={ addressQuery.data?.hash }
         flexGrow={ 1 }
       />
+      <TokenActionButton
+        tokenHash={ hash }
+        tokenType={ tokenQuery.data?.type }
+        isLoading={ tokenQuery.isPlaceholderData }
+      />
     </>
   );
 
+  const isMainDataLoading = tokenQuery.isPlaceholderData;
+  // should not be shown before the main title text is loaded
+  const isAddressDataLoading = tokenQuery.isPlaceholderData || addressQuery.isPlaceholderData;
+
   const secondRow = (
     <Flex alignItems="center" w="100%" minW={ 0 } columnGap={ 2 } rowGap={ 2 } flexWrap={{ base: 'wrap', lg: 'nowrap' }}>
-      { addressQuery.data && (
-        <AddressEntity
-          address={{ ...addressQuery.data, name: '' }}
-          isLoading={ isLoading }
-          variant="subheading"
-          icon={ multichainContext?.chain ? {
-            shield: { name: 'pie_chart', isLoading },
-          } : undefined }
-        />
-      ) }
-      { !isLoading && tokenQuery.data && <TokenAddToWallet token={ tokenQuery.data } variant="button"/> }
-      { addressQuery.data && <AddressQrCode hash={ addressQuery.data.hash } isLoading={ isLoading }/> }
-      <ActionsMenu isLoading={ isLoading }/>
+      <AddressEntity
+        address={{ ...addressQuery.data, name: '', hash: addressQuery.data?.hash || hash }}
+        isLoading={ isAddressDataLoading }
+        variant="subheading"
+        icon={ multichainContext?.chain ? {
+          shield: { name: 'pie_chart', isLoading: isAddressDataLoading },
+        } : undefined }
+      />
+      { !isMainDataLoading && tokenQuery.data && <TokenAddToWallet token={ tokenQuery.data } variant="button"/> }
+      <AddressQrCode hash={ hash } isLoading={ isMainDataLoading }/>
+      <ActionsMenu isLoading={ isMainDataLoading }/>
       <Flex ml={{ base: 0, lg: 'auto' }} columnGap={ 2 } flexGrow={{ base: 1, lg: 0 }}>
         <TokenVerifiedInfo verifiedInfoQuery={ verifiedInfoQuery }/>
-        <AlternativeExplorers type="token" pathParam={ addressHash } ml={{ base: 'auto', lg: 0 }}/>
+        <AlternativeExplorers type="token" pathParam={ hash } ml={{ base: 'auto', lg: 0 }}/>
       </Flex>
     </Flex>
   );
@@ -147,11 +155,11 @@ const TokenPageTitle = ({ tokenQuery, addressQuery, verifiedInfoQuery, hash }: P
     <>
       <PageTitle
         title={ `${ tokenQuery.data?.name || 'Unnamed token' }${ tokenSymbolText }` }
-        isLoading={ tokenQuery.isPlaceholderData }
+        isLoading={ isMainDataLoading }
         beforeTitle={ tokenQuery.data ? (
           <TokenEntity.Icon
             token={ tokenQuery.data }
-            isLoading={ tokenQuery.isPlaceholderData }
+            isLoading={ isMainDataLoading }
             variant="heading"
             chain={ multichainContext?.chain }
           />

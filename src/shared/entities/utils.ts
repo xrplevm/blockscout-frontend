@@ -12,13 +12,13 @@ export function getIconProps(props: IconBaseProps, withShield: boolean = false) 
     case 'subheading': {
       return {
         boxSize: props.boxSize ?? '20px', // for tables, lists, regular content and page subheadings
-        marginRight: props.marginRight ?? props.mr ?? (withShield ? '18px' : '8px'),
+        marginRight: withShield ? props.marginRightShield ?? '18px' : props.marginRight ?? props.mr ?? '8px',
       };
     }
     case 'heading': {
       return {
         boxSize: props.boxSize ?? '30px', // for page headings
-        marginRight: props.marginRight ?? props.mr ?? (withShield ? '14px' : '8px'),
+        marginRight: withShield ? props.marginRightShield ?? '14px' : props.marginRight ?? props.mr ?? '8px',
       };
     }
   }
@@ -37,7 +37,7 @@ export function getContentProps(variant: EntityBaseProps['variant'] = 'content')
 }
 
 export function distributeEntityProps<Props extends EntityBaseProps>(props: Props, multichainContext?: TMultichainContext | null) {
-  const { className, onClick, icon, noIcon, link, chain, ...mainProps } = props;
+  const { className, onClick, icon, noIcon, link, chain, contentProps, ...mainProps } = props;
   const { variant, ...restProps } = mainProps;
 
   return {
@@ -46,7 +46,7 @@ export function distributeEntityProps<Props extends EntityBaseProps>(props: Prop
     // This does not apply to the links. If the links are within the multichain views, they should lead to chain-specific pages.
     icon: { ...mainProps, ...icon, chain, noIcon },
     link: { ...restProps, ...link, onClick, chain: chain ?? multichainContext?.chain },
-    content: mainProps,
+    content: { ...mainProps, ...contentProps },
     symbol: restProps,
     copy: restProps,
   };

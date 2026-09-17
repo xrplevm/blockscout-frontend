@@ -2,8 +2,13 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.BUNDLE_ANALYZER === 'true',
 });
 
+// Destination of the generated nextjs-routes.d.ts. It has to be passed to nextjs-routes twice:
+// the webpack plugin below takes it as an option, while the CLI (pnpm routes:generate) only reads
+// it off the resolved Next.js config, hence the `outDir` key at the bottom of moduleExports.
+const ROUTES_OUT_DIR = 'src/shared/router';
+
 const withRoutes = require('nextjs-routes/config')({
-  outDir: 'src/server',
+  outDir: ROUTES_OUT_DIR,
 });
 
 const headers = require('./src/server/headers');
@@ -39,7 +44,16 @@ const moduleExports = {
         use: [ '@svgr/webpack' ],
       },
     );
-    config.resolve.fallback = { fs: false, net: false, tls: false };
+    config.resolve.fallback = {
+      fs: false,
+      net: false,
+      tls: false,
+      // @metamask/sdk (reached via @wagmi/connectors -> @reown/appkit-adapter-wagmi) imports the
+      // React Native storage adapter unconditionally. It is an optional peer dep of a code path a
+      // browser bundle never takes, so resolve it to an empty module instead of letting webpack
+      // warn about it on every production build.
+      '@react-native-async-storage/async-storage': false,
+    };
     config.externals.push('pino-pretty', 'lokijs', 'encoding');
     
     config.experiments = { ...config.experiments, topLevelAwait: true };
@@ -60,6 +74,12 @@ const moduleExports = {
   redirects,
   headers,
   output: 'standalone',
+  // Turbopack's standalone tracer copies only @swc/helpers/cjs and drops the esm/ entry points that
+  // Next's require-hook loads at runtime, so `node server.js` crashes on boot. Force the whole
+  // package into the standalone bundle until the tracer is fixed upstream.
+  outputFileTracingIncludes: {
+    '/**': [ './node_modules/@swc/helpers/**' ],
+  },
   productionBrowserSourceMaps: false,
   serverExternalPackages: [
     '@opentelemetry/sdk-node',
@@ -73,10 +93,18 @@ const moduleExports = {
       dynamic: 30,
       'static': 180,
     },
+    // Next 16.3 defaults build-time type-checking to the `tsc` CLI, which requires a
+    // `typescript/bin/tsc` binary. This repo runs the native TypeScript compiler via the
+    // `@typescript/typescript6` alias, which ships `bin/tsc6` only — so the CLI path reports
+    // `typescript` as missing and aborts the build. The compiler-API path checks against
+    // `lib/typescript.js`, which the alias does provide, so type-checking runs normally.
+    useTypeScriptCli: false,
   },
 
-  // workaround for passing outDir to nextjs-routes CLI
-  outDir: 'src/shared/router',
+
+  // workaround for passing outDir to nextjs-routes CLI, see ROUTES_OUT_DIR above.
+  // Next.js warns about this unrecognized key on startup; the warning is harmless.
+  outDir: ROUTES_OUT_DIR,
 };
 
 module.exports = withBundleAnalyzer(withRoutes(moduleExports));

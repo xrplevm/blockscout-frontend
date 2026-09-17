@@ -4,7 +4,6 @@ import { Box, chakra, Flex } from '@chakra-ui/react';
 import React from 'react';
 import type { SubmitHandler } from 'react-hook-form';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useSignMessage, useAccount, useSwitchChain } from 'wagmi';
 
 import type {
   AddressVerificationFormSecondStepFields,
@@ -16,7 +15,9 @@ import * as contractsInfo from '@blockscout/contracts-info-types';
 
 import useApiFetch from 'src/api/hooks/useApiFetch';
 
+import useAccount from 'src/features/connect-wallet/hooks/useAccount';
 import useWallet from 'src/features/connect-wallet/hooks/useWallet';
+import { getWeb3Runtime } from 'src/features/connect-wallet/utils/runtime';
 
 import config from 'src/config';
 import CopyToClipboard from 'src/shared/texts/CopyToClipboard';
@@ -40,11 +41,14 @@ interface Props extends AddressVerificationFormFirstStepFields, contractsInfo.Pr
   noWeb3Provider?: boolean;
 }
 
-const AddressVerificationStepSignature = ({ address, signingMessage, contractCreator, contractOwner, onContinue, noWeb3Provider }: Props) => {
+const AddressVerificationStepSignature = (
+  { address, signingMessage, contractCreator, contractOwner, contractDeployer, onContinue, noWeb3Provider }: Props,
+) => {
   const [ signMethod, setSignMethod ] = React.useState<SignMethod>(noWeb3Provider ? 'manual' : 'wallet');
 
   const { isConnected } = useAccount();
   const { openModal: openWeb3Modal } = useWallet({ source: 'Smart contracts' });
+  const [ isSigning, setIsSigning ] = React.useState(false);
 
   const formApi = useForm<Fields>({
     mode: 'onBlur',
@@ -95,9 +99,6 @@ const AddressVerificationStepSignature = ({ address, signingMessage, contractCre
 
   const onSubmit = handleSubmit(onFormSubmit);
 
-  const { signMessage, isPending: isSigning } = useSignMessage();
-  const { switchChainAsync } = useSwitchChain();
-
   const handleSignMethodChange = React.useCallback(({ value }: { value: string | null }) => {
     if (!value) {
       return;
@@ -119,18 +120,20 @@ const AddressVerificationStepSignature = ({ address, signingMessage, contractCre
       return setError('root', { type: 'manual', message: 'Please connect to your Web3 wallet first' });
     }
 
-    await switchChainAsync({ chainId: Number(config.chain.id) });
-    const message = getValues('message');
-    signMessage({ message }, {
-      onSuccess: (data) => {
-        setValue('signature', data);
-        onSubmit();
-      },
-      onError: (error) => {
-        return setError('root', { type: 'SIGNING_FAIL', message: (error as Error)?.message || 'Oops! Something went wrong' });
-      },
-    });
-  }, [ clearErrors, isConnected, getValues, signMessage, setError, setValue, onSubmit, switchChainAsync ]);
+    setIsSigning(true);
+    try {
+      const runtime = await getWeb3Runtime();
+      await runtime.switchChain({ chainId: Number(config.chain.id) });
+      const message = getValues('message');
+      const data = await runtime.signMessage({ message });
+      setValue('signature', data);
+      onSubmit();
+    } catch (error) {
+      setError('root', { type: 'SIGNING_FAIL', message: (error as Error)?.message || 'Oops! Something went wrong' });
+    } finally {
+      setIsSigning(false);
+    }
+  }, [ clearErrors, isConnected, getValues, setError, setValue, onSubmit ]);
 
   const handleManualSignClick = React.useCallback(() => {
     clearErrors('root');
@@ -176,12 +179,12 @@ const AddressVerificationStepSignature = ({ address, signingMessage, contractCre
       }
       case contractsInfo.VerifyAddressResponse_Status.INVALID_SIGNER_ERROR: {
         const signer = shortenString(formState.errors.root.message || '');
-        const expectedSigners = [ contractCreator, contractOwner ].filter(Boolean).map(s => shortenString(s)).join(', ');
+        const expectedSigners = [ contractCreator, contractOwner, contractDeployer ].filter(Boolean).map(s => shortenString(s)).join(', ');
         return (
           <Box>
             <span>This address </span>
             <span>{ signer }</span>
-            <span> is not a creator/owner of the requested contract and cannot claim ownership. Only </span>
+            <span> is not a creator/owner/deployer of the requested contract and cannot claim ownership. Only </span>
             <span>{ expectedSigners }</span>
             <span> can verify ownership of this contract.</span>
           </Box>
@@ -215,7 +218,7 @@ const AddressVerificationStepSignature = ({ address, signingMessage, contractCre
           { contactUsLink }
           <span> for further assistance.</span>
         </Box>
-        { (contractOwner || contractCreator) && (
+        { (contractOwner || contractCreator || contractDeployer) && (
           <Flex flexDir="column" rowGap={ 4 } mb={ 4 }>
             { contractCreator && (
               <Box>
@@ -227,6 +230,12 @@ const AddressVerificationStepSignature = ({ address, signingMessage, contractCre
               <Box>
                 <chakra.span fontWeight={ 600 }>Contract owner: </chakra.span>
                 <chakra.span>{ contractOwner }</chakra.span>
+              </Box>
+            ) }
+            { contractDeployer && (
+              <Box>
+                <chakra.span fontWeight={ 600 }>Contract deployer: </chakra.span>
+                <chakra.span>{ contractDeployer }</chakra.span>
               </Box>
             ) }
           </Flex>

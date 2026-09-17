@@ -2,6 +2,7 @@
 
 import type { GetServerSidePropsContext, GetServerSidePropsResult } from 'next';
 import type { Route } from 'nextjs-routes';
+import { route } from 'nextjs-routes';
 
 import type { RollupType } from 'src/features/rollup/common/types/config';
 
@@ -39,7 +40,7 @@ export const accountAuth0: Guard = (chainConfig: typeof config) => async() => {
 };
 
 export const verifiedAddresses: Guard = (chainConfig: typeof config) => async() => {
-  if (!getFeaturePayload(chainConfig.features.account)?.addressVerificationEnabled) {
+  if (!getFeaturePayload(chainConfig.features.account)?.verifiedAddresses?.isEnabled) {
     return {
       notFound: true,
     };
@@ -72,7 +73,8 @@ export const marketplaceEssentialDapp: Guard = (chainConfig: typeof config) => a
 };
 
 export const apiDocs: Guard = (chainConfig: typeof config) => async() => {
-  if (!chainConfig.features.apiDocs.isEnabled) {
+  const feature = getFeaturePayload(chainConfig.features.apiDocs);
+  if (!feature || feature.mode === 'external') {
     return {
       notFound: true,
     };
@@ -353,4 +355,24 @@ export const megaEth: Guard = () => async() => {
       notFound: true,
     };
   }
+};
+
+export const blocks: Guard = (chainConfig: typeof config) => async(context) => {
+  const feature = chainConfig.features.flashblocks;
+  const tab = context.query.tab;
+  if (!feature.isEnabled || typeof tab !== 'string') {
+    return;
+  }
+
+  const [ canonicalTabId, ...aliasTabIds ] = feature.tabIds;
+  if (!aliasTabIds.some((id) => id === tab)) {
+    return;
+  }
+
+  return {
+    redirect: {
+      destination: route({ pathname: '/blocks', query: { ...context.query, tab: canonicalTabId } }),
+      permanent: false,
+    },
+  };
 };

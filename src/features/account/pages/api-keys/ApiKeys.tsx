@@ -15,9 +15,10 @@ import useRedirectForInvalidAuthToken from 'src/features/account/hooks/useRedire
 import { API_KEY } from 'src/features/account/stubs';
 
 import config from 'src/config';
-import AlertWithExternalHtml from 'src/shared/alerts/AlertWithExternalHtml';
 import ApiFetchAlert from 'src/shared/alerts/ApiFetchAlert';
 
+import { Alert } from 'src/toolkit/chakra/alert';
+import { BoxHtml } from 'src/toolkit/chakra/box';
 import { Button } from 'src/toolkit/chakra/button';
 import { Link } from 'src/toolkit/chakra/link';
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
@@ -67,7 +68,7 @@ const ApiKeysPage: React.FC = () => {
     deleteModalProps.onOpenChange({ open });
   }, [ deleteModalProps ]);
 
-  const description = feature.isEnabled && feature.apiKeys.button === false ? (
+  const description = config.chain.isProApiSupported ? (
     <AccountPageDescription>
       Blockscout APIs require a key. Create a <Link href="https://dev.blockscout.com" external noIcon>
         free PRO API key</Link> to access all multichain endpoints.
@@ -111,32 +112,20 @@ const ApiKeysPage: React.FC = () => {
 
     const canAdd = !isPlaceholderData ? (data?.length || 0) < DATA_LIMIT : true;
 
-    const alert = feature.isEnabled && feature.apiKeys.alertMessage ?
-      <AlertWithExternalHtml html={ feature.apiKeys.alertMessage } status="warning" mb={ 6 }/> :
-      null;
+    const alert = feature.isEnabled && feature.apiKeys.alertMessage ? (
+      <Alert status="warning" mb={ 6 }>
+        <BoxHtml html={ feature.apiKeys.alertMessage }/>
+      </Alert>
+    ) : null;
 
-    const button = (() => {
-      if (!feature.isEnabled || feature.apiKeys.button === false) {
-        return null;
-      }
-
-      if (typeof feature.apiKeys.button === 'string') {
-        return (
-          <Link href={ feature.apiKeys.button } external noIcon>
-            <Button>Add API key</Button>
-          </Link>
-        );
-      }
-
-      return (
-        <Button
-          onClick={ apiKeyModalProps.onOpen }
-          disabled={ !canAdd }
-        >
-          Add API key
-        </Button>
-      );
-    })();
+    const button = !config.chain.isProApiSupported ? (
+      <Button
+        onClick={ apiKeyModalProps.onOpen }
+        disabled={ !canAdd }
+      >
+        Add API key
+      </Button>
+    ) : null;
 
     return (
       <>

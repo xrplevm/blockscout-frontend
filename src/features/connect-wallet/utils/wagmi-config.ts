@@ -7,6 +7,7 @@ import { fallback, http } from 'viem';
 import { createConfig } from 'wagmi';
 
 import { chains, parentChain } from 'src/features/connect-wallet/utils/chains';
+import { installEip6963AnnounceGuard } from 'src/features/connect-wallet/utils/install-eip6963-announce-guard';
 import essentialDappsChainsConfig from 'src/features/marketplace/chains-config/essential-dapps';
 import multichainConfig from 'src/features/multichain/chains-config';
 
@@ -48,6 +49,10 @@ const reduceExternalChainsToTransportConfig = (readOnly: boolean): Record<string
     }, {} as Record<string, Transport>);
 };
 
+// Installed before the config below creates wagmi's mipd store, so the guard's listener is
+// registered ahead of mipd's and can drop malformed EIP-6963 announce events before it throws on them.
+installEip6963AnnounceGuard();
+
 const wagmi = (() => {
 
   if (!feature.isEnabled || feature.connectorType === 'dynamic') {
@@ -58,7 +63,9 @@ const wagmi = (() => {
         ...(parentChain ? { [parentChain.id]: http(parentChain.rpcUrls.default.http[0]) } : {}),
         ...reduceExternalChainsToTransportConfig(true),
       },
-      ssr: true,
+      // ssr:false — the config is only ever created client-side (lazily, off the critical path), so wagmi's
+      // <Hydrate> restores persisted state and reconnects synchronously; no manual hydration is needed.
+      ssr: false,
       batch: { multicall: { wait: 100, batchSize: 1024 } },
       multiInjectedProviderDiscovery: feature.isEnabled && feature.connectorType === 'dynamic' ? false : true,
     });
@@ -75,7 +82,8 @@ const wagmi = (() => {
       ...reduceExternalChainsToTransportConfig(false),
     },
     projectId: feature.reown.projectId,
-    ssr: true,
+    // ssr:false — see the note on the fallback config above; the adapter's config is client-only + lazy.
+    ssr: false,
     batch: { multicall: { wait: 100, batchSize: 1024 } },
     syncConnectedChain: false,
   });

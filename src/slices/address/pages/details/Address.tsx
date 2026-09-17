@@ -105,7 +105,6 @@ const AddressPageContent = () => {
 
   const countersQuery = useAddressCountersQuery({
     hash,
-    isLoading: addressQuery.isPlaceholderData,
     isDegradedData: addressQuery.isDegradedData,
   });
 

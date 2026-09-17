@@ -17,12 +17,13 @@ import type { ResourceName, ResourcePathParams } from 'src/api/resources';
 import buildUrl from 'src/api/utils/build-url';
 import isNeedProxy from 'src/api/utils/is-need-proxy';
 
+import { useSettingsContext } from 'src/shell/top-bar/settings/context';
+
 import { useMultichainContext } from 'src/features/multichain/context';
 
 import config from 'src/config';
 import ReCaptcha from 'src/services/re-captcha/ReCaptcha';
 import useReCaptcha from 'src/services/re-captcha/useReCaptcha';
-import dayjs from 'src/shared/date-and-time/dayjs';
 import getErrorMessage from 'src/shared/errors/get-error-message';
 import getErrorObjStatusCode from 'src/shared/errors/get-error-obj-status-code';
 import useIsInitialLoading from 'src/shared/hooks/useIsInitialLoading';
@@ -37,6 +38,7 @@ import { downloadBlob } from 'src/toolkit/utils/file';
 
 import { useCsvExportContext } from '../utils/context';
 import getFileName from '../utils/get-file-name';
+import serializeFormFields from '../utils/serialize-form-fields';
 import type { StorageItem } from '../utils/storage';
 import CsvExportDialog from './dialog/CsvExportDialog';
 import CsvExportDialogDescription from './dialog/CsvExportDialogDescription';
@@ -76,6 +78,8 @@ const CsvExport = <R extends ResourceName>({
   const recaptcha = useReCaptcha();
   const csvExportContext = useCsvExportContext();
   const apiFetch = useApiFetch();
+  const settings = useSettingsContext();
+  const isLocalTime = settings?.isLocalTime ?? true;
 
   const chain = chainData || multichainContext?.chain;
 
@@ -101,7 +105,7 @@ const CsvExport = <R extends ResourceName>({
   const fetchFactorySync = React.useCallback((data?: FormFields) => {
     return async(recaptchaToken?: string) => {
       const url = buildUrl(resourceName, pathParams, {
-        ...mapValues(data || {}, (value) => dayjs(value).toISOString()),
+        ...serializeFormFields(data, isLocalTime),
         ...queryParams,
       }, undefined, chain);
 
@@ -126,7 +130,7 @@ const CsvExport = <R extends ResourceName>({
 
       return response;
     };
-  }, [ resourceName, pathParams, queryParams, chain ]);
+  }, [ resourceName, pathParams, queryParams, chain, isLocalTime ]);
 
   const fetchFactoryAsync = React.useCallback((data?: FormFields) => {
     return async(recaptchaToken?: string) => {
@@ -135,7 +139,7 @@ const CsvExport = <R extends ResourceName>({
       return apiFetch<typeof resourceName>(resourceName, {
         pathParams,
         queryParams: {
-          ...mapValues(data || {}, (value) => dayjs(value).toISOString()),
+          ...serializeFormFields(data, isLocalTime),
           ...queryParams,
         },
         chain,
@@ -147,7 +151,7 @@ const CsvExport = <R extends ResourceName>({
         },
       }) as Promise<CsvExportDownloadResponse>;
     };
-  }, [ apiFetch, chain, pathParams, queryParams, resourceName ]);
+  }, [ apiFetch, chain, pathParams, queryParams, resourceName, isLocalTime ]);
 
   const downloadFileSync = React.useCallback(async(data?: FormFields) => {
     try {
@@ -158,8 +162,9 @@ const CsvExport = <R extends ResourceName>({
         blob,
         getFileName({
           type,
-          params: { ...mergedParams, ...data },
+          params: { ...mergedParams, ...serializeFormFields(data, isLocalTime) },
           chainConfig,
+          isLocalTime,
         }),
       );
       return true;
@@ -171,7 +176,7 @@ const CsvExport = <R extends ResourceName>({
     } finally {
       setIsPending(false);
     }
-  }, [ chainConfig, fetchFactorySync, mergedParams, recaptcha, type ]);
+  }, [ chainConfig, fetchFactorySync, mergedParams, recaptcha, type, isLocalTime ]);
 
   const downloadFileAsync = React.useCallback(async(data?: FormFields) => {
     try {
@@ -186,9 +191,10 @@ const CsvExport = <R extends ResourceName>({
           status: 'pending',
           type,
           params: pickBy({
-            ...mapValues(data || {}, (value) => dayjs(value).toISOString()),
+            ...serializeFormFields(data, isLocalTime),
             ...mergedParams,
             chain_id: chain?.id,
+            is_local_time: String(isLocalTime),
           }, (value) => value !== '' && value !== undefined && value !== null),
           is_highlighted: false,
         };
@@ -217,7 +223,7 @@ const CsvExport = <R extends ResourceName>({
     } finally {
       setIsPending(false);
     }
-  }, [ chain, csvExportContext, fetchFactoryAsync, mergedParams, recaptcha, type ]);
+  }, [ chain, csvExportContext, fetchFactoryAsync, mergedParams, recaptcha, type, isLocalTime ]);
 
   const handleButtonClick = React.useCallback(() => {
     if (periodFilter) {

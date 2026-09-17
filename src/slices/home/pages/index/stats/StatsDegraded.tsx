@@ -10,14 +10,17 @@ import { useHomeRpcDataContext } from 'src/slices/home/contexts/rpc-data-context
 import type { HomeStatsWidgetItem } from 'src/slices/home/utils/stats';
 import { homeStatsWidgetCommonStyles, isHomeStatsItemEnabled, sortHomeStatsItems } from 'src/slices/home/utils/stats';
 
-import { publicClient } from 'src/features/connect-wallet/utils/public-client';
+import { getPublicClient, isPublicClientAvailable } from 'src/features/connect-wallet/utils/public-client';
 
-import ApiDegradationRpcIcon from 'src/shared/api-degradation/ApiDegradationRpcIcon';
 import dayjs from 'src/shared/date-and-time/dayjs';
 import StatsWidget from 'src/shared/stats/StatsWidget';
 import { GWEI } from 'src/shared/values/entity/utils';
 
+import { Tooltip } from 'src/toolkit/chakra/tooltip';
 import { mdash } from 'src/toolkit/utils/htmlEntities';
+
+const TOOLTIP_CONTENT_VALUE = 'Our indexer is experiencing problems, you see the data directly from RPC';
+const TOOLTIP_CONTENT_NO_VALUE = 'Our indexer is experiencing problems and we couldn\'t get this data directly from RPC';
 
 const StatsDegraded = () => {
 
@@ -28,6 +31,7 @@ const StatsDegraded = () => {
   const gasPriceQuery = useQuery({
     queryKey: [ 'RPC', 'gas-price' ],
     queryFn: async() => {
+      const publicClient = await getPublicClient();
       if (!publicClient) {
         return null;
       }
@@ -48,7 +52,7 @@ const StatsDegraded = () => {
         wei: null,
       };
     },
-    enabled: Boolean(publicClient),
+    enabled: isPublicClientAvailable,
   });
 
   React.useEffect(() => {
@@ -93,7 +97,6 @@ const StatsDegraded = () => {
         label: 'Latest block',
         value: blocks[0] ? blocks[0].height.toLocaleString() : mdash,
         isFallback: blocks[0] === undefined,
-        hint: blocks[0] && !isLoading ? <ApiDegradationRpcIcon/> : undefined,
       },
       {
         id: 'average_block_time' as const,
@@ -101,7 +104,6 @@ const StatsDegraded = () => {
         label: 'Average block time',
         value: averageBlockTime ? `${ averageBlockTime.toFixed(1) }s` : mdash,
         isFallback: averageBlockTime === undefined,
-        hint: averageBlockTime && !isLoading ? <ApiDegradationRpcIcon/> : undefined,
       },
       {
         id: 'total_txs' as const,
@@ -138,7 +140,6 @@ const StatsDegraded = () => {
         value: gasPriceQuery.data ? <GasPrice data={ gasPriceQuery.data }/> : mdash,
         isFallback: !gasPriceQuery.data,
         isLoading: gasPriceQuery.isLoading,
-        hint: gasPriceQuery.data && !isLoading && !gasPriceQuery.isLoading ? <ApiDegradationRpcIcon/> : undefined,
       },
       {
         id: 'btc_locked' as const,
@@ -171,14 +172,22 @@ const StatsDegraded = () => {
       flexBasis="50%"
       flexGrow={ 1 }
     >
-      { items.map((item) => (
-        <StatsWidget
-          key={ item.id }
-          { ...item }
-          isLoading={ isLoading || item.isLoading }
-          { ...homeStatsWidgetCommonStyles }/>
-      ),
-      ) }
+      { items.map(({ id, ...item }) => {
+        const isLoadingState = item.isLoading || isLoading;
+        return (
+          <Tooltip
+            key={ id }
+            content={ item.value !== mdash ? TOOLTIP_CONTENT_VALUE : TOOLTIP_CONTENT_NO_VALUE }
+            disabled={ isLoadingState }
+          >
+            <StatsWidget
+              { ...item }
+              isLoading={ isLoadingState }
+              { ...homeStatsWidgetCommonStyles }
+            />
+          </Tooltip>
+        );
+      }) }
     </Grid>
 
   );

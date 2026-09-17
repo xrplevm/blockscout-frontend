@@ -44,6 +44,10 @@ export interface EntityBaseProps {
   truncationMaxSymbols?: number;
   variant?: Variant;
   chain?: ExternalChain;
+  contentProps?: {
+    tooltipInteractive?: boolean;
+    tooltipContentAfter?: React.ReactNode;
+  };
 }
 
 export interface ContainerBaseProps extends Pick<EntityBaseProps, 'className'> {
@@ -104,6 +108,7 @@ type EntityIconProps = (ImageProps | SpriteIconProps) & Pick<IconProps, 'color' 
   hintPostfix?: string;
   tooltipInteractive?: boolean;
   size?: number; // for AddressIdenticon in address entity
+  marginRightShield?: string;
 };
 
 export type IconBaseProps = Pick<EntityBaseProps, 'isLoading' | 'noIcon' | 'variant' | 'chain'> & EntityIconProps;
@@ -203,6 +208,7 @@ export interface ContentBaseProps extends Pick<
   asProp?: React.ElementType;
   text: string;
   tooltipInteractive?: boolean;
+  tooltipContentAfter?: React.ReactNode;
 }
 
 const Content = chakra(({
@@ -216,9 +222,17 @@ const Content = chakra(({
   variant,
   noTooltip,
   tooltipInteractive,
+  tooltipContentAfter,
   noLink,
 }: ContentBaseProps) => {
   const styles = getContentProps(variant);
+
+  const tooltipContent = tooltipContentAfter ? (
+    <>
+      { text }
+      { tooltipContentAfter }
+    </>
+  ) : undefined;
 
   if (truncation === 'tail') {
     return (
@@ -226,7 +240,9 @@ const Content = chakra(({
         text={ text }
         loading={ isLoading }
         className={ className }
+        noTooltip={ noTooltip }
         tooltipInteractive={ tooltipInteractive }
+        tooltipContent={ tooltipContent }
         { ...styles }
       />
     );
@@ -242,6 +258,7 @@ const Content = chakra(({
             type="long"
             noTooltip={ noTooltip }
             tooltipInteractive={ tooltipInteractive }
+            tooltipContent={ tooltipContent }
             maxSymbols={ truncationMaxSymbols }
           />
         );
@@ -252,6 +269,7 @@ const Content = chakra(({
             as={ asProp }
             noTooltip={ noTooltip }
             tooltipInteractive={ tooltipInteractive }
+            tooltipContent={ tooltipContent }
             maxSymbols={ truncationMaxSymbols }
           />
         );
@@ -263,6 +281,7 @@ const Content = chakra(({
             tailLength={ tailLength }
             noTooltip={ noTooltip }
             tooltipInteractive={ tooltipInteractive }
+            tooltipContent={ tooltipContent }
           />
         );
       case 'none':
