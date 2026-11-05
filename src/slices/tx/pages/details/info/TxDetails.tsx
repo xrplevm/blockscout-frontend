@@ -22,9 +22,10 @@ import { currencyUnits } from 'src/slices/chain/units';
 import getChainValidatorTitle from 'src/slices/chain/verification-type/utils/get-chain-validator-title';
 import LogDecodedInputData from 'src/slices/log/components/LogDecodedInputData';
 import TxSocketAlert from 'src/slices/tx/components/TxSocketAlert';
-import TxStatus from 'src/slices/tx/components/TxStatus';
 import getConfirmationDuration from 'src/slices/tx/utils/get-confirmation-duration';
 
+import TxDetailsEden from 'src/features/chain-variants/eden/pages/tx/TxDetailsEden';
+import { getBatchRecipients } from 'src/features/chain-variants/eden/utils/batch-recipients';
 import TxAllowedPeekers from 'src/features/chain-variants/suave/pages/tx/TxAllowedPeekers';
 import TxDetailsTacOperation from 'src/features/chain-variants/tac/pages/tx/TxDetailsTacOperation';
 import TxDetailsCrossChainMessages from 'src/features/cross-chain-txs/pages/tx/TxDetailsCrossChainMessages';
@@ -54,13 +55,11 @@ import TextSeparator from 'src/shared/texts/TextSeparator';
 import GasPriceValue from 'src/shared/values/entity/GasPriceValue';
 import NativeCoinValue from 'src/shared/values/entity/NativeCoinValue';
 import Utilization from 'src/shared/values/utilization/Utilization';
-import SpriteIcon from 'src/sprite/SpriteIcon';
 
 import { Badge } from 'src/toolkit/chakra/badge';
 import { CollapsibleDetails } from 'src/toolkit/chakra/collapsible';
 import { Link } from 'src/toolkit/chakra/link';
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
-import { Tooltip } from 'src/toolkit/chakra/tooltip';
 
 import TxDetailsBurntFees from './parts/TxDetailsBurntFees';
 import TxDetailsFeePerGas from './parts/TxDetailsFeePerGas';
@@ -68,10 +67,11 @@ import TxDetailsGasPrice from './parts/TxDetailsGasPrice';
 import TxDetailsGasUsage from './parts/TxDetailsGasUsage';
 import TxDetailsOther from './parts/TxDetailsOther';
 import TxDetailsSetMaxGasLimit from './parts/TxDetailsSetMaxGasLimit';
+import TxDetailsStatus from './parts/TxDetailsStatus';
+import TxDetailsTo from './parts/TxDetailsTo';
 import TxDetailsTokenTransfers from './parts/TxDetailsTokenTransfers';
 import TxDetailsTxFee from './parts/TxDetailsTxFee';
 import TxHash from './parts/TxHash';
-import TxRevertReason from './parts/TxRevertReason';
 
 interface Props {
   data: schemas['TransactionResponse'] | undefined;
@@ -86,11 +86,13 @@ const rollupFeature = config.features.rollup;
 const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
   const [ isExpanded, setIsExpanded ] = React.useState(false);
 
+  const recipients = React.useMemo(() => getBatchRecipients(data?.calls), [ data?.calls ]);
+
   const handleCutLinkClick = React.useCallback(() => {
     setIsExpanded((flag) => !flag);
   }, []);
 
-  const showAssociatedL1Tx = React.useCallback(() => {
+  const expandDetailsSection = React.useCallback(() => {
     setIsExpanded(true);
   }, []);
 
@@ -103,29 +105,6 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
     ...data.from.public_tags || [],
     ...data.from.watchlist_names || [],
   ].map((tag) => <Badge key={ tag.label }>{ tag.display_name }</Badge>);
-
-  const toAddress = data.to ? data.to : data.created_contract;
-  const addressToTags = [
-    ...toAddress?.private_tags || [],
-    ...toAddress?.public_tags || [],
-    ...toAddress?.watchlist_names || [],
-  ].map((tag) => <Badge key={ tag.label }>{ tag.display_name }</Badge>);
-
-  const executionSuccessBadge = toAddress?.is_contract && data.result === 'success' ? (
-    <Tooltip content="Contract execution completed">
-      <chakra.span display="inline-flex" ml={ 2 } mr={ 1 }>
-        <SpriteIcon name="status/success" boxSize={ 4 } color={{ _light: 'blackAlpha.800', _dark: 'whiteAlpha.800' }} cursor="pointer"/>
-      </chakra.span>
-    </Tooltip>
-  ) : null;
-
-  const executionFailedBadge = toAddress?.is_contract && Boolean(data.status) && data.result !== 'success' ? (
-    <Tooltip content="Error occurred during contract execution">
-      <chakra.span display="inline-flex" ml={ 2 } mr={ 1 }>
-        <SpriteIcon name="status/error" boxSize={ 4 } color="text.error" cursor="pointer"/>
-      </chakra.span>
-    </Tooltip>
-  ) : null;
 
   const hasInterop = rollupFeature.isEnabled && rollupFeature.interopEnabled && data.op_interop_messages && data.op_interop_messages.length > 0;
 
@@ -156,32 +135,7 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
 
       <TxHash hash={ data.hash } isLoading={ isLoading } status={ data.status }/>
 
-      <DetailedInfo.ItemLabel
-        hint="Current transaction state: Success, Failed (Error), or Pending (In Process)"
-        isLoading={ isLoading }
-      >
-        {
-          rollupFeature.isEnabled &&
-          (rollupFeature.type === 'zkSync' || rollupFeature.type === 'arbitrum' || rollupFeature.type === 'scroll') ?
-            `${ layerLabels.current } status and method` :
-            'Status and method'
-        }
-      </DetailedInfo.ItemLabel>
-      <DetailedInfo.ItemValue>
-        <TxStatus status={ data.status } errorText={ data.status === 'error' ? data.result : undefined } isLoading={ isLoading }/>
-        { data.method && (
-          <Badge colorPalette={ data.method === 'Multicall' ? 'teal' : 'gray' } loading={ isLoading } truncated ml={ 3 }>
-            { data.method }
-          </Badge>
-        ) }
-        { data.arbitrum?.contains_message && (
-          <Skeleton loading={ isLoading } onClick={ showAssociatedL1Tx }>
-            <Link truncate ml={ 3 }>
-              { data.arbitrum?.contains_message === 'incoming' ? 'Incoming message' : 'Outgoing message' }
-            </Link>
-          </Skeleton>
-        ) }
-      </DetailedInfo.ItemValue>
+      <TxDetailsStatus data={ data } isLoading={ isLoading } onShowDetailsClick={ expandDetailsSection }/>
 
       { rollupFeature.isEnabled && rollupFeature.type === 'optimistic' && data.op_withdrawals && data.op_withdrawals.length > 0 &&
       !config.slices.tx.hiddenFields?.L1_status && (
@@ -222,19 +176,6 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
               steps={ arbitrum.verificationSteps }
               isLoading={ isLoading }
             />
-          </DetailedInfo.ItemValue>
-        </>
-      ) }
-
-      { data.revert_reason && (
-        <>
-          <DetailedInfo.ItemLabel
-            hint="The revert reason of the transaction"
-          >
-            Revert reason
-          </DetailedInfo.ItemLabel>
-          <DetailedInfo.ItemValue flexWrap="wrap" mt={{ base: '5px', lg: '4px' }}>
-            <TxRevertReason { ...data.revert_reason }/>
           </DetailedInfo.ItemValue>
         </>
       ) }
@@ -391,50 +332,12 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
         ) }
       </DetailedInfo.ItemValue>
 
-      <DetailedInfo.ItemLabel
-        hint="Address (external or contract) receiving the transaction"
+      <TxDetailsTo
+        data={ data }
         isLoading={ isLoading }
-      >
-        { data.to?.is_contract ? 'Interacted with contract' : 'To' }
-      </DetailedInfo.ItemLabel>
-      <DetailedInfo.ItemValue
-        flexWrap={{ base: 'wrap', lg: 'nowrap' }}
-        columnGap={ 3 }
-      >
-        { toAddress ? (
-          <>
-            { data.to && data.to.hash ? (
-              <Flex flexWrap="nowrap" alignItems="center" maxW="100%">
-                <AddressEntity
-                  address={ toAddress }
-                  isLoading={ isLoading }
-                />
-                { executionSuccessBadge }
-                { executionFailedBadge }
-              </Flex>
-            ) : (
-              <Flex width="100%" whiteSpace="pre" alignItems="center" flexShrink={ 0 }>
-                <span>[Contract </span>
-                <AddressEntity
-                  address={ toAddress }
-                  isLoading={ isLoading }
-                  noIcon
-                />
-                <span>created]</span>
-                { executionSuccessBadge }
-                { executionFailedBadge }
-              </Flex>
-            ) }
-            { addressToTags.length > 0 && (
-              <Flex columnGap={ 3 }>
-                { addressToTags }
-              </Flex>
-            ) }
-          </>
-        ) : (
-          <span>[ Contract creation ]</span>
-        ) }
-      </DetailedInfo.ItemValue>
+        recipients={ recipients }
+        onViewDetailClick={ expandDetailsSection }
+      />
 
       { data.token_transfers && (
         <TxDetailsTokenTransfers
@@ -462,6 +365,7 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
                   }
                   return message.relay_chain !== undefined ? (
                     <AddressEntityInterop
+                      key={ message.nonce }
                       chain={ message.relay_chain }
                       address={{ hash: message.target_address_hash }}
                       isLoading={ isLoading }
@@ -469,7 +373,13 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
                       w="100%"
                     />
                   ) : (
-                    <AddressEntity address={{ hash: message.target_address_hash }} isLoading={ isLoading } truncation="dynamic" w="100%"/>
+                    <AddressEntity
+                      key={ message.nonce }
+                      address={{ hash: message.target_address_hash }}
+                      isLoading={ isLoading }
+                      truncation="dynamic"
+                      w="100%"
+                    />
                   );
                 }) }
             </VStack>
@@ -528,6 +438,14 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
             historicalExchangeRate={ data.historic_exchange_rate }
             hasExchangeRateToggle
             loading={ isLoading }
+            endContent={ recipients.hasMultipleRecipients ? (
+              <Flex alignItems="center" whiteSpace="pre">
+                <Text color="text.secondary">to </Text>
+                <Link variant="primary" onClick={ expandDetailsSection }>
+                  { `${ recipients.count } recipients` }
+                </Link>
+              </Flex>
+            ) : undefined }
           />
         </>
       ) }
@@ -761,7 +679,14 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
       ) }
       <TxInfoScrollFees data={ data } isLoading={ isLoading }/>
 
-      <CollapsibleDetails loading={ isLoading } mt={ 6 } gridColumn={{ base: undefined, lg: '1 / 3' }} isExpanded={ isExpanded } onClick={ handleCutLinkClick }>
+      <CollapsibleDetails
+        id="CollapsibleDetails__tx-details"
+        loading={ isLoading }
+        mt={ 6 }
+        gridColumn={{ base: undefined, lg: '1 / 3' }}
+        isExpanded={ isExpanded }
+        onClick={ handleCutLinkClick }
+      >
         <GridItem colSpan={{ base: undefined, lg: 2 }} mt={{ base: 1, lg: 4 }}/>
 
         <TxDetailsSetMaxGasLimit data={ data }/>
@@ -839,6 +764,8 @@ const TxDetails = ({ data, isLoading, socketStatus, noTxActions }: Props) => {
         ) }
 
         <TxDetailsOther nonce={ data.nonce } type={ data.type } position={ data.position } queueIndex={ data.scroll?.queue_index }/>
+
+        <TxDetailsEden data={ data } isLoading={ isLoading }/>
 
         <DetailedInfo.ItemLabel
           hint="Binary data included with the transaction. See logs tab for additional info"

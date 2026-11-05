@@ -18,7 +18,7 @@ interface Props {
 
 const InteropMessagesTable = ({ items, top, isLoading }: Props) => {
   return (
-    <TableRoot tableLayout="auto">
+    <TableRoot tableLayout="auto" minW="1200px">
       <TableHeaderSticky top={ top }>
         <TableRow>
           <TableColumnHeader/>
@@ -38,7 +38,7 @@ const InteropMessagesTable = ({ items, top, isLoading }: Props) => {
       <TableBody>
         { items?.map((item, index) => (
           <InteropMessagesTableItem
-            key={ item.init_transaction_hash + '_' + index }
+            key={ item.init_transaction_hash + '_' + item.nonce + (isLoading ? index : '') }
             item={ item }
             isLoading={ isLoading }
           />

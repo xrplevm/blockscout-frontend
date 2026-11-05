@@ -24,6 +24,7 @@ const ChainStatsIndex = () => {
     displayedSections,
     sectionId,
     initialFilterQuery,
+    filterQuery,
     interval,
     onSectionChange,
     onIntervalChange,
@@ -58,6 +59,7 @@ const ChainStatsIndex = () => {
         isLoading={ isLoading }
         interval={ interval }
         initialFilterQuery={ initialFilterQuery }
+        filterQuery={ filterQuery }
         sectionId={ sectionId }
       />
     </PeersystPageWrapper>

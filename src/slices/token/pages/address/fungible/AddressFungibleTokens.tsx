@@ -22,14 +22,16 @@ import AddressFungibleTokensTable from './AddressFungibleTokensTable';
 type Props = {
   items: Array<Pick<schemas['TokenBalance'], 'token' | 'value'>> | undefined;
   isLoading: boolean;
+  isTransitioning?: boolean;
   pagination: PaginationParams;
   isError: boolean;
   top?: number;
   tokenTypes: Array<TokenType>;
   onTokenTypesChange: (value: Array<TokenType>) => void;
+  resetKey?: string;
 };
 
-const AddressFungibleTokens = ({ items, isLoading, pagination, isError, top, tokenTypes, onTokenTypesChange }: Props) => {
+const AddressFungibleTokens = ({ items, isLoading, isTransitioning, pagination, isError, top, tokenTypes, onTokenTypesChange, resetKey }: Props) => {
   const isMobile = useIsMobile();
 
   const hasAdditionalTokenTypes = config.slices.token.additionalTypes.length > 0;
@@ -47,7 +49,8 @@ const AddressFungibleTokens = ({ items, isLoading, pagination, isError, top, tok
         data={ items }
         top={ top ?? (pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0) }
         isLoading={ isLoading }
-        hasAdditionalTokenTypes={ hasAdditionalTokenTypes }/>
+        hasAdditionalTokenTypes={ hasAdditionalTokenTypes }
+        resetKey={ resetKey }/>
     </TableContainerScrollable>
   ) : null;
 
@@ -57,6 +60,7 @@ const AddressFungibleTokens = ({ items, isLoading, pagination, isError, top, tok
       itemsNum={ items?.length }
       emptyText="There are no tokens of selected type."
       actionBar={ actionBar }
+      isTransitioning={ isTransitioning }
     >
       { content }
     </DataList>

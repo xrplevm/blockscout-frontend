@@ -13,8 +13,9 @@ import useApiQuery from 'src/api/hooks/useApiQuery';
 import type { ResourceError } from 'src/api/resources';
 
 import config from 'src/config';
-import * as mixpanel from 'src/services/mixpanel';
+import { getFeaturePayload } from 'src/config/utils/features';
 import ApiFetchAlert from 'src/shared/alerts/ApiFetchAlert';
+import * as analytics from 'src/shared/analytics';
 
 import { Button } from 'src/toolkit/chakra/button';
 import { toaster } from 'src/toolkit/chakra/toaster';
@@ -30,6 +31,7 @@ import TokenInfoFieldIconUrl from './fields/TokenInfoFieldIconUrl';
 import TokenInfoFieldProjectSector from './fields/TokenInfoFieldProjectSector';
 import TokenInfoFieldSocialLink from './fields/TokenInfoFieldSocialLink';
 import TokenInfoFieldSupport from './fields/TokenInfoFieldSupport';
+import TokenInfoExpeditedReview from './TokenInfoExpeditedReview';
 import TokenInfoFormSectionHeader from './TokenInfoFormSectionHeader';
 import TokenInfoFormStatusText from './TokenInfoFormStatusText';
 import { getFormDefaultValues, prepareRequestBody } from './utils';
@@ -60,7 +62,7 @@ const TokenInfoForm = ({ address, tokenName, application, onSubmit }: Props) => 
 
   React.useEffect(() => {
     if (!application?.id && !openEventSent.current) {
-      mixpanel.logEvent(mixpanel.EventTypes.VERIFY_TOKEN, { Action: 'Form opened' });
+      analytics.logEvent(analytics.EventTypes.VERIFY_TOKEN, { Action: 'Form opened' });
       openEventSent.current = true;
     }
   }, [ application?.id ]);
@@ -85,7 +87,7 @@ const TokenInfoForm = ({ address, tokenName, application, onSubmit }: Props) => 
         onSubmit(result);
 
         if (!application?.id) {
-          mixpanel.logEvent(mixpanel.EventTypes.VERIFY_TOKEN, { Action: 'Submit' });
+          analytics.logEvent(analytics.EventTypes.VERIFY_TOKEN, { Action: 'Submit' });
         }
 
       } else {
@@ -124,6 +126,8 @@ const TokenInfoForm = ({ address, tokenName, application, onSubmit }: Props) => 
   const fieldProps = {
     readOnly: application?.status === 'IN_PROCESS',
   };
+
+  const expeditedReviewHtml = getFeaturePayload(config.features.account)?.verifiedAddresses?.expeditedReviewHtml;
 
   return (
     <FormProvider { ...formApi }>
@@ -191,6 +195,10 @@ const TokenInfoForm = ({ address, tokenName, application, onSubmit }: Props) => 
               { ...fieldProps }
             />
           </GridItem>
+
+          { expeditedReviewHtml && (
+            <TokenInfoExpeditedReview html={ expeditedReviewHtml } readOnly={ fieldProps.readOnly }/>
+          ) }
         </Grid>
         <Button
           type="submit"

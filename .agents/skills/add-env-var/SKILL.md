@@ -5,7 +5,7 @@ description: Step-by-step checklist for adding a new NEXT_PUBLIC_* environment v
 
 # Add a new env variable
 
-Read `.agents/rules/env-vars.mdc` first for background: how runtime delivery
+Read `.agents/rules/env-vars.md` first for background: how runtime delivery
 works, how the config object is structured, the three value types
 (primitive / JSON-encoded / JSON config URL), and where validation lives. This
 skill is the checklist; the rule is the concept doc.
@@ -14,7 +14,7 @@ skill is the checklist; the rule is the concept doc.
 
 Three answers drive every step below. Settle them first.
 
-1. **Value type** (see env-vars.mdc § "Value types"):
+1. **Value type** (see env-vars.md § "Value types"):
    - **Primitive** — string, boolean, number.
    - **JSON-encoded string** — small synchronous structured config.
    - **JSON config URL** — large async-loaded payload. Variable name ends in `_URL`.
@@ -32,7 +32,9 @@ Add a row in the section that mirrors where the variable's config lives:
 App configuration / APIs configuration / App shell / Slices / Features /
 External services / Misc. The doc sections mirror `src/config/index.ts`.
 
-Fill in: name, type, description, required/optional, default, example.
+Fill in the name, type, description, required/optional status, default, and example. 
+Description: one sentence maximum; avoid validation logic and implementation details; 
+be extremely concise.
 
 Set the **Version** column to `upcoming`. The release process replaces this
 with the actual version number when the change ships.
@@ -152,8 +154,8 @@ Most URL variables need a CSP allowance under `src/server/csp/policies/`.
 Gate the addition on the relevant config option being enabled — don't widen
 the CSP unconditionally.
 
-**Exceptions** — these are already auto-included by `policies/app.ts` and
-need no manual CSP work:
+**Exceptions** — these are already auto-included by `src/server/csp/policies/app.ts`
+and need no manual CSP work:
 
 - new API `endpoint` and `socketEndpoint` values that flow into `config.apis.*`.
 
@@ -167,4 +169,3 @@ the feature/option being enabled.
 Append the variable name to the `ASSETS_ENVS` array in
 `deploy/scripts/download_assets.sh`. The container entrypoint downloads the
 asset into the image at startup so the browser serves it same-origin.
-

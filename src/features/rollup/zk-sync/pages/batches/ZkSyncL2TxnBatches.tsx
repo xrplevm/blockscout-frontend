@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { Box, Text } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import React from 'react';
 
 import useApiQuery from 'src/api/hooks/useApiQuery';
@@ -12,16 +12,16 @@ import { ZKSYNC_L2_TXN_BATCHES_ITEM } from 'src/features/rollup/zk-sync/stubs';
 
 import DataList from 'src/shared/lists/DataList';
 import StickyPaginationWithText from 'src/shared/pagination/StickyPaginationWithText';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
 import { generateListStub } from 'src/shared/pagination/utils';
 
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 
-import ZkSyncTxnBatchesListItem from './ZkSyncTxnBatchesListItem';
 import ZkSyncTxnBatchesTable from './ZkSyncTxnBatchesTable';
 
 const ZkSyncL2TxnBatches = () => {
-  const { data, isError, isPlaceholderData, pagination } = useQueryWithPages({
+  const { data, isError, isInitialLoading, isTransitioning, pagination, queryHash } = useApiPaginatedQuery({
     resourceName: 'core:zksync_l2_txn_batches',
     options: {
       placeholderData: generateListStub<'core:zksync_l2_txn_batches'>(
@@ -44,20 +44,14 @@ const ZkSyncL2TxnBatches = () => {
   });
 
   const content = data?.items ? (
-    <>
-      <Box hideFrom="lg">
-        { data.items.map(((item, index) => (
-          <ZkSyncTxnBatchesListItem
-            key={ item.number + (isPlaceholderData ? String(index) : '') }
-            item={ item }
-            isLoading={ isPlaceholderData }
-          />
-        ))) }
-      </Box>
-      <Box hideBelow="lg">
-        <ZkSyncTxnBatchesTable items={ data.items } top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 } isLoading={ isPlaceholderData }/>
-      </Box>
-    </>
+    <TableContainerScrollable>
+      <ZkSyncTxnBatchesTable
+        items={ data.items }
+        top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }
+        isLoading={ isInitialLoading }
+        resetKey={ queryHash }
+      />
+    </TableContainerScrollable>
   ) : null;
 
   const text = (() => {
@@ -66,7 +60,7 @@ const ZkSyncL2TxnBatches = () => {
     }
 
     return (
-      <Skeleton loading={ countersQuery.isPlaceholderData || isPlaceholderData } display="flex" flexWrap="wrap">
+      <Skeleton loading={ countersQuery.isPlaceholderData || isInitialLoading } display="flex" flexWrap="wrap">
         Txn batch
         <Text fontWeight={ 600 } whiteSpace="pre"> #{ data.items[0].number } </Text>to
         <Text fontWeight={ 600 } whiteSpace="pre"> #{ data.items[data.items.length - 1].number } </Text>
@@ -85,6 +79,7 @@ const ZkSyncL2TxnBatches = () => {
         itemsNum={ data?.items.length }
         emptyText="There are no txn batches."
         actionBar={ actionBar }
+        isTransitioning={ isTransitioning }
       >
         { content }
       </DataList>

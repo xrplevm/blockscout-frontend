@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 import type { schemas } from '@blockscout/api-types';
@@ -14,9 +13,10 @@ import CsvExport from 'src/features/csv-export/components/CsvExport';
 import ApiFetchAlert from 'src/shared/alerts/ApiFetchAlert';
 import DataList from 'src/shared/lists/DataList';
 import Pagination from 'src/shared/pagination/Pagination';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
 
-import TokenHoldersList from './TokenHoldersList';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
+
 import TokenHoldersTable from './TokenHoldersTable';
 
 interface Props {
@@ -27,7 +27,7 @@ interface Props {
 
 const TokenHolders = ({ token, tokenId, isLoading }: Props) => {
 
-  const holdersQuery = useQueryWithPages({
+  const holdersQuery = useApiPaginatedQuery({
     resourceName: tokenId ? 'core:token_instance_holders' : 'core:token_holders',
     pathParams: { hash: token?.address_hash, id: tokenId },
     options: {
@@ -59,23 +59,15 @@ const TokenHolders = ({ token, tokenId, isLoading }: Props) => {
   const items = holdersQuery.data?.items;
 
   const content = items && token ? (
-    <>
-      <Box display={{ base: 'none', lg: 'block' }}>
-        <TokenHoldersTable
-          data={ items }
-          token={ token }
-          top={ ACTION_BAR_HEIGHT_DESKTOP }
-          isLoading={ holdersQuery.isPlaceholderData }
-        />
-      </Box>
-      <Box display={{ base: 'block', lg: 'none' }}>
-        <TokenHoldersList
-          data={ items }
-          token={ token }
-          isLoading={ holdersQuery.isPlaceholderData }
-        />
-      </Box>
-    </>
+    <TableContainerScrollable>
+      <TokenHoldersTable
+        data={ items }
+        token={ token }
+        top={ ACTION_BAR_HEIGHT_DESKTOP }
+        isLoading={ holdersQuery.isInitialLoading }
+        resetKey={ holdersQuery.queryHash }
+      />
+    </TableContainerScrollable>
   ) : null;
 
   return (
@@ -84,6 +76,7 @@ const TokenHolders = ({ token, tokenId, isLoading }: Props) => {
       itemsNum={ holdersQuery.data?.items.length }
       emptyText="There are no holders for this token."
       actionBar={ actionBar }
+      isTransitioning={ holdersQuery.isTransitioning }
     >
       { content }
     </DataList>

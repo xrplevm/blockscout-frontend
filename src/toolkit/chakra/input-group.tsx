@@ -113,13 +113,13 @@ export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
         }}
         { ...rest }
       >
-        { startElement && (
+        { Boolean(startElement) && (
           <InputElement pointerEvents="none" ref={ startElementRef } px={ 0 } color="input.element" { ...startElementProps }>
             { startElement }
           </InputElement>
         ) }
         { React.Children.map(children, (child: React.ReactElement<InputProps>) => {
-          if (getComponentDisplayName(child.type) !== 'FieldInput') {
+          if (getComponentDisplayName(child.type) !== 'FieldInput' && getComponentDisplayName(child.type) !== 'Input') {
             return child;
           }
           return React.cloneElement(child, {
@@ -130,7 +130,7 @@ export const InputGroup = React.forwardRef<HTMLDivElement, InputGroupProps>(
             placeholder: inlinePaddings ? child.props.placeholder : undefined,
           });
         }) }
-        { endElement && (
+        { Boolean(endElement) && (
           <InputElement placement="end" ref={ endElementRef } px={ 0 } color="input.element" { ...endElementProps }>
             { endElement }
           </InputElement>

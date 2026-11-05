@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 import type { CrossChainBridgedTokensSortingValue } from '../../types/api';
 
-import config from 'src/config';
+import useApiQuery from 'src/api/hooks/useApiQuery';
+
 import DataList from 'src/shared/lists/DataList';
-import type { QueryWithPagesResult } from 'src/shared/pagination/useQueryWithPages';
+import type { ApiPaginatedQueryResult } from 'src/shared/pagination/useApiPaginatedQuery';
 
 import type { OnValueChangeHandler } from 'src/toolkit/chakra/select';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 
-import BridgedTokensListItem from './BridgedTokensListItem';
 import BridgedTokensTable from './BridgedTokensTable';
 
 interface Props {
-  query: QueryWithPagesResult<'interchainIndexer:bridged_tokens'>;
+  query: ApiPaginatedQueryResult<'interchainIndexer:bridged_tokens'>;
   onSortChange: OnValueChangeHandler;
   sort: CrossChainBridgedTokensSortingValue;
   actionBar?: React.ReactNode;
@@ -24,6 +24,8 @@ interface Props {
 }
 
 const BridgedTokensIndex = ({ query, onSortChange, sort, actionBar, hasActiveFilters, tableTop }: Props) => {
+  const chainsQuery = useApiQuery('interchainIndexer:chains');
+
   return (
     <DataList
       isError={ query.isError }
@@ -34,36 +36,21 @@ const BridgedTokensIndex = ({ query, onSortChange, sort, actionBar, hasActiveFil
       }}
       actionBar={ actionBar }
       hasActiveFilters={ hasActiveFilters }
+      isTransitioning={ query.isTransitioning }
     >
       { query.data?.items ? (
-        <>
-          <Box hideFrom="lg">
-            { query.data.items.map((item, index) => {
-              const tokenCurrentChain = item.tokens.find((token) => String(token.chain_id) === config.chain.id);
-
-              return (
-                <BridgedTokensListItem
-                  key={ String(tokenCurrentChain?.token_address) + (query.isPlaceholderData ? index : '') }
-                  data={ item }
-                  token={ tokenCurrentChain }
-                  index={ index }
-                  page={ query.pagination.page }
-                  isLoading={ query.isPlaceholderData }
-                />
-              );
-            }) }
-          </Box>
-          <Box hideBelow="lg">
-            <BridgedTokensTable
-              data={ query.data.items }
-              sort={ sort }
-              setSorting={ onSortChange }
-              isLoading={ query.isPlaceholderData }
-              page={ query.pagination.page }
-              top={ tableTop }
-            />
-          </Box>
-        </>
+        <TableContainerScrollable>
+          <BridgedTokensTable
+            data={ query.data.items }
+            sort={ sort }
+            setSorting={ onSortChange }
+            chainsData={ chainsQuery.data?.items }
+            isLoading={ query.isInitialLoading || chainsQuery.isPlaceholderData }
+            resetKey={ query.queryHash }
+            page={ query.pagination.page }
+            top={ tableTop }
+          />
+        </TableContainerScrollable>
       ) : null }
     </DataList>
   );

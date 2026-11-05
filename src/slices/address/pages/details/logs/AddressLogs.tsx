@@ -13,10 +13,14 @@ import CsvExport from 'src/features/csv-export/components/CsvExport';
 
 import useIsMounted from 'src/shared/hooks/useIsMounted';
 import DataList from 'src/shared/lists/DataList';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 import Pagination from 'src/shared/pagination/Pagination';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
 import { generateListStub } from 'src/shared/pagination/utils';
 import getQueryParamString from 'src/shared/router/get-query-param-string';
+
+// log rows are tall, so the initial window is smaller than the default
+const INITIAL_RENDERED_ITEMS_NUM = 10;
 
 type Props = {
   shouldRender?: boolean;
@@ -28,7 +32,7 @@ const AddressLogs = ({ shouldRender = true, isQueryEnabled = true }: Props) => {
   const isMounted = useIsMounted();
 
   const hash = getQueryParamString(router.query.hash);
-  const { data, isPlaceholderData, isError, pagination } = useQueryWithPages({
+  const { data, isInitialLoading, isTransitioning, isError, pagination, queryHash } = useApiPaginatedQuery({
     resourceName: 'core:address_logs',
     pathParams: { hash },
     options: {
@@ -40,6 +44,13 @@ const AddressLogs = ({ shouldRender = true, isQueryEnabled = true }: Props) => {
         transaction_index: 23,
       } }),
     },
+  });
+
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({
+    list: data?.items,
+    isEnabled: !isInitialLoading,
+    minItemsNum: INITIAL_RENDERED_ITEMS_NUM,
+    resetKey: queryHash,
   });
 
   const addressQuery = useAddressQuery({ hash });
@@ -60,15 +71,22 @@ const AddressLogs = ({ shouldRender = true, isQueryEnabled = true }: Props) => {
     return null;
   }
 
-  const content = data?.items ? data.items.map((item, index) => (
+  const renderedLogs = data?.items?.slice(0, renderedItemsNum).map((item, index) => (
     <LogItem
-      key={ index }
+      key={ item.transaction_hash + '_' + item.index + (isInitialLoading ? index : '') }
       data={ item }
       type="address"
-      isLoading={ isPlaceholderData }
+      isLoading={ isInitialLoading }
       defaultDataType={ addressQuery.data?.zilliqa?.is_scilla_contract ? 'UTF-8' : undefined }
     />
-  )) : null;
+  ));
+
+  const content = renderedLogs ? (
+    <>
+      { renderedLogs }
+      <div ref={ cutRef }/>
+    </>
+  ) : null;
 
   return (
     <DataList
@@ -76,6 +94,7 @@ const AddressLogs = ({ shouldRender = true, isQueryEnabled = true }: Props) => {
       itemsNum={ data?.items?.length }
       emptyText="There are no logs for this address."
       actionBar={ actionBar }
+      isTransitioning={ isTransitioning }
     >
       { content }
     </DataList>

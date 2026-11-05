@@ -66,8 +66,11 @@ const AppErrorTooManyRequests = ({ bypassOptions, reset }: Props) => {
         throw new Error('API temp token is not found');
       }
 
+      // token TTL in seconds
+      const ttl = response.headers.get('api-v2-temp-token-ttl');
+
       cookies.set(cookies.NAMES.API_TEMP_TOKEN, apiTempToken, {
-        expires: reset ? Number(reset) / DAY : 1 / 24,
+        expires: ttl ? Number(ttl) * SECOND / DAY : 1 / 24,
       });
 
       window.location.reload();
@@ -79,30 +82,26 @@ const AppErrorTooManyRequests = ({ bypassOptions, reset }: Props) => {
         type: 'error',
       });
     }
-  }, [ recaptcha, reset ]);
+  }, [ recaptcha ]);
 
   React.useEffect(() => {
-    if (reset === undefined) {
+    if (timeLeft === undefined) {
       return;
     }
 
-    const interval = window.setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev && prev > 1) {
-          return prev - 1;
-        }
-
-        window.clearInterval(interval);
+    const timeout = window.setTimeout(() => {
+      if (timeLeft <= 1) {
         window.location.reload();
+        return;
+      }
 
-        return 0;
-      });
+      setTimeLeft(timeLeft - 1);
     }, SECOND);
 
     return () => {
-      window.clearInterval(interval);
+      window.clearTimeout(timeout);
     };
-  }, [ reset ]);
+  }, [ timeLeft ]);
 
   if (!config.services.reCaptcha.siteKey) {
     throw new Error('reCAPTCHA V2 site key is not set');

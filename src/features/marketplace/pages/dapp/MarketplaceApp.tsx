@@ -7,6 +7,7 @@ import React, { useEffect, useMemo } from 'react';
 import * as metadata from 'src/shell/metadata';
 
 import useIsAuth from 'src/features/account/hooks/useIsAuth';
+import { ensureLoaded as ensureWeb3Runtime } from 'src/features/connect-wallet/utils/runtime';
 import { useMarketplaceContext } from 'src/features/marketplace/context';
 
 import config from 'src/config';
@@ -19,6 +20,7 @@ import { useColorMode } from 'src/toolkit/chakra/color-mode';
 import MarketplaceAppIframe from '../../components/MarketplaceAppIframe';
 import useAppQuery from '../../hooks/useAppQuery';
 import useAutoConnectWallet from '../../hooks/useAutoConnectWallet';
+import { useExternalDappRedirect } from '../../hooks/useExternalDappRedirect';
 import { getAppUrl } from '../../utils/dapp';
 import MarketplaceAppTopBar from './MarketplaceAppTopBar';
 
@@ -29,12 +31,24 @@ export default function MarketplaceApp() {
   const { colorMode } = useColorMode();
   useAutoConnectWallet();
 
+  // Route-eager wallet load: dapp pages bridge the wallet into the iframe (and honour `?action=connect`),
+  // so start the runtime at mount rather than waiting for the boot-time idle trigger.
+  React.useEffect(() => {
+    ensureWeb3Runtime();
+  }, []);
+
   const query = useAppQuery(id, isAuth);
   const { data, isPlaceholderData } = query;
 
   const { setIsAutoConnectDisabled } = useMarketplaceContext();
 
-  const appUrl = useMemo(() => getAppUrl(data?.url, router), [ data?.url, router ]);
+  const appUrl = useMemo(
+    () => getAppUrl(isPlaceholderData ? undefined : data?.url, router),
+    [ data?.url, isPlaceholderData, router ],
+  );
+
+  const isExternal = !isPlaceholderData && Boolean(data?.external);
+  useExternalDappRedirect(appUrl, isExternal);
 
   const message = useMemo(() => ({
     blockscoutColorMode: colorMode,
@@ -68,7 +82,7 @@ export default function MarketplaceApp() {
       />
       <MarketplaceAppIframe
         appId={ id }
-        appUrl={ appUrl }
+        appUrl={ isExternal ? undefined : appUrl }
         message={ message }
         mx={{ base: -4, lg: -6 }}
       />

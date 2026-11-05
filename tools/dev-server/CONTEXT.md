@@ -17,17 +17,25 @@ unnecessary.
 
 ## Files
 
+Two naming rules hold here: **dotted names are entry points** — one per `pnpm` script, meant to
+be typed by a human (`dev.preset.sh`, `prod.preset.sh`); **snake_case names are internals** —
+invoked or sourced by another script, never directly (`run_steps.sh`). `fetch.sh` predates the
+rules and is referenced by path from the Dockerfile and several generator scripts, so it keeps
+its name.
+
 | File | Role |
 |---|---|
 | `registry.json` | **Single source of truth**: `alias` → instance URL map. |
 | `envs-rules.json` | `localEnvs` (local APP_* substitutions) + `ignoredEnvs` / `deprecatedEnvs` (keys to drop — see "Dropped envs" below). |
 | `fetch.ts` (→ `fetch.js`) | Fetches `<url>/node-api/config`, drops `ignoredEnvs` + `deprecatedEnvs`, applies/omits `localEnvs`, writes `.env.tmp`. |
 | `fetch.sh` | Compile-on-run wrapper (`tsc` + `node fetch.js`). Resolves its own path, so callable from any cwd. |
-| `dev.preset.sh` | `pnpm dev:preset <alias>` — fetch + run `next dev`. |
-| `dev.local.sh` | `pnpm dev:local` — run against a local backend using `.env.localhost` (no fetch). |
+| `dev.preset.sh` | `pnpm dev:preset <alias> [--port <number>]` — fetch + run `next dev`. |
+| `dev.local.sh` | `pnpm dev:local [--port <number>]` — run against a local backend using `.env.localhost` (no fetch). Skips the multichain config: a local backend serves a single chain. |
+| `prod.preset.sh` | `pnpm prod:preset <alias> [--port <number>] [--skip-build]` — fetch + `next build` + `next start` (production build, e.g. for performance measurements); `--skip-build` restarts from the existing `.next` output. `--profile` builds the React-profileable variant (see `tools/profiling/CONTEXT.md`). |
+| `run_steps.sh` | Sourced by all three run scripts: env layering (`build_port_args`, `build_env_args`), asset regeneration (`prepare_assets`), and the launch wrapper (`run_with_envs`). What stays in a run script is its argument parsing and the command it finally runs. |
 | `.env.localhost` | Committed base config for local-backend dev. |
-| `sync-preset-lists.mjs` | Regenerates / checks the alias dropdowns from `registry.json`. |
-| `fetch.js`, `tsconfig.tsbuildinfo` | Build artifacts — git-ignored, regenerated on run. |
+| `sync-presets/` | Regenerates / checks the alias dropdowns from `registry.json`; `run.sh` is its compile-on-run wrapper. |
+| `fetch.js`, `sync-presets/dist/`, `tsconfig.tsbuildinfo` | Build artifacts — git-ignored, regenerated on run. |
 
 ## Dropped envs: `ignoredEnvs` vs `deprecatedEnvs`
 
@@ -43,7 +51,9 @@ lives here):
   the old key from its config, so unless it's dropped the demo deploy's envs-validator
   fails on a variable that no longer exists in the schema. This list grows every time a
   variable is removed for good (see the `deprecate-env-var` skill) — add the removed
-  variable here.
+  variable here. It also holds still-valid variables whose deployed value would mask the
+  app's default behavior locally (`NEXT_PUBLIC_API_DOCS_TABS`): hosted instances set them
+  while the defaults are what a local run should exercise.
 
 ## Gotchas (these bit us; don't re-learn them)
 
@@ -52,22 +62,38 @@ lives here):
   (e.g. `HOMEPAGE_HERO_BANNER_CONFIG`, `MARKETPLACE_ESSENTIAL_DAPPS_CONFIG`). So `fetch.ts`
   emits raw values, exactly like the old committed presets. Because raw values are **not
   `source`-safe**, the container entrypoint reads `.env.tmp` via a `while IFS='=' read` loop,
-  never `source`.
+  never `source`. That loop uses `read … || [ -n "$name" ]` so a file with no trailing
+  newline doesn't silently drop its last variable (this bit us with `.env.extra`).
 - **dotenv-cli precedence: the FIRST `-e` file wins** (not the last). The run scripts therefore
   list env files **highest-priority-first**.
+- **`dotenv-cli` must stay on a release that bundles `dotenv-expand` ≥ 10.** Instance configs contain
+  values with a bare `$` (regex anchors in `NEXT_PUBLIC_ZETACHAIN_EXTERNAL_SEARCH_CONFIG`, say);
+  `dotenv-expand` 8 throws `Cannot read properties of undefined (reading 'split')` on them instead of
+  leaving the non-variable `$` alone, which kills every `dotenv` invocation in the run scripts.
 - **`--omit-local-envs` is the dev/container switch.** Dev mode applies `localEnvs` (so APP_HOST
   etc. point at `localhost`); the container passes `--omit-local-envs` so those keys are absent
   and the deployment's own APP_* values survive (this replaced the old entrypoint blacklist).
+- **`tools/dev-server/tsconfig.json` must never get an `outDir`.** `fetch.js` has to emit beside
+  `fetch.ts` — the Dockerfile `COPY`s it from there and `fetch.sh` runs it from there. That is why the
+  sync tool has its own `sync-presets/tsconfig.json` emitting to `sync-presets/dist/`.
 
 ## Env layering (highest → lowest priority)
 
-- `dev:preset`: `.env.local` → `.env.extra` → `.env.secrets` → `.env.tmp` (fetched instance)
-- `dev:local`: `.env.local` → `.env.extra` → `.env.secrets` → `.env.localhost`
+- `dev:preset` / `prod:preset`: `--port` flag → `.env.local` → `.env.extra` → `.env.secrets` → `.env.tmp` (fetched instance)
+- `dev:local`: `--port` flag → `.env.local` → `.env.extra` → `.env.secrets` → `.env.localhost`
+
+The `--port` flag sets `NEXT_PUBLIC_APP_PORT` via dotenv-cli's `-v` (applied AFTER all `-e`
+files, so it beats every env file). It overrides the env var rather than just `next dev -p`
+so the generated `envs.js` / `config.app.baseUrl` stay consistent with the actual port.
+Without the flag, the port comes from the env files as before (default `3000` from
+`localEnvs` / `.env.localhost`; a persistent personal override belongs in `.env.local`).
+`prod:preset` therefore regenerates `envs.js` in its **start** step, not its build step —
+that's what lets a `--skip-build` restart move to a different port.
 
 | File | Committed? | Purpose |
 |---|---|---|
 | `.env.local` | git-ignored | Personal, local-only overrides (Next convention). |
-| `.env.extra` | **committed** (empty on main) | Branch/feature ENVs that must also reach the **demo deploy**. No secrets. |
+| `.env.extra` | **committed** (empty on main) | Branch/feature ENVs that must also reach the **demo deploy**. No secrets. **Lives at the repo root** |
 | `.env.secrets` | git-ignored (repo root) | Local secret overrides; optional (fetched config already carries public keys). |
 | `.env.tmp` | git-ignored | The fetched instance config; overwritten each start, left on disk for inspection. |
 

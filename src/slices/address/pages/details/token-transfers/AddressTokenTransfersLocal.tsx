@@ -17,7 +17,7 @@ import { useMultichainContext } from 'src/features/multichain/context';
 import useIsMobile from 'src/shared/hooks/useIsMobile';
 import DataList from 'src/shared/lists/DataList';
 import Pagination from 'src/shared/pagination/Pagination';
-import type { QueryWithPagesResult } from 'src/shared/pagination/useQueryWithPages';
+import type { ApiPaginatedQueryResult } from 'src/shared/pagination/useApiPaginatedQuery';
 
 import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 
@@ -25,7 +25,7 @@ import type { Filters } from './useAddressTokenTransfersQuery';
 import useAddressTokenTransfersSocket from './useAddressTokenTransfersSocket';
 
 interface Props {
-  query: QueryWithPagesResult<'core:address_token_transfers'>;
+  query: ApiPaginatedQueryResult<'core:address_token_transfers'>;
   filters: Filters;
   addressHash: string;
   onTypeFilterChange: (type: Array<TokenType>) => void;
@@ -34,13 +34,14 @@ interface Props {
   overloadCount?: number;
 }
 
-const TokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, onAddressFilterChange, overloadCount }: Props) => {
-  const { isError, isPlaceholderData, data, pagination } = query;
+const AddressTokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, onAddressFilterChange, overloadCount }: Props) => {
+  const { isError, isInitialLoading, isTransitioning, data, pagination } = query;
   const isMobile = useIsMobile();
   const multichainContext = useMultichainContext();
 
   const { showSocketAlert, newItemsCount } = useAddressTokenTransfersSocket({
     filters,
+    queryFilters: query.filters,
     addressHash,
     data,
     overloadCount,
@@ -60,7 +61,8 @@ const TokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, 
         showSocketInfo={ pagination.page === 1 }
         showSocketErrorAlert={ showSocketAlert }
         socketInfoNum={ newItemsCount }
-        isLoading={ isPlaceholderData }
+        isLoading={ isInitialLoading }
+        resetKey={ query.queryHash }
       />
     </TableContainerScrollable>
   ) : null;
@@ -75,7 +77,7 @@ const TokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, 
           withAddressFilter
           onAddressFilterChange={ onAddressFilterChange }
           defaultAddressFilter={ filters.filter }
-          isLoading={ query.isPlaceholderData }
+          isLoading={ isInitialLoading }
           chainConfig={ multichainContext?.chain?.app_config }
         />
         <CsvExport
@@ -86,10 +88,10 @@ const TokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, 
             filter_type: 'address',
             filter_value: filters.filter,
           } : undefined }
-          loadingInitial={ isPlaceholderData }
+          loadingInitial={ isInitialLoading }
         />
         <AddressAdvancedFilterLink
-          isLoading={ isPlaceholderData }
+          isLoading={ isInitialLoading }
           address={ addressHash }
           typeFilter={ filters.type }
           directionFilter={ filters.filter }
@@ -105,6 +107,7 @@ const TokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, 
       itemsNum={ data?.items?.length }
       emptyText="There are no token transfers."
       hasActiveFilters={ Boolean(numActiveFilters) }
+      isTransitioning={ isTransitioning }
       emptyStateProps={{
         term: 'token transfer',
       }}
@@ -115,4 +118,4 @@ const TokenTransfersLocal = ({ query, filters, addressHash, onTypeFilterChange, 
   );
 };
 
-export default React.memo(TokenTransfersLocal);
+export default React.memo(AddressTokenTransfersLocal);

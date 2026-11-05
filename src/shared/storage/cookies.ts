@@ -4,8 +4,6 @@ import Cookies from 'js-cookie';
 
 import config from 'src/config';
 
-import { isBrowser } from 'src/toolkit/utils/isBrowser';
-
 /**
  * All cookie names that can be used in the application.
  */
@@ -24,14 +22,13 @@ export enum NAMES {
   LOCAL_TIME = 'local_time',
   INDEXING_ALERT = 'indexing_alert',
   ADBLOCK_DETECTED = 'adblock_detected',
-  MIXPANEL_DEBUG = '_mixpanel_debug',
+  ANALYTICS_DEBUG = '_analytics_debug',
   ADDRESS_NFT_DISPLAY_TYPE = 'address_nft_display_type',
   HIDE_ADD_TO_WALLET_BUTTON = 'hide_add_to_wallet_button',
   UUID = 'uuid',
   SHOW_SCAM_TOKENS = 'show_scam_tokens',
   SHOW_POOR_REPUTATION_TOKENS = 'show_poor_reputation_tokens',
   APP_PROFILE = 'app_profile',
-  TABLE_VIEW_ON_MOBILE = 'table_view_on_mobile',
 }
 
 /**
@@ -41,7 +38,7 @@ export enum NAMES {
 export const PRIVATE_MODE_DISALLOWED: ReadonlyArray<NAMES> = [
   NAMES.UUID,
   NAMES.ADBLOCK_DETECTED,
-  NAMES.MIXPANEL_DEBUG,
+  NAMES.ANALYTICS_DEBUG,
 ];
 
 export const getDefaultAttributes = () => ({
@@ -50,7 +47,11 @@ export const getDefaultAttributes = () => ({
 });
 
 export function get(name?: NAMES | undefined | null, serverCookie?: string) {
-  if (!isBrowser()) {
+  // a direct typeof check instead of the isBrowser() helper: this function runs during
+  // src/config initialization (config/app.ts reads the app_profile cookie at module scope),
+  // and config ↔ cookies is an import cycle — when the graph is entered through this module,
+  // an import binding placed after `src/config` above would still be uninitialized here
+  if (typeof window === 'undefined') {
     return serverCookie ? getFromCookieString(serverCookie, name) : undefined;
   }
 

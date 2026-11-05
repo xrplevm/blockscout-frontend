@@ -36,7 +36,7 @@ const DEFAULT_THEME_COLORS = {
       },
       bg: {
         _light: { value: '{colors.purple.50}' },
-        _dark: { value: '{colors.whiteAlpha.50}' },
+        _dark: { value: '{colors.whiteAlpha.100}' },
       },
     },
     option: {
@@ -110,7 +110,7 @@ const DEFAULT_THEME_COLORS = {
   },
   topbar: {
     bg: {
-      _light: { value: '{colors.gray.50}' },
+      _light: { value: '{colors.blackAlpha.50}' },
       _dark: { value: '{colors.whiteAlpha.100}' },
     },
   },

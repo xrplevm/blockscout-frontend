@@ -7,6 +7,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 import appConfig from 'src/config';
 
+const isInsideWorktree = __dirname.includes('/.claude/worktrees/');
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -14,6 +16,8 @@ const config: PlaywrightTestConfig = defineConfig({
   testDir: './',
 
   testMatch: /.*\.pw\.tsx/,
+
+  testIgnore: isInsideWorktree ? undefined : '.claude/worktrees/**',
 
   snapshotPathTemplate: '{testDir}/{testFileDir}/__screenshots__/{testFileName}_{projectName}_{arg}{ext}',
 
@@ -34,8 +38,15 @@ const config: PlaywrightTestConfig = defineConfig({
   // so we opt out of parallel tests in any environment
   workers: 1,
 
+  outputDir: 'playwright-results',
+
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: process.env.CI ? 'blob' : 'html',
+  // The json report sits under outputDir rather than next to the html one: the html reporter wipes
+  // playwright-report/ when the run ends, whereas outputDir is cleared at run start.
+  reporter: [
+    process.env.CI ? [ 'blob' ] : [ 'html' ],
+    [ 'json', { outputFile: 'playwright-results/report.json' } ],
+  ],
 
   expect: {
     toHaveScreenshot: {
@@ -118,6 +129,8 @@ const config: PlaywrightTestConfig = defineConfig({
 
           // Mock for reCaptcha hook
           { find: 'src/services/re-captcha/useReCaptcha', replacement: './playwright/mocks/client/services/re-captcha/useReCaptcha.js' },
+          // Mock for reCaptcha widget, so Google's script never loads and never fires the init error
+          { find: /^react-google-recaptcha$/, replacement: './playwright/mocks/modules/react-google-recaptcha.js' },
 
           // The createWeb3Modal() function from web3modal/wagmi/react somehow pollutes the global styles which causes the tests to fail
           // We don't call this function in TestApp and since we use useWeb3Modal() and useWeb3ModalState() hooks in the code, we have to mock the module
@@ -144,8 +157,9 @@ const config: PlaywrightTestConfig = defineConfig({
   },
 
   // configured projects
-  // these projects are also used for sharding tests in CI
-  // when adding or deleting a project, make sure to update github workflow accordingly
+  // these projects are also used for sharding tests in CI: the `pw_tests` matrix in
+  // .github/workflows/checks.yml runs one job per project, with `default` split into three shards
+  // when adding or deleting a project, or changing the shard count, make sure to update github workflow accordingly
   projects: [
     {
       name: 'default',

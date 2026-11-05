@@ -35,6 +35,7 @@ type Props = {
   isLoading?: boolean;
   stickyHeader?: boolean;
   translationQuery?: TxsTranslationQuery;
+  resetKey?: string;
 };
 
 const TxsTable = ({
@@ -49,8 +50,9 @@ const TxsTable = ({
   isLoading,
   stickyHeader = true,
   translationQuery,
+  resetKey,
 }: Props) => {
-  const { cutRef, renderedItemsNum } = useLazyRenderedList(txs, !isLoading);
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: txs, isEnabled: !isLoading, resetKey });
   const initialList = useInitialList({
     data: txs ?? [],
     idFn: (item) => item.hash,
@@ -136,7 +138,7 @@ const TxsTable = ({
           </TableRow>
         </TableHeaderComponent>
         <TableBody>
-          { socketType && <TxsSocketNotice type={ socketType } place="table" isLoading={ isLoading }/> }
+          { socketType && <TxsSocketNotice type={ socketType } isLoading={ isLoading }/> }
           { txs.slice(0, renderedItemsNum).map((item, index) => {
             return (
               <TxsTableItem

@@ -31,7 +31,6 @@ const tokenTransfersWoPagination = {
 test('with pagination', async({ render, mockApiResponse }) => {
   await mockApiResponse('core:address_token_transfers', tokenTransfersWithPagination, {
     pathParams: { hash: CURRENT_ADDRESS },
-    queryParams: { type: [] },
   });
   const component = await render(
     <Box pt={{ base: '134px', lg: 6 }}>
@@ -45,7 +44,6 @@ test('with pagination', async({ render, mockApiResponse }) => {
 test('without pagination', async({ render, mockApiResponse }) => {
   await mockApiResponse('core:address_token_transfers', tokenTransfersWoPagination, {
     pathParams: { hash: CURRENT_ADDRESS },
-    queryParams: { type: [] },
   });
   const component = await render(
     <Box pt={{ base: '134px', lg: 6 }}>
@@ -62,7 +60,6 @@ test.describe('mobile', () => {
   test('with pagination', async({ render, mockApiResponse }) => {
     await mockApiResponse('core:address_token_transfers', tokenTransfersWithPagination, {
       pathParams: { hash: CURRENT_ADDRESS },
-      queryParams: { type: [] },
     });
     const component = await render(
       <Box pt={{ base: '134px', lg: 6 }}>
@@ -76,7 +73,6 @@ test.describe('mobile', () => {
   test('without pagination', async({ render, mockApiResponse }) => {
     await mockApiResponse('core:address_token_transfers', tokenTransfersWoPagination, {
       pathParams: { hash: CURRENT_ADDRESS },
-      queryParams: { type: [] },
     });
     const component = await render(
       <Box pt={{ base: '134px', lg: 6 }}>
@@ -97,7 +93,6 @@ test.describe('socket', () => {
     };
     await mockApiResponse('core:address_token_transfers', tokenTransfersWithPagination, {
       pathParams: { hash: CURRENT_ADDRESS },
-      queryParams: { type: [] },
     });
     await render(
       <Box pt={{ base: '134px', lg: 6 }}>
@@ -110,16 +105,11 @@ test.describe('socket', () => {
     const socket = await createSocket();
     const channel = await socketServer.joinChannel(socket, `addresses:${ CURRENT_ADDRESS.toLowerCase() }`);
 
-    const itemsCount = await page.locator('tbody tr').count();
-    expect(itemsCount).toBe(2);
+    await expect(page.locator('tbody tr')).toHaveCount(2);
 
     socketServer.sendMessage(socket, channel, 'token_transfer', { token_transfers: [ tokenTransferMock.erc1155B, tokenTransferMock.erc1155C ] });
 
-    const thirdRow = page.locator('tbody tr:nth-child(3)');
-    await thirdRow.waitFor();
-
-    const itemsCountNew = await page.locator('tbody tr').count();
-    expect(itemsCountNew).toBe(4);
+    await expect(page.locator('tbody tr')).toHaveCount(4);
   });
 
   test('with overload', async({ render, mockApiResponse, page, createSocket }) => {
@@ -130,7 +120,6 @@ test.describe('socket', () => {
     };
     await mockApiResponse('core:address_token_transfers', tokenTransfersWithPagination, {
       pathParams: { hash: CURRENT_ADDRESS },
-      queryParams: { type: [] },
     });
     await render(
       <Box pt={{ base: '134px', lg: 6 }}>
@@ -143,19 +132,13 @@ test.describe('socket', () => {
     const socket = await createSocket();
     const channel = await socketServer.joinChannel(socket, `addresses:${ CURRENT_ADDRESS.toLowerCase() }`);
 
-    const itemsCount = await page.locator('tbody tr').count();
-    expect(itemsCount).toBe(2);
+    await expect(page.locator('tbody tr')).toHaveCount(2);
 
     socketServer.sendMessage(socket, channel, 'token_transfer', { token_transfers: [ tokenTransferMock.erc1155B, tokenTransferMock.erc1155C ] });
 
-    const thirdRow = page.locator('tbody tr:nth-child(3)');
-    await thirdRow.waitFor();
+    await expect(page.locator('tbody tr')).toHaveCount(3);
 
-    const itemsCountNew = await page.locator('tbody tr').count();
-    expect(itemsCountNew).toBe(3);
-
-    const counter = await page.locator('tbody tr:nth-child(1)').textContent();
-    expect(counter?.startsWith('1 ')).toBe(true);
+    await expect(page.locator('tbody tr').first()).toHaveText(/^1 /);
   });
 
   test('without overload, with filters', async({ render, mockApiResponse, page, createSocket }) => {
@@ -180,16 +163,11 @@ test.describe('socket', () => {
     const socket = await createSocket();
     const channel = await socketServer.joinChannel(socket, `addresses:${ CURRENT_ADDRESS.toLowerCase() }`);
 
-    const itemsCount = await page.locator('tbody tr').count();
-    expect(itemsCount).toBe(2);
+    await expect(page.locator('tbody tr')).toHaveCount(2);
 
     socketServer.sendMessage(socket, channel, 'token_transfer', { token_transfers: [ tokenTransferMock.erc1155B, tokenTransferMock.erc20 ] });
 
-    const thirdRow = page.locator('tbody tr:nth-child(3)');
-    await thirdRow.waitFor();
-
-    const itemsCountNew = await page.locator('tbody tr').count();
-    expect(itemsCountNew).toBe(3);
+    await expect(page.locator('tbody tr')).toHaveCount(3);
   });
 
   test('with overload, with filters', async({ render, mockApiResponse, page, createSocket }) => {
@@ -214,8 +192,7 @@ test.describe('socket', () => {
     const socket = await createSocket();
     const channel = await socketServer.joinChannel(socket, `addresses:${ CURRENT_ADDRESS.toLowerCase() }`);
 
-    const itemsCount = await page.locator('tbody tr').count();
-    expect(itemsCount).toBe(2);
+    await expect(page.locator('tbody tr')).toHaveCount(2);
 
     socketServer.sendMessage(
       socket,
@@ -224,13 +201,8 @@ test.describe('socket', () => {
       { token_transfers: [ tokenTransferMock.erc1155B, tokenTransferMock.erc20, tokenTransferMock.erc1155C, tokenTransferMock.erc721 ] },
     );
 
-    const thirdRow = page.locator('tbody tr:nth-child(3)');
-    await thirdRow.waitFor();
+    await expect(page.locator('tbody tr')).toHaveCount(3);
 
-    const itemsCountNew = await page.locator('tbody tr').count();
-    expect(itemsCountNew).toBe(3);
-
-    const counter = await page.locator('tbody tr:nth-child(1)').textContent();
-    expect(counter?.startsWith('1 ')).toBe(true);
+    await expect(page.locator('tbody tr').first()).toHaveText(/^1 /);
   });
 });

@@ -17,7 +17,7 @@ import Flashblocks from 'src/features/flashblocks/pages/index/Flashblocks';
 
 import config from 'src/config';
 import useIsMobile from 'src/shared/hooks/useIsMobile';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
 import { generateListStub } from 'src/shared/pagination/utils';
 import getQueryParamString from 'src/shared/router/get-query-param-string';
 
@@ -39,9 +39,9 @@ const BlocksPageContent = () => {
   const bgColor = useColorModeValue('white', 'gray.800');
   const tab = getQueryParamString(router.query.tab);
 
-  const blocksQuery = useQueryWithPages({
+  const blocksQuery = useApiPaginatedQuery({
     resourceName: 'core:blocks',
-    filters: { type: 'block' },
+    queryParams: { type: 'block' },
     options: {
       enabled: tab === 'blocks' || !tab,
       placeholderData: generateListStub<'core:blocks'>(BLOCK_ITEM, 50, { next_page_params: {
@@ -50,9 +50,9 @@ const BlocksPageContent = () => {
       } }),
     },
   });
-  const reorgsQuery = useQueryWithPages({
+  const reorgsQuery = useApiPaginatedQuery({
     resourceName: 'core:blocks',
-    filters: { type: 'reorg' },
+    queryParams: { type: 'reorg' },
     options: {
       enabled: tab === 'reorgs',
       placeholderData: generateListStub<'core:blocks'>(BLOCK_ITEM, 50, { next_page_params: {
@@ -61,9 +61,9 @@ const BlocksPageContent = () => {
       } }),
     },
   });
-  const unclesQuery = useQueryWithPages({
+  const unclesQuery = useApiPaginatedQuery({
     resourceName: 'core:blocks',
-    filters: { type: 'uncle' },
+    queryParams: { type: 'uncle' },
     options: {
       enabled: tab === 'uncles',
       placeholderData: generateListStub<'core:blocks'>(BLOCK_ITEM, 50, { next_page_params: {
@@ -73,8 +73,7 @@ const BlocksPageContent = () => {
     },
   });
 
-  const flashblocksTabId = flashblocksFeature.isEnabled ? flashblocksFeature.name + 's' : undefined;
-  const isFlashblocksTab = tab === flashblocksTabId && flashblocksTabId !== undefined;
+  const isFlashblocksTab = flashblocksFeature.isEnabled && flashblocksFeature.tabIds.some((id) => id === tab);
 
   const pagination = (() => {
     if (tab === 'reorgs') {
@@ -84,14 +83,14 @@ const BlocksPageContent = () => {
       return unclesQuery.pagination;
     }
     if (isFlashblocksTab) {
-      return null;;
+      return null;
     }
     return blocksQuery.pagination;
   })();
 
   const tabs: Array<TabItemRegular> = [
     { id: 'blocks', title: 'All', component: <BlocksContent type="block" query={ blocksQuery }/> },
-    flashblocksFeature.isEnabled && flashblocksTabId && { id: flashblocksTabId, title: upperFirst(flashblocksFeature.name) + 's', component: <Flashblocks/> },
+    flashblocksFeature.isEnabled && { id: flashblocksFeature.tabIds, title: upperFirst(flashblocksFeature.name) + 's', component: <Flashblocks/> },
     { id: 'reorgs', title: 'Forked', component: <BlocksContent type="reorg" query={ reorgsQuery }/> },
     { id: 'uncles', title: 'Uncles', component: <BlocksContent type="uncle" query={ unclesQuery }/> },
   ].filter(Boolean);

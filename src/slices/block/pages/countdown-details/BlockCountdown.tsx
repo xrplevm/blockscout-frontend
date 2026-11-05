@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { Box, Center, Flex, Grid } from '@chakra-ui/react';
+import { Box, Center, Flex } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -15,6 +15,7 @@ import throwOnResourceLoadError from 'src/shared/errors/throw-on-resource-load-e
 import ChainIcon from 'src/shared/external-chains/ChainIcon';
 import getQueryParamString from 'src/shared/router/get-query-param-string';
 import { route } from 'src/shared/router/routes';
+import StatsContainer from 'src/shared/stats/StatsContainer';
 import StatsWidget from 'src/shared/stats/StatsWidget';
 import SpriteIcon from 'src/sprite/SpriteIcon';
 
@@ -23,7 +24,7 @@ import { Heading } from 'src/toolkit/chakra/heading';
 import { Image } from 'src/toolkit/chakra/image';
 import { Link } from 'src/toolkit/chakra/link';
 import { ContentLoader } from 'src/toolkit/components/loaders/ContentLoader';
-import { TruncatedText } from 'src/toolkit/components/truncation/TruncatedText';
+import { Truncate } from 'src/toolkit/components/truncation/Truncate';
 import { downloadBlob } from 'src/toolkit/utils/file';
 
 import BlockCountdownTimer from './BlockCountdownTimer';
@@ -40,36 +41,35 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
   const height = getQueryParamString(router.query.height);
 
   const { data, isPending, isError, error } = useApiQuery('core:block_countdown', {
-    queryParams: {
-      module: 'block',
-      action: 'getblockcountdown',
-      blockno: height,
-    },
+    pathParams: { height },
   });
 
+  // the API answers 404 when the block is already mined, which is the same outcome as the countdown running out
+  const isBlockMined = isError && error.status === 404;
+
   const handleAddToAppleCalClick = React.useCallback(() => {
-    if (!data?.result?.EstimateTimeInSec) {
+    if (!data?.estimated_time_in_seconds) {
       return;
     }
-    const fileBlob = createIcsFileBlob({ blockHeight: height, date: dayjs().add(Number(data.result.EstimateTimeInSec), 's'), multichainContext });
+    const fileBlob = createIcsFileBlob({ blockHeight: height, date: dayjs().add(Number(data.estimated_time_in_seconds), 's'), multichainContext });
     downloadBlob(fileBlob, `Block #${ height } creation event.ics`);
-  }, [ data?.result?.EstimateTimeInSec, height, multichainContext ]);
+  }, [ data?.estimated_time_in_seconds, height, multichainContext ]);
 
   const handleTimerFinish = React.useCallback(() => {
     window.location.assign(route({ pathname: '/block/[height_or_hash]', query: { height_or_hash: height } }, multichainContext));
   }, [ height, multichainContext ]);
 
   React.useEffect(() => {
-    if (!isError && !isPending && !data.result) {
+    if (isBlockMined) {
       handleTimerFinish();
     }
-  }, [ data?.result, handleTimerFinish, isError, isPending ]);
+  }, [ handleTimerFinish, isBlockMined ]);
 
-  if (isError) {
+  if (isError && !isBlockMined) {
     throwOnResourceLoadError({ isError, error, resource: 'core:block_countdown' });
   }
 
-  if (isPending || !data?.result) {
+  if (isPending || isBlockMined || !data) {
     return <Center h="100%"><ContentLoader/></Center>;
   }
 
@@ -81,11 +81,11 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
             <Heading
               level="1"
             >
-              <TruncatedText text={ `Block #${ height }` } w="100%"/>
+              <Truncate value={ `Block #${ height }` } type="end" w="100%"/>
             </Heading>
             <Box mt={ 2 } color="text.secondary">
               <Box fontWeight={ 600 }>Estimated target date</Box>
-              <Time timestamp={ dayjs().add(Number(data.result.EstimateTimeInSec), 's').valueOf() }/>
+              <Time timestamp={ dayjs().add(Number(data.estimated_time_in_seconds), 's').valueOf() }/>
             </Box>
             <Flex columnGap={ 2 } mt={ 3 }>
               <Link
@@ -94,7 +94,7 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
                 textStyle="sm"
                 px={ 2 }
                 display="inline-flex"
-                href={ createGoogleCalendarLink({ blockHeight: height, timeFromNow: Number(data.result.EstimateTimeInSec), multichainContext }) }
+                href={ createGoogleCalendarLink({ blockHeight: height, timeFromNow: Number(data.estimated_time_in_seconds), multichainContext }) }
               >
                 <Image src="/static/google_calendar.svg" alt="Google calendar logo" boxSize={ 5 } mr={ 2 }/>
                 <span>Google</span>
@@ -136,16 +136,14 @@ const BlockCountdown = ({ hideCapybaraRunner }: Props) => {
             ) }
           </Box>
         </Flex>
-        { data.result.EstimateTimeInSec && (
-          <BlockCountdownTimer
-            value={ Math.ceil(Number(data.result.EstimateTimeInSec)) }
-            onFinish={ handleTimerFinish }
-          />
-        ) }
-        <Grid gridTemplateColumns="repeat(2, calc(50% - 4px))" columnGap={ 2 } mt={ 2 }>
-          <StatsWidget label="Remaining blocks" value={ data.result.RemainingBlock } icon="apps"/>
-          <StatsWidget label="Current block" value={ data.result.CurrentBlock } icon="block"/>
-        </Grid>
+        <BlockCountdownTimer
+          value={ Math.ceil(Number(data.estimated_time_in_seconds)) }
+          onFinish={ handleTimerFinish }
+        />
+        <StatsContainer mt={{ base: 1, lg: 2 }}>
+          <StatsWidget label="Remaining blocks" value={ data.remaining_blocks_count } icon="apps"/>
+          <StatsWidget label="Current block" value={ data.current_block_number } icon="block"/>
+        </StatsContainer>
         { !hideCapybaraRunner && <CapybaraRunner/> }
       </Flex>
     </Center>

@@ -9,13 +9,15 @@ import * as SocketNewItemsNotice from 'src/api/socket/SocketNewItemsNotice';
 
 import { AddressHighlightProvider } from 'src/slices/address/contexts/address-highlight';
 import TokenTransferTableItem from 'src/slices/token-transfer/pages/token/TokenTransferTableItem';
+import { getTokenTransferKey } from 'src/slices/token-transfer/utils/get-token-transfer-key';
 
 import { useMultichainContext } from 'src/features/multichain/context';
 
 import TimeFormatToggle from 'src/shared/date-and-time/TimeFormatToggle';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 
 import { TableBody, TableColumnHeader, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
-import { TruncatedText } from 'src/toolkit/components/truncation/TruncatedText';
+import { Truncate } from 'src/toolkit/components/truncation/Truncate';
 
 interface Props {
   data: Array<schemas['TokenTransfer']>;
@@ -27,12 +29,14 @@ interface Props {
   isLoading?: boolean;
   token: schemas['Token'];
   instance?: schemas['TokenInstance'];
+  resetKey?: string;
 }
 
-const TokenTransferTable = ({ data, top, showSocketInfo, showSocketErrorAlert, socketInfoNum, tokenId, isLoading, token, instance }: Props) => {
+const TokenTransferTable = ({ data, top, showSocketInfo, showSocketErrorAlert, socketInfoNum, tokenId, isLoading, token, instance, resetKey }: Props) => {
   const multichainContext = useMultichainContext();
   const chainData = multichainContext?.chain;
   const tokenType = token.type;
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: data, isEnabled: !isLoading, resetKey });
 
   return (
     <AddressHighlightProvider>
@@ -45,7 +49,7 @@ const TokenTransferTable = ({ data, top, showSocketInfo, showSocketErrorAlert, s
               <TimeFormatToggle/>
             </TableColumnHeader>
             <TableColumnHeader width="200px">Method</TableColumnHeader>
-            <TableColumnHeader width={{ lg: '224px', xl: '380px' }}>From/To</TableColumnHeader>
+            <TableColumnHeader width={{ base: '224px', xl: '380px' }}>From/To</TableColumnHeader>
             { (tokenType && NFT_TOKEN_TYPE_IDS.includes(tokenType)) &&
               <TableColumnHeader width={ hasTokenIds(tokenType) ? '50%' : '100%' }>Token ID</TableColumnHeader>
             }
@@ -54,7 +58,7 @@ const TokenTransferTable = ({ data, top, showSocketInfo, showSocketErrorAlert, s
                 width={ (isFungibleTokenType(tokenType, chainData?.app_config) || isConfidentialTokenType(tokenType)) ? '100%' : '50%' }
                 isNumeric
               >
-                <TruncatedText text={ `Value ${ token?.symbol || '' }` } w="100%" verticalAlign="middle"/>
+                <Truncate value={ `Value ${ token?.symbol || '' }` } type="end" w="100%" verticalAlign="middle"/>
               </TableColumnHeader>
             ) }
           </TableRow>
@@ -68,9 +72,9 @@ const TokenTransferTable = ({ data, top, showSocketInfo, showSocketErrorAlert, s
               isLoading={ isLoading }
             />
           ) }
-          { data.map((item, index) => (
+          { data.slice(0, renderedItemsNum).map((item, index) => (
             <TokenTransferTableItem
-              key={ item.transaction_hash + item.block_hash + item.log_index + '_' + index }
+              key={ getTokenTransferKey(item) + (isLoading ? index : '') }
               data={ item }
               tokenId={ tokenId }
               instance={ instance }
@@ -80,6 +84,7 @@ const TokenTransferTable = ({ data, top, showSocketInfo, showSocketErrorAlert, s
           )) }
         </TableBody>
       </TableRoot>
+      <div ref={ cutRef }/>
     </AddressHighlightProvider>
   );
 };

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import type * as mixpanel from 'src/services/mixpanel';
+import type * as analytics from 'src/shared/analytics';
 
 export interface Params {
-  source: mixpanel.EventPayload<mixpanel.EventTypes.WALLET_CONNECT>['Source'];
+  source: analytics.EventPayload<analytics.EventTypes.WALLET_CONNECT>['Source'];
   onConnect?: () => void;
 }
 
@@ -14,6 +14,6 @@ export interface Result {
   isConnected: boolean;
   isReconnecting: boolean;
   address: string | undefined;
-  openModal: () => void;
+  openModal: () => Promise<void>;
   type?: 'dynamicwaas';
 }

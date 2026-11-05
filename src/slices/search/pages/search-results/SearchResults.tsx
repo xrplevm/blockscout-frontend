@@ -31,13 +31,12 @@ import getQueryParamString from 'src/shared/router/get-query-param-string';
 import removeQueryParam from 'src/shared/router/remove-query-param';
 
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
-import { TableBody, TableColumnHeader, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 import { ContentLoader } from 'src/toolkit/components/loaders/ContentLoader';
 import * as regexp from 'src/toolkit/utils/regexp';
 
-import SearchResultListItem from './SearchResultListItem';
 import SearchResultsInput from './SearchResultsInput';
-import SearchResultTableItem from './SearchResultTableItem';
+import SearchResultsTable from './SearchResultsTable';
 
 const nameServicesFeature = config.features.nameServices;
 
@@ -48,15 +47,15 @@ const SearchResultsPageContent = () => {
     query,
     redirectCheckQuery,
     searchTerm,
-    debouncedSearchTerm,
+    appliedSearchTerm,
     handleSearchTermChange,
     zetaChainCCTXQuery,
     externalSearchItem,
   } = useSearchQuery(withRedirectCheck);
-  const { data, isError, isPlaceholderData, pagination } = query;
+  const { data, isError, isInitialLoading, pagination } = query;
   const [ showContent, setShowContent ] = React.useState(!withRedirectCheck);
 
-  const marketplaceApps = useMarketplaceApps(debouncedSearchTerm);
+  const marketplaceApps = useMarketplaceApps(appliedSearchTerm);
   const settingsContext = useSettingsContext();
 
   const handleNavigateToResults = React.useCallback((searchTerm: string) => {
@@ -68,7 +67,7 @@ const SearchResultsPageContent = () => {
       return;
     }
 
-    if (!debouncedSearchTerm) {
+    if (!appliedSearchTerm) {
       setShowContent(true);
       return;
     }
@@ -116,13 +115,13 @@ const SearchResultsPageContent = () => {
       setShowContent(true);
       removeQueryParam(router, 'redirect');
     }
-  }, [ redirectCheckQuery, router, debouncedSearchTerm, showContent ]);
+  }, [ redirectCheckQuery, router, appliedSearchTerm, showContent ]);
 
   const handleSubmit = React.useCallback((event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
   }, [ ]);
 
-  const isLoading = marketplaceApps.isPlaceholderData || isPlaceholderData;
+  const isLoading = marketplaceApps.isPlaceholderData || isInitialLoading;
 
   const displayedItems: Array<SearchResultItem | SearchResultAppItem> = React.useMemo(() => {
     const apiData = (data?.items || []).filter((item) => {
@@ -144,16 +143,16 @@ const SearchResultsPageContent = () => {
       return true;
     });
 
-    const futureBlockItem = !isPlaceholderData &&
+    const futureBlockItem = !isInitialLoading &&
       pagination.page === 1 &&
       !data?.next_page_params &&
       apiData.length > 0 &&
       !apiData.some(({ type }) => type === 'block') &&
-      regexp.BLOCK_HEIGHT.test(debouncedSearchTerm) ?
+      regexp.BLOCK_HEIGHT.test(appliedSearchTerm) ?
       {
         type: 'block' as const,
         block_type: 'block' as const,
-        block_number: debouncedSearchTerm,
+        block_number: appliedSearchTerm,
         block_hash: '',
         timestamp: undefined,
       } : undefined;
@@ -172,9 +171,9 @@ const SearchResultsPageContent = () => {
   }, [
     data?.items,
     data?.next_page_params,
-    isPlaceholderData,
+    isInitialLoading,
     pagination.page,
-    debouncedSearchTerm,
+    appliedSearchTerm,
     marketplaceApps.displayedApps,
     isLoading,
     zetaChainCCTXQuery.data,
@@ -190,42 +189,16 @@ const SearchResultsPageContent = () => {
     }
 
     return (
-      <>
-        <Box hideFrom="lg">
-          { displayedItems.map((item, index) => (
-            <SearchResultListItem
-              key={ (isLoading ? 'placeholder_' : 'actual_') + index }
-              data={ item }
-              searchTerm={ debouncedSearchTerm }
-              isLoading={ isLoading }
-              addressFormat={ settingsContext?.addressFormat }
-            />
-          )) }
-        </Box>
-        <Box hideBelow="lg">
-          <TableRoot fontWeight={ 500 }>
-            <TableHeaderSticky top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }>
-              <TableRow>
-                <TableColumnHeader width="30%">Search result</TableColumnHeader>
-                <TableColumnHeader width="35%"/>
-                <TableColumnHeader width="35%" pr={ 10 }/>
-                <TableColumnHeader width="150px">Category</TableColumnHeader>
-              </TableRow>
-            </TableHeaderSticky>
-            <TableBody>
-              { displayedItems.map((item, index) => (
-                <SearchResultTableItem
-                  key={ (isLoading ? 'placeholder_' : 'actual_') + index }
-                  data={ item }
-                  searchTerm={ debouncedSearchTerm }
-                  isLoading={ isLoading }
-                  addressFormat={ settingsContext?.addressFormat }
-                />
-              )) }
-            </TableBody>
-          </TableRoot>
-        </Box>
-      </>
+      <TableContainerScrollable>
+        <SearchResultsTable
+          items={ displayedItems }
+          searchTerm={ appliedSearchTerm }
+          isLoading={ isLoading }
+          addressFormat={ settingsContext?.addressFormat }
+          top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }
+          resetKey={ `${ query.queryHash }:${ appliedSearchTerm }` }
+        />
+      </TableContainerScrollable>
     );
   })();
 
@@ -253,10 +226,10 @@ const SearchResultsPageContent = () => {
               { resultsCount }
             </chakra.span>
             <span> matching result{ (((displayedItems.length || 0) + marketplaceApps.displayedApps.length) > 1) || pagination.page > 1 ? 's' : '' } for </span>
-            "<chakra.span fontWeight={ 700 }>{ debouncedSearchTerm }</chakra.span>"
+            "<chakra.span fontWeight={ 700 }>{ appliedSearchTerm }</chakra.span>"
           </Box>
-          { resultsCount === 0 && regexp.BLOCK_HEIGHT.test(debouncedSearchTerm) &&
-            <SearchBarSuggestBlockCountdown blockHeight={ debouncedSearchTerm } mt={ -4 }/> }
+          { resultsCount === 0 && regexp.BLOCK_HEIGHT.test(appliedSearchTerm) &&
+            <SearchBarSuggestBlockCountdown blockHeight={ appliedSearchTerm } mt={ -4 }/> }
         </>
       );
     })();

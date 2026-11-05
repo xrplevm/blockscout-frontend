@@ -72,12 +72,15 @@ export default function useTxsSocketTypeAddress({ isLoading }: Params) {
 
         const newItems: Array<schemas['Transaction']> = [];
         let newCount = 0;
+        let hasUpdatedItems = false;
+        const prevItems = [ ...prevData.items ];
 
         payload.transactions.forEach(tx => {
-          const currIndex = prevData.items.findIndex((item) => item.hash === tx.hash);
+          const currIndex = prevItems.findIndex((item) => item.hash === tx.hash);
 
           if (currIndex > -1) {
-            prevData.items[currIndex] = tx;
+            prevItems[currIndex] = tx;
+            hasUpdatedItems = true;
           } else {
             const isMatch = matchFilter(filterValue as AddressFromToFilter, tx, currentAddress);
             if (isMatch) {
@@ -94,11 +97,18 @@ export default function useTxsSocketTypeAddress({ isLoading }: Params) {
           setNum(prev => prev + newCount);
         }
 
+        // Nothing changed in the visible list — the incoming items only bumped the "new items"
+        // count above the header (list already past the overload threshold). Keep the previous
+        // data reference so the memoized list doesn't re-render on every socket message.
+        if (newItems.length === 0 && !hasUpdatedItems) {
+          return prevData;
+        }
+
         return {
           ...prevData,
           items: [
             ...newItems,
-            ...prevData.items,
+            ...prevItems,
           ].sort(sortTxsFromSocket(sort)),
         };
       });

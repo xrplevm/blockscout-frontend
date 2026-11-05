@@ -9,6 +9,8 @@ import type { ExternalChain } from 'src/shared/external-chains/types';
 import type { EntityProps as TokenEntityProps } from 'src/slices/token/components/entity/TokenEntity';
 import TokenEntityInterchain from 'src/slices/token/components/entity/TokenEntityInterchain';
 
+import { isNativeToken, toCoreTokenType } from 'src/features/cross-chain-txs/utils/token-type';
+
 import type { Props as AssetValueProps } from './AssetValue';
 import AssetValue from './AssetValue';
 
@@ -23,13 +25,13 @@ const TokenValueInterchain = ({ token, tokenEntityProps, chain, ...rest }: Props
   const tokenInfo = React.useMemo(() => {
     return {
       symbol: token.symbol ?? null,
-      address_hash: token.address_hash,
+      address_hash: token.address_hash ?? '',
       icon_url: token.icon_url ?? null,
       name: token.name ?? null,
-      type: 'ERC-20',
+      type: toCoreTokenType(token.type),
       reputation: null,
     };
-  }, [ token.address_hash, token.icon_url, token.name, token.symbol ]);
+  }, [ token.address_hash, token.icon_url, token.name, token.symbol, token.type ]);
 
   const asset = (
     <TokenEntityInterchain
@@ -37,10 +39,10 @@ const TokenValueInterchain = ({ token, tokenEntityProps, chain, ...rest }: Props
       chain={ chain }
       noCopy
       onlySymbol
-      flexShrink={ 0 }
+      noLink={ isNativeToken(token.type) }
       w="fit-content"
       ml={ 2 }
-      icon={{ marginRight: 1 }}
+      icon={{ marginRight: 1, marginRightShield: '14px' }}
       { ...tokenEntityProps }
     />
   );
@@ -48,6 +50,7 @@ const TokenValueInterchain = ({ token, tokenEntityProps, chain, ...rest }: Props
     <AssetValue
       asset={ asset }
       decimals={ token.decimals }
+      overflow={ rest.loading ? 'hidden' : 'visible' }
       { ...rest }
     />
   );

@@ -13,6 +13,8 @@ export interface Props extends BadgeProps {
 }
 
 const TYPES_ORDER: schemas['Transaction']['transaction_types'] = [
+  'op_stack_l1_attributes_transaction',
+  'op_stack_post_exec_transaction',
   'blob_transaction',
   'rootstock_remasc',
   'rootstock_bridge',
@@ -21,10 +23,14 @@ const TYPES_ORDER: schemas['Transaction']['transaction_types'] = [
   'token_transfer',
   'contract_call',
   'coin_transfer',
+  // Listed last and deliberately given no label of its own — the details page header carries the
+  // "Sponsored" tag instead, and lists have no room for it. An unlisted type would score -1 here and sort
+  // ahead of every real one, masking labels like "Contract call".
+  'sponsored_transaction',
 ];
 
 const TxType = ({ types, isLoading, ...rest }: Props) => {
-  const typeToShow = types.sort((t1, t2) => TYPES_ORDER.indexOf(t1) - TYPES_ORDER.indexOf(t2))[0];
+  const typeToShow = types.slice().sort((t1, t2) => TYPES_ORDER.indexOf(t1) - TYPES_ORDER.indexOf(t2))[0];
 
   let label;
   let colorPalette: BadgeProps['colorPalette'];
@@ -53,6 +59,14 @@ const TxType = ({ types, isLoading, ...rest }: Props) => {
     case 'coin_transfer':
       label = 'Coin transfer';
       colorPalette = 'orange';
+      break;
+    case 'op_stack_l1_attributes_transaction':
+      label = 'L1 attr tx';
+      colorPalette = 'green';
+      break;
+    case 'op_stack_post_exec_transaction':
+      label = 'Post exec tx';
+      colorPalette = 'green';
       break;
     case 'rootstock_remasc':
       label = 'REMASC';

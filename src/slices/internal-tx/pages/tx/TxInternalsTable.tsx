@@ -7,6 +7,8 @@ import type { schemas } from '@blockscout/api-types';
 import { AddressHighlightProvider } from 'src/slices/address/contexts/address-highlight';
 import { currencyUnits } from 'src/slices/chain/units';
 
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
+
 import { TableBody, TableColumnHeader, TableColumnHeaderSortable, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
 
 import type { Sort, SortField } from '../../utils/utils';
@@ -18,12 +20,15 @@ interface Props {
   onSortToggle: (field: SortField) => void;
   top: number;
   isLoading?: boolean;
+  resetKey?: string;
 }
 
-const TxInternalsTable = ({ data, sort, onSortToggle, top, isLoading }: Props) => {
+const TxInternalsTable = ({ data, sort, onSortToggle, top, isLoading, resetKey }: Props) => {
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: data, isEnabled: !isLoading, resetKey });
+
   return (
     <AddressHighlightProvider>
-      <TableRoot>
+      <TableRoot minW="900px">
         <TableHeaderSticky top={ top }>
           <TableRow>
             <TableColumnHeader width="28%">Type</TableColumnHeader>
@@ -49,11 +54,12 @@ const TxInternalsTable = ({ data, sort, onSortToggle, top, isLoading }: Props) =
           </TableRow>
         </TableHeaderSticky>
         <TableBody>
-          { data.map((item, index) => (
+          { data.slice(0, renderedItemsNum).map((item, index) => (
             <TxInternalsTableItem key={ item.index.toString() + (isLoading ? index : '') } data={ item } isLoading={ isLoading }/>
           )) }
         </TableBody>
       </TableRoot>
+      <div ref={ cutRef }/>
     </AddressHighlightProvider>
   );
 };

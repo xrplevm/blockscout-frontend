@@ -37,7 +37,6 @@ import getQueryParamString from 'src/shared/router/get-query-param-string';
 import { route, routeParams } from 'src/shared/router/routes';
 import StatusTag from 'src/shared/tags/status-tag/StatusTag';
 import CopyToClipboard from 'src/shared/texts/CopyToClipboard';
-import HashStringShortenDynamic from 'src/shared/texts/HashStringShortenDynamic';
 import GasPriceValue from 'src/shared/values/entity/GasPriceValue';
 import NativeCoinValue from 'src/shared/values/entity/NativeCoinValue';
 import { WEI } from 'src/shared/values/entity/utils';
@@ -48,6 +47,7 @@ import { CollapsibleDetails } from 'src/toolkit/chakra/collapsible';
 import { Link } from 'src/toolkit/chakra/link';
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
 import { Tooltip } from 'src/toolkit/chakra/tooltip';
+import { Truncate } from 'src/toolkit/components/truncation/Truncate';
 import { ZERO } from 'src/toolkit/utils/consts';
 import { space } from 'src/toolkit/utils/htmlEntities';
 
@@ -178,7 +178,7 @@ const BlockDetails = ({ query }: Props) => {
         />
       </DetailedInfo.ItemValue>
 
-      { rollupFeature.isEnabled && rollupFeature.type === 'arbitrum' && data.arbitrum && data.arbitrum.l1_block_number && (
+      { rollupFeature.isEnabled && rollupFeature.type === 'arbitrum' && typeof data.arbitrum?.l1_block_number === 'number' && (
         <>
           <DetailedInfo.ItemLabel
             hint={ `The most recent ${ layerLabels.parent } block height as of this ${ layerLabels.current } block` }
@@ -567,7 +567,7 @@ const BlockDetails = ({ query }: Props) => {
               alignSelf="flex-start"
             >
               <Box whiteSpace="nowrap" overflow="hidden">
-                <HashStringShortenDynamic hash={ data.bitcoin_merged_mining_header }/>
+                <Truncate value={ data.bitcoin_merged_mining_header }/>
               </Box>
               <CopyToClipboard text={ data.bitcoin_merged_mining_header }/>
             </DetailedInfo.ItemValue>
@@ -622,7 +622,7 @@ const BlockDetails = ({ query }: Props) => {
               alignSelf="flex-start"
             >
               <Box whiteSpace="nowrap" overflow="hidden">
-                <HashStringShortenDynamic hash={ data.hash_for_merged_mining }/>
+                <Truncate value={ data.hash_for_merged_mining }/>
               </Box>
               <CopyToClipboard text={ data.hash_for_merged_mining }/>
             </DetailedInfo.ItemValue>
@@ -638,7 +638,7 @@ const BlockDetails = ({ query }: Props) => {
             </DetailedInfo.ItemLabel>
             <DetailedInfo.ItemValue>
               <Box overflow="hidden">
-                <HashStringShortenDynamic hash={ BigNumber(data.difficulty).toFormat() }/>
+                <Truncate value={ BigNumber(data.difficulty).toFormat() }/>
               </Box>
             </DetailedInfo.ItemValue>
           </>
@@ -652,7 +652,7 @@ const BlockDetails = ({ query }: Props) => {
             </DetailedInfo.ItemLabel>
             <DetailedInfo.ItemValue>
               <Box overflow="hidden">
-                <HashStringShortenDynamic hash={ BigNumber(data.total_difficulty).toFormat() }/>
+                <Truncate value={ BigNumber(data.total_difficulty).toFormat() }/>
               </Box>
             </DetailedInfo.ItemValue>
           </>
@@ -667,7 +667,7 @@ const BlockDetails = ({ query }: Props) => {
         </DetailedInfo.ItemLabel>
         <DetailedInfo.ItemValue flexWrap="nowrap">
           <Box overflow="hidden" >
-            <HashStringShortenDynamic hash={ data.hash }/>
+            <Truncate value={ data.hash }/>
           </Box>
           <CopyToClipboard text={ data.hash }/>
         </DetailedInfo.ItemValue>
@@ -685,16 +685,14 @@ const BlockDetails = ({ query }: Props) => {
                 overflow="hidden"
                 whiteSpace="nowrap"
               >
-                <HashStringShortenDynamic
-                  hash={ data.parent_hash }
-                />
+                <Truncate value={ data.parent_hash }/>
               </Link>
               <CopyToClipboard text={ data.parent_hash }/>
             </DetailedInfo.ItemValue>
           </>
         ) }
 
-        { rollupFeature.isEnabled && rollupFeature.type === 'arbitrum' && data.arbitrum && data.arbitrum.send_count && (
+        { rollupFeature.isEnabled && rollupFeature.type === 'arbitrum' && data.arbitrum && typeof data.arbitrum.send_count === 'number' && (
           <>
             <DetailedInfo.ItemLabel
               hint={ `The cumulative number of ${ layerLabels.current } to ${ layerLabels.parent } transactions as of this block` }
@@ -716,7 +714,7 @@ const BlockDetails = ({ query }: Props) => {
               { data.arbitrum.send_root }
             </DetailedInfo.ItemValue>
 
-            { data.arbitrum.delayed_messages && (
+            { data.arbitrum.delayed_messages !== undefined && (
               <>
                 <DetailedInfo.ItemLabel
                   hint={ `The number of delayed ${ layerLabels.parent } to ${ layerLabels.current } messages read as of this block` }

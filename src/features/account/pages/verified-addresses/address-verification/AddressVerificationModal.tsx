@@ -1,28 +1,20 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import dynamic from 'next/dynamic';
 import React from 'react';
 
 import type { AddressVerificationFormFirstStepFields } from './types';
 import type * as contractsInfo from '@blockscout/contracts-info-types';
 
 import config from 'src/config';
-import * as mixpanel from 'src/services/mixpanel';
-import { FallbackProvider } from 'src/shared/utils/fallback-provider';
+import * as analytics from 'src/shared/analytics';
 
 import { DialogBody, DialogContent, DialogHeader, DialogRoot } from 'src/toolkit/chakra/dialog';
-
-const Web3ProviderBase = dynamic(() => import('src/features/connect-wallet/components/Web3Provider'), { ssr: false });
 
 import AddressVerificationStepAddress from './steps/AddressVerificationStepAddress';
 import AddressVerificationStepSignature from './steps/AddressVerificationStepSignature';
 import AddressVerificationStepSuccess from './steps/AddressVerificationStepSuccess';
 
 type StateData = AddressVerificationFormFirstStepFields & contractsInfo.PrepareAddressResponse_Success & { isToken?: boolean };
-
-const feature = config.features.connectWallet;
-// Dynamic providers cannot be nested, so a dummy provider is used here
-const Web3Provider = feature.isEnabled && feature.connectorType === 'dynamic' ? FallbackProvider : Web3ProviderBase;
 
 interface Props {
   open: boolean;
@@ -39,8 +31,8 @@ const AddressVerificationModal = ({ defaultAddress, open, onOpenChange, onSubmit
   const [ data, setData ] = React.useState<StateData>({ address: '', signingMessage: '', contractCreator: '' });
 
   React.useEffect(() => {
-    open && mixpanel.logEvent(
-      mixpanel.EventTypes.VERIFY_ADDRESS,
+    open && analytics.logEvent(
+      analytics.EventTypes.VERIFY_ADDRESS,
       { Action: 'Form opened', 'Page type': pageType },
     );
   }, [ open, pageType ]);
@@ -48,8 +40,8 @@ const AddressVerificationModal = ({ defaultAddress, open, onOpenChange, onSubmit
   const handleGoToSecondStep = React.useCallback((firstStepResult: typeof data) => {
     setData(firstStepResult);
     setStepIndex((prev) => prev + 1);
-    mixpanel.logEvent(
-      mixpanel.EventTypes.VERIFY_ADDRESS,
+    analytics.logEvent(
+      analytics.EventTypes.VERIFY_ADDRESS,
       { Action: 'Address entered', 'Page type': pageType },
     );
   }, [ pageType ]);
@@ -58,8 +50,8 @@ const AddressVerificationModal = ({ defaultAddress, open, onOpenChange, onSubmit
     onSubmit(address);
     setStepIndex((prev) => prev + 1);
     setData((prev) => ({ ...prev, isToken: Boolean(address.metadata?.tokenName) }));
-    mixpanel.logEvent(
-      mixpanel.EventTypes.VERIFY_ADDRESS,
+    analytics.logEvent(
+      analytics.EventTypes.VERIFY_ADDRESS,
       { Action: 'Sign ownership', 'Page type': pageType, 'Sign method': signMethod },
     );
   }, [ onSubmit, pageType ]);
@@ -125,9 +117,9 @@ const AddressVerificationModal = ({ defaultAddress, open, onOpenChange, onSubmit
           { step.title }
         </DialogHeader>
         <DialogBody mb={ 0 }>
-          <Web3Provider>
-            { step.content }
-          </Web3Provider>
+          { /* The signature step reads the wallet through the Bridge hub + `getWeb3Runtime()` actions
+            (no wagmi React hooks), so no root/scoped wallet provider is needed here. */ }
+          { step.content }
         </DialogBody>
       </DialogContent>
     </DialogRoot>

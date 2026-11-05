@@ -15,11 +15,12 @@ export interface FieldProps extends Omit<ChakraField.RootProps, 'label' | 'child
   optionalText?: React.ReactNode;
   children: React.ReactElement<InputProps> | React.ReactElement<InputGroupProps>;
   size?: 'sm' | 'md' | 'lg' | '2xl';
+  focusVisible?: boolean;
 }
 
 export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
   function Field(props, ref) {
-    const { label, children, helperText, errorText, optionalText, ...rest } = props;
+    const { label, children, helperText, errorText, optionalText, focusVisible, ...rest } = props;
 
     // A floating field cannot be without a label.
     if (rest.floating && label) {
@@ -31,6 +32,7 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
         bgColor: rest.bgColor,
         disabled: rest.disabled,
         readOnly: rest.readOnly,
+        ...(focusVisible ? { 'data-focus-visible': true } : {}),
       };
 
       const labelElement = (
@@ -39,13 +41,13 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
             { label }
           </chakra.span>
           <ChakraField.RequiredIndicator fallback={ optionalText }/>
-          { errorText && (
+          { Boolean(errorText) && (
             <ChakraField.ErrorText ml="2px">-{ space }{ errorText }</ChakraField.ErrorText>
           ) }
         </ChakraField.Label>
       );
 
-      const helperTextElement = helperText && (
+      const helperTextElement = Boolean(helperText) && (
         <ChakraField.HelperText>{ helperText }</ChakraField.HelperText>
       );
 
@@ -92,17 +94,17 @@ export const Field = React.forwardRef<HTMLDivElement, FieldProps>(
 
     return (
       <ChakraField.Root ref={ ref } { ...rest }>
-        { label && (
+        { Boolean(label) && (
           <ChakraField.Label>
             { label }
             <ChakraField.RequiredIndicator fallback={ optionalText }/>
           </ChakraField.Label>
         ) }
         { clonedChild }
-        { helperText && (
+        { Boolean(helperText) && (
           <ChakraField.HelperText>{ helperText }</ChakraField.HelperText>
         ) }
-        { errorText && (
+        { Boolean(errorText) && (
           <ChakraField.ErrorText>{ errorText }</ChakraField.ErrorText>
         ) }
       </ChakraField.Root>

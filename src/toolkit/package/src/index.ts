@@ -5,11 +5,13 @@ export * from '../../chakra/accordion';
 export * from '../../chakra/alert';
 export * from '../../chakra/avatar';
 export * from '../../chakra/badge';
+export * from '../../chakra/box';
 export * from '../../chakra/button';
 export * from '../../chakra/checkbox';
 export * from '../../chakra/close-button';
 export * from '../../chakra/collapsible';
 export * from '../../chakra/color-mode';
+export * from '../../chakra/date-picker';
 export * from '../../chakra/dialog';
 export * from '../../chakra/drawer';
 export * from '../../chakra/empty-state';
@@ -37,6 +39,7 @@ export * from '../../chakra/table';
 export * from '../../chakra/tabs';
 export * from '../../chakra/tag';
 export * from '../../chakra/textarea';
+export * from '../../chakra/time-picker';
 export * from '../../chakra/toaster';
 export * from '../../chakra/tooltip';
 
@@ -109,8 +112,8 @@ export * from '../../components/forms/inputs';
 export * from '../../components/forms/utils';
 export * from '../../components/forms/validators';
 export * from '../../components/loaders/ContentLoader';
-export * from '../../components/truncation/TruncatedTextTooltip';
-export * from '../../components/truncation/TruncatedText';
+export { Truncate } from '../../components/truncation/Truncate';
+export type { TruncateProps, TruncateTooltipConfig } from '../../components/truncation/Truncate';
 
 // Export utils
 export { default as getComponentDisplayName } from '../../utils/getComponentDisplayName';
@@ -121,6 +124,7 @@ export * as guards from '../../utils/guards';
 export * as file from '../../utils/file';
 export * from '../../utils/url';
 export * from '../../utils/isBrowser';
+export * from '../../utils/texts';
 
 // Export hooks
 export { useClipboard } from '../../hooks/useClipboard';

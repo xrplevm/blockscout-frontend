@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 import useApiQuery from 'src/api/hooks/useApiQuery';
@@ -13,17 +12,17 @@ import { SCROLL_L2_MESSAGE_ITEM } from 'src/features/rollup/scroll/stubs';
 
 import DataList from 'src/shared/lists/DataList';
 import StickyPaginationWithText from 'src/shared/pagination/StickyPaginationWithText';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
 import { generateListStub } from 'src/shared/pagination/utils';
 
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 import { rightLineArrow, nbsp } from 'src/toolkit/utils/htmlEntities';
 
-import ScrollL2WithdrawalsListItem from './ScrollL2WithdrawalsListItem';
 import ScrollL2WithdrawalsTable from './ScrollL2WithdrawalsTable';
 
 const ScrollL2Withdrawals = () => {
-  const { data, isError, isPlaceholderData, pagination } = useQueryWithPages({
+  const { data, isError, isInitialLoading, isTransitioning, pagination, queryHash } = useApiPaginatedQuery({
     resourceName: 'core:scroll_l2_withdrawals',
     options: {
       placeholderData: generateListStub<'core:scroll_l2_withdrawals'>(
@@ -41,20 +40,14 @@ const ScrollL2Withdrawals = () => {
   });
 
   const content = data?.items ? (
-    <>
-      <Box hideFrom="lg">
-        { data.items.map(((item, index) => (
-          <ScrollL2WithdrawalsListItem
-            key={ String(item.id) + (isPlaceholderData ? index : '') }
-            isLoading={ isPlaceholderData }
-            item={ item }
-          />
-        ))) }
-      </Box>
-      <Box hideBelow="lg">
-        <ScrollL2WithdrawalsTable items={ data.items } top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 } isLoading={ isPlaceholderData }/>
-      </Box>
-    </>
+    <TableContainerScrollable>
+      <ScrollL2WithdrawalsTable
+        items={ data.items }
+        top={ pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0 }
+        isLoading={ isInitialLoading }
+        resetKey={ queryHash }
+      />
+    </TableContainerScrollable>
   ) : null;
 
   const text = (() => {
@@ -82,6 +75,7 @@ const ScrollL2Withdrawals = () => {
         itemsNum={ data?.items?.length }
         emptyText="There are no withdrawals."
         actionBar={ actionBar }
+        isTransitioning={ isTransitioning }
       >
         { content }
       </DataList>

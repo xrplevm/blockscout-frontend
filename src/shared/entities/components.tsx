@@ -8,8 +8,6 @@ import type { ExternalChain } from 'src/shared/external-chains/types';
 
 import type { Props as CopyToClipboardProps } from 'src/shared/texts/CopyToClipboard';
 import CopyToClipboard from 'src/shared/texts/CopyToClipboard';
-import HashStringShorten from 'src/shared/texts/HashStringShorten';
-import HashStringShortenDynamic from 'src/shared/texts/HashStringShortenDynamic';
 import SpriteIcon from 'src/sprite/SpriteIcon';
 import type { Props as SpriteIconProps } from 'src/sprite/SpriteIcon';
 
@@ -19,7 +17,8 @@ import type { LinkProps } from 'src/toolkit/chakra/link';
 import { Link as LinkToolkit } from 'src/toolkit/chakra/link';
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
 import { Tooltip } from 'src/toolkit/chakra/tooltip';
-import { TruncatedText } from 'src/toolkit/components/truncation/TruncatedText';
+import { Truncate } from 'src/toolkit/components/truncation/Truncate';
+import type { TruncateTooltipConfig } from 'src/toolkit/components/truncation/Truncate';
 
 import { getContentProps, getIconProps } from './utils';
 
@@ -44,6 +43,10 @@ export interface EntityBaseProps {
   truncationMaxSymbols?: number;
   variant?: Variant;
   chain?: ExternalChain;
+  contentProps?: {
+    tooltipInteractive?: boolean;
+    tooltipContentAfter?: React.ReactNode;
+  };
 }
 
 export interface ContainerBaseProps extends Pick<EntityBaseProps, 'className'> {
@@ -104,6 +107,7 @@ type EntityIconProps = (ImageProps | SpriteIconProps) & Pick<IconProps, 'color' 
   hintPostfix?: string;
   tooltipInteractive?: boolean;
   size?: number; // for AddressIdenticon in address entity
+  marginRightShield?: string;
 };
 
 export type IconBaseProps = Pick<EntityBaseProps, 'isLoading' | 'noIcon' | 'variant' | 'chain'> & EntityIconProps;
@@ -203,6 +207,7 @@ export interface ContentBaseProps extends Pick<
   asProp?: React.ElementType;
   text: string;
   tooltipInteractive?: boolean;
+  tooltipContentAfter?: React.ReactNode;
 }
 
 const Content = chakra(({
@@ -216,17 +221,35 @@ const Content = chakra(({
   variant,
   noTooltip,
   tooltipInteractive,
+  tooltipContentAfter,
   noLink,
 }: ContentBaseProps) => {
+  const CONSTANT_LONG_MAX_SYMBOLS = 16;
   const styles = getContentProps(variant);
+
+  const tooltip = React.useMemo((): false | TruncateTooltipConfig => {
+    if (noTooltip) {
+      return false;
+    }
+    const content = tooltipContentAfter ? (
+      <>
+        { text }
+        { tooltipContentAfter }
+      </>
+    ) : undefined;
+    // `tooltipContentAfter` carries actionable UI (e.g. the advanced-filter link), so the tooltip
+    // must stay reachable even when the value itself is not truncated.
+    return { content, interactive: tooltipInteractive, always: Boolean(tooltipContentAfter) };
+  }, [ noTooltip, tooltipContentAfter, text, tooltipInteractive ]);
 
   if (truncation === 'tail') {
     return (
-      <TruncatedText
-        text={ text }
+      <Truncate
+        value={ text }
+        type="end"
         loading={ isLoading }
         className={ className }
-        tooltipInteractive={ tooltipInteractive }
+        tooltip={ tooltip }
         { ...styles }
       />
     );
@@ -236,33 +259,32 @@ const Content = chakra(({
     switch (truncation) {
       case 'constant_long':
         return (
-          <HashStringShorten
-            hash={ text }
+          <Truncate
+            value={ text }
             as={ asProp }
-            type="long"
-            noTooltip={ noTooltip }
-            tooltipInteractive={ tooltipInteractive }
-            maxSymbols={ truncationMaxSymbols }
+            type="middle-static"
+            maxSymbols={ truncationMaxSymbols ?? CONSTANT_LONG_MAX_SYMBOLS }
+            tooltip={ tooltip }
           />
         );
       case 'constant':
         return (
-          <HashStringShorten
-            hash={ text }
+          <Truncate
+            value={ text }
             as={ asProp }
-            noTooltip={ noTooltip }
-            tooltipInteractive={ tooltipInteractive }
+            type="middle-static"
             maxSymbols={ truncationMaxSymbols }
+            tooltip={ tooltip }
           />
         );
       case 'dynamic':
         return (
-          <HashStringShortenDynamic
-            hash={ text }
+          <Truncate
+            value={ text }
             as={ asProp }
+            type="middle"
             tailLength={ tailLength }
-            noTooltip={ noTooltip }
-            tooltipInteractive={ tooltipInteractive }
+            tooltip={ tooltip }
           />
         );
       case 'none':

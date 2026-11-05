@@ -5,6 +5,8 @@ import React from 'react';
 
 import type { ExternalChain } from 'src/shared/external-chains/types';
 
+import multichainConfig from 'src/features/multichain/chains-config';
+
 import config from 'src/config';
 
 import type { EntityProps } from './AddressEntity';
@@ -19,10 +21,11 @@ interface Props extends EntityProps, JsxStyleProps {
 const AddressEntityInterchain = ({ chain, currentAddress, ...props }: Props) => {
 
   const isCurrentChain = chain?.id === config.chain.id;
-  const isCurrentAddress = isCurrentChain && currentAddress?.toLowerCase() === props.address.hash.toLowerCase();
+  const isMultichainAddress = multichainConfig()?.chains.some(({ id }) => id === chain?.id);
+  const isCurrentAddress = (isCurrentChain || isMultichainAddress) && currentAddress?.toLowerCase() === props.address.hash.toLowerCase();
 
-  if (isCurrentChain) {
-    return <AddressEntity { ...props } chain={ chain } noLink={ isCurrentAddress }/>;
+  if (isCurrentChain || isMultichainAddress) {
+    return <AddressEntity { ...props } chain={ isMultichainAddress ? undefined : chain } noLink={ isCurrentAddress }/>;
   }
 
   return <AddressEntityExternal { ...props } chain={ chain }/>;

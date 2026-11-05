@@ -2,63 +2,55 @@
 
 | | |
 | --- | --- |
-| Issue | <GitHub issue URL, or "—" for ad-hoc specs> |
-| Status | `draft` \| `ready` \| `in progress` \| `done` |
-| Size | `small` \| `medium` \| `large` |
-| Feature branch | `<branch name>` (set on first `implement-task` run) |
+| Issue | <GitHub issue URL> |
+| Feature branch | `<branch name>` |
 | PM | <name> |
 | Designer | <name> |
 | Backend | <name> |
-| Slack channel | <#feature-channel if the task has one; otherwise "—" (default routing per `to-spec`)> |
+| Minimum API version | <API version(s) this task requires, e.g. "Core API v11.2.4+"; list several for a multi-service raise; "—" if none> |
+| Slack channel | <#feature-channel if the task has one; otherwise "—" (default routing per `grill-the-task`)> |
 
-<!-- People default from `.agents/TEAM.md`; override here per task. -->
+<!-- Header is static identity — no status row: task status is derived from `progress.md` (see
+`.agents/tasks/structure.md`). People default from `.agents/TEAM.md`; override here per task. The spec body
+below is immutable once written; only `progress.md` and `questions.md` change as work proceeds. -->
 
 ## Context & goal
 
-<!-- The "why" and the user-facing outcome. A couple of paragraphs, no more. -->
+<!-- The problem that the user is facing and solution to it, from the user's perspective. -->
 
 ## Functional requirements
 
-<!-- User stories / testable statements. What the feature must do, not how it looks. -->
+<!-- What the feature must do, as verifiable feature-level statements. THIS is the whole-task review
+contract. Write each one so its truth can be judged from the shipped behaviour. -->
 
 ## Data & API
 
-<!-- Endpoints with sample responses (curl-verified), which `service:name` resources exist vs. must be
+<!-- Endpoints, which `service:name` resources exist vs. must be
 added, pagination/sorting/filtering params, env vars / feature flags, API readiness (deployed vs.
 staging-only) and the backend release version that ships the changes (for release-notes reference). -->
 
 ## UI inventory
 
 <!-- Affected pages/tabs/components: routes, navigation entry points, cross-links to existing entity
-pages. One Figma node link per screen. Behavioral facts only — never visual/styling prose; appearance
-belongs to the mockups and the [human] style subtasks. -->
+pages. One Figma node link per screen. State behavioral facts and placement; leave appearance to the
+mockups and the [human] style leaves. When you must lean on existing code, point to it by component or
+symbol name ("match `LogDecodedInputDataTable`") — never transcribe its values, class names, or line
+numbers; those rot and the code owns them. Capture only a deliberate deviation and its reason. See "What
+the spec holds" in `.agents/tasks/concepts.md`. -->
+
+## Implementation decisions
+
+<!-- A list of implementation decisions that were made. This can include:
+- The modules that will be built/modified
+- The interfaces of those modules that will be modified
+- Technical clarifications from the developer
+- Architectural decisions
+- Specific interactions
+
+Do NOT include specific file paths or code snippets. They may end up being outdated very quickly.
+
+Exception: if a prototype produced a snippet that encodes a decision more precisely than prose can (state machine, reducer, schema, type shape), inline it within the relevant decision and note briefly that it came from a prototype. Trim to the decision-rich parts, not a working demo, just the important bits. -->
 
 ## Out of scope
 
 <!-- Explicit non-goals, so agents don't wander. -->
-
-## Task breakdown
-
-<!-- Ordered. Tag each subtask `[agent]` or `[human]` per `.agents/rules/delegation.mdc`. Reference the
-executing skill where one applies. A subtask blocked by open questions lists their ids — it may not start
-while any of them is `pending`. In a large task, a big step gets a one-line entry here plus its own
-sub-spec (written just-in-time via a `grill-the-task` subtask session); a UI component is two linked
-subtasks (scaffold → style). Record the executing skill's interview answers (collected during grilling)
-as an indented `inputs:` list under the subtask, so `implement-task` never has to stop and ask. -->
-
-- [ ] 1 `[agent]` <title> — skill: `add-api-resource` — questions: Q2
-- [ ] 2 `[agent]` <big step title> — sub-spec: `subtasks/02-<slug>.md`
-- [ ] 3 `[human]` Style <component> to mockup — [Figma](<node URL>)
-
-## Open questions
-
-<!-- One entry per question. Status is the gate `implement-task` checks. The Slack permalink is recorded
-when the question is sent, so answers can be harvested later. When resolved, fold the decision into the
-section above that it affects AND record it here. -->
-
-### Q1 — <question>
-
-- Owner: <role> (<name>)
-- Status: `pending` \| `resolved` \| `waived`
-- Slack: <permalink, once sent>
-- Answer: <decision + date, once resolved>

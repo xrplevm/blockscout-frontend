@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { HStack } from '@chakra-ui/react';
+import { Flex, HStack } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import React from 'react';
 
@@ -10,21 +10,26 @@ import type { TabItemRegular } from 'src/toolkit/components/AdaptiveTabs/types';
 import { SocketProvider } from 'src/api/socket/context';
 import getSocketUrl from 'src/api/socket/get-socket-url';
 
-import { ACTION_BAR_HEIGHT_DESKTOP } from 'src/shell/page/action-bar/ActionBar';
+import ActionBar, { ACTION_BAR_HEIGHT_DESKTOP } from 'src/shell/page/action-bar/ActionBar';
 
 import useAddressCountersQuery from 'src/slices/address/hooks/useAddressCountersQuery';
 import AddressTxsFilter from 'src/slices/address/pages/details/txs/AddressTxsFilter';
 import useAddressTxsQuery from 'src/slices/address/pages/details/txs/useAddressTxsQuery';
 import TxsWithApiSorting from 'src/slices/tx/pages/index/list/TxsWithApiSorting';
 
+import TransactionsCrossChainContent from 'src/features/cross-chain-txs/components/txs/TransactionsCrossChainContent';
+import { INTERCHAIN_MESSAGE } from 'src/features/cross-chain-txs/stubs/messages';
 import CsvExport from 'src/features/csv-export/components/CsvExport';
-import multichainConfig from 'src/features/multichain/chains-config';
 import ChainSelect from 'src/features/multichain/components/ChainSelect';
 import ListCounterText from 'src/features/multichain/components/ListCounterText';
 import { MultichainProvider } from 'src/features/multichain/context';
+import { useChainValue } from 'src/features/multichain/hooks/useChainValue';
 
+import config from 'src/config';
 import useIsMobile from 'src/shared/hooks/useIsMobile';
 import Pagination from 'src/shared/pagination/Pagination';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
+import { generateListStub } from 'src/shared/pagination/utils';
 import getQueryParamString from 'src/shared/router/get-query-param-string';
 
 import { EmptyState } from 'src/toolkit/chakra/empty-state';
@@ -61,20 +66,27 @@ const MultichainAddressTxs = ({ addressData, isLoading }: Props) => {
   const isLocalTab = tab === 'txs_local' || tab === 'txs';
 
   const chainIds = React.useMemo(() => getAvailableChainIds(addressData), [ addressData ]);
+  const { chainValue, chain: chainData, onChainValueChange } = useChainValue({ chainIds });
+  const chainId = chainData?.id;
+
+  const txsQueryCrossChain = useApiPaginatedQuery({
+    resourceName: 'interchainIndexer:address_messages',
+    pathParams: { hash },
+    options: {
+      placeholderData: generateListStub<'interchainIndexer:address_messages'>(INTERCHAIN_MESSAGE, 50, { next_page_params: undefined }),
+      enabled: !isLoading && !isLocalTab && config.features.crossChainTxs.isEnabled,
+    },
+  });
 
   const txsQueryLocal = useAddressTxsQuery({
     addressHash: hash,
     enabled: !isLoading && isLocalTab && chainIds.length > 0,
-    isMultichain: true,
-    chainIds,
+    chain: chainData,
   });
-
-  const chainId = txsQueryLocal.query.chainValue?.[0];
-  const chainData = multichainConfig()?.chains.find(chain => chain.id === chainId);
 
   const countersQueryLocal = useAddressCountersQuery({
     hash,
-    isLoading: txsQueryLocal.query.isPlaceholderData || isLoading,
+    isLoading: txsQueryLocal.query.isInitialLoading || isLoading,
     isEnabled: !isLoading && isLocalTab && chainIds.length > 0,
     chain: chainData,
   });
@@ -94,7 +106,7 @@ const MultichainAddressTxs = ({ addressData, isLoading }: Props) => {
         <ListCounterText
           key={ chainId }
           value={ countersQueryLocal.data?.transactions_count }
-          isLoading={ countersQueryLocal.isPlaceholderData || txsQueryLocal.query.isPlaceholderData }
+          isLoading={ countersQueryLocal.isPlaceholderData || txsQueryLocal.query.isInitialLoading }
           type="transaction"
         />
       );
@@ -106,8 +118,8 @@ const MultichainAddressTxs = ({ addressData, isLoading }: Props) => {
   const chainSelect = (
     <ChainSelect
       loading={ txsQueryLocal.query.pagination.isLoading }
-      value={ txsQueryLocal.query.chainValue }
-      onValueChange={ txsQueryLocal.query.onChainValueChange }
+      value={ chainValue }
+      onValueChange={ onChainValueChange }
       chainIds={ chainIds }
     />
   );
@@ -124,35 +136,58 @@ const MultichainAddressTxs = ({ addressData, isLoading }: Props) => {
 
       return (
         <>
-          <HStack gap={ 2 }>
-            { txsLocalFilter }
-            { chainSelect }
-            <CsvExport
-              type="address_txs"
-              resourceName="core:address_csv_export_txs"
-              pathParams={{ hash }}
-              queryParams={ txsQueryLocal.filterValue ? {
-                filter_type: 'address',
-                filter_value: txsQueryLocal.filterValue,
-              } : undefined }
-              chainData={ chainData }
-              loadingInitial={ txsQueryLocal.query.pagination.isLoading }
-            />
-          </HStack>
-          { countersText }
+          <Flex alignItems="center">
+            <HStack gap={ 2 }>
+              { txsLocalFilter }
+              { chainSelect }
+              <CsvExport
+                type="address_txs"
+                resourceName="core:address_csv_export_txs"
+                pathParams={{ hash }}
+                queryParams={ txsQueryLocal.filterValue ? {
+                  filter_type: 'address',
+                  filter_value: txsQueryLocal.filterValue,
+                } : undefined }
+                chainData={ chainData }
+                loadingInitial={ txsQueryLocal.query.pagination.isLoading }
+              />
+            </HStack>
+            { countersText }
+          </Flex>
           <Pagination ml="auto" { ...txsQueryLocal.query.pagination }/>
         </>
       );
     }
 
-    return null;
+    if (isMobile) {
+      return null;
+    }
+
+    return <Pagination ml="auto" { ...txsQueryCrossChain.pagination }/>;
   })();
 
   const tabs: Array<TabItemRegular> = [
     {
       id: 'txs_cross_chain',
       title: 'Cross-chain',
-      component: <EmptyState type="coming_soon"/>,
+      component: config.features.crossChainTxs.isEnabled ? (
+        <>
+          { isMobile && !isLocalTab && txsQueryCrossChain.pagination.isVisible && (
+            <ActionBar>
+              <Pagination ml="auto" { ...txsQueryCrossChain.pagination }/>
+            </ActionBar>
+          ) }
+          <TransactionsCrossChainContent
+            items={ txsQueryCrossChain.data?.items }
+            pagination={ txsQueryCrossChain.pagination }
+            isLoading={ txsQueryCrossChain.isInitialLoading }
+            isTransitioning={ txsQueryCrossChain.isTransitioning }
+            isError={ txsQueryCrossChain.isError }
+            stickyHeader
+            currentAddress={ hash }
+          />
+        </>
+      ) : <EmptyState type="coming_soon"/>,
     },
     {
       id: [ 'txs_local', 'txs' ],
@@ -170,8 +205,6 @@ const MultichainAddressTxs = ({ addressData, isLoading }: Props) => {
               socketType="address_txs"
               top={ ACTION_BAR_HEIGHT_DESKTOP }
               sorting={ txsQueryLocal.sort }
-              setSort={ txsQueryLocal.setSort }
-              showTableView
             />
           </MultichainProvider>
         </SocketProvider>

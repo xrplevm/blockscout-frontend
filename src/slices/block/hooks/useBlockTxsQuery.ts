@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
 import type { UseQueryResult } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
+import { hashKey, useQuery } from '@tanstack/react-query';
 import React from 'react';
 import type { Chain, GetBlockReturnType } from 'viem';
 
@@ -14,12 +14,12 @@ import { toAddressModel } from 'src/slices/address/utils/model';
 import { GET_BLOCK_WITH_TRANSACTIONS } from 'src/slices/block/stubs/rpc';
 import { TX_ITEM } from 'src/slices/tx/stubs/tx';
 
-import { publicClient } from 'src/features/connect-wallet/utils/public-client';
+import { getPublicClient, isPublicClientAvailable } from 'src/features/connect-wallet/utils/public-client';
 
 import hexToDecimal from 'src/shared/data/transformers/hex-to-decimal';
 import dayjs from 'src/shared/date-and-time/dayjs';
-import type { QueryWithPagesResult } from 'src/shared/pagination/useQueryWithPages';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import type { ApiPaginatedQueryResult } from 'src/shared/pagination/useApiPaginatedQuery';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
 import { generateListStub, emptyPagination } from 'src/shared/pagination/utils';
 
 import { SECOND } from 'src/toolkit/utils/consts';
@@ -28,7 +28,7 @@ import type { BlockQuery } from './useBlockQuery';
 
 type RpcResponseType = GetBlockReturnType<Chain, boolean, 'latest'> | null;
 
-export type BlockTxsQuery = QueryWithPagesResult<'core:block_txs'> & {
+export type BlockTxsQuery = ApiPaginatedQueryResult<'core:block_txs'> & {
   isDegradedData: boolean;
 };
 
@@ -41,7 +41,7 @@ interface Params {
 export default function useBlockTxsQuery({ heightOrHash, blockQuery, tab }: Params): BlockTxsQuery {
   const [ isRefetchEnabled, setRefetchEnabled ] = React.useState(false);
 
-  const apiQuery = useQueryWithPages({
+  const apiQuery = useApiPaginatedQuery({
     resourceName: 'core:block_txs',
     pathParams: { height_or_hash: heightOrHash },
     options: {
@@ -65,9 +65,11 @@ export default function useBlockTxsQuery({ heightOrHash, blockQuery, tab }: Para
     },
   });
 
+  const rpcQueryKey = [ 'RPC', 'block_txs', { heightOrHash } ];
   const rpcQuery = useQuery<RpcResponseType, unknown, operations['BlockController.transactions']['json'] | null>({
-    queryKey: [ 'RPC', 'block_txs', { heightOrHash } ],
+    queryKey: rpcQueryKey,
     queryFn: async() => {
+      const publicClient = await getPublicClient();
       if (!publicClient) {
         return null;
       }
@@ -137,13 +139,13 @@ export default function useBlockTxsQuery({ heightOrHash, blockQuery, tab }: Para
       };
     },
     placeholderData: GET_BLOCK_WITH_TRANSACTIONS,
-    enabled: publicClient !== undefined && tab === 'txs' && (blockQuery.isDegradedData || apiQuery.isError || apiQuery.errorUpdateCount > 0),
+    enabled: isPublicClientAvailable && tab === 'txs' && (blockQuery.isDegradedData || apiQuery.isError || apiQuery.errorUpdateCount > 0),
     retry: false,
     refetchOnMount: false,
   });
 
   React.useEffect(() => {
-    if (apiQuery.isPlaceholderData || !publicClient) {
+    if (apiQuery.isPlaceholderData || !isPublicClientAvailable) {
       return;
     }
 
@@ -163,18 +165,21 @@ export default function useBlockTxsQuery({ heightOrHash, blockQuery, tab }: Para
   const isRpcQuery = Boolean((
     blockQuery.isDegradedData ||
     ((apiQuery.isError || apiQuery.isPlaceholderData) && apiQuery.errorUpdateCount > 0)
-  ) && rpcQuery.data && publicClient);
+  ) && rpcQuery.data && isPublicClientAvailable);
 
-  const rpcQueryWithPages: QueryWithPagesResult<'core:block_txs'> = {
+  const rpcPaginatedQuery: ApiPaginatedQueryResult<'core:block_txs'> = {
     ...rpcQuery as UseQueryResult<operations['BlockController.transactions']['json'], ResourceError>,
     pagination: emptyPagination,
     onFilterChange: () => {},
     onSortingChange: () => {},
-    chainValue: undefined,
-    onChainValueChange: () => {},
+    filters: apiQuery.filters,
+    sorting: apiQuery.sorting,
+    queryHash: hashKey(rpcQueryKey),
+    isInitialLoading: rpcQuery.isPlaceholderData,
+    isTransitioning: false,
   };
 
-  const query = isRpcQuery ? rpcQueryWithPages : apiQuery;
+  const query = isRpcQuery ? rpcPaginatedQuery : apiQuery;
 
   return {
     ...query,

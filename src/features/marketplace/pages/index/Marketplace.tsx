@@ -78,6 +78,7 @@ const Marketplace = () => {
     showDisclaimer,
     appsTotal,
     isCategoriesPlaceholderData,
+    sorting,
     setSorting,
   } = useMarketplace();
 
@@ -247,6 +248,7 @@ const Marketplace = () => {
         selectedCategoryId={ selectedCategoryId }
         onAppClick={ handleAppClick }
         graphLinksQuery={ graphLinksQuery }
+        resetKey={ `${ selectedCategoryId }:${ filterQuery }:${ sorting ?? '' }` }
       />
 
       { (selectedApp && isDisclaimerModalOpen) && (

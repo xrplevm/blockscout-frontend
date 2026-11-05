@@ -12,6 +12,7 @@ import { AddressHighlightProvider } from 'src/slices/address/contexts/address-hi
 
 import TimeFormatToggle from 'src/shared/date-and-time/TimeFormatToggle';
 import useInitialList from 'src/shared/lists/useInitialList';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 
 import { TableBody, TableColumnHeader, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
 
@@ -25,11 +26,11 @@ type Props = {
   isLoading?: boolean;
   filters?: ZetaChainCCTXFilterParams;
   onFilterChange: <T extends keyof ZetaChainCCTXFilterParams>(field: T, val: ZetaChainCCTXFilterParams[T]) => void;
-  isPlaceholderData?: boolean;
   showStatusFilter?: boolean;
   showSocketInfo?: boolean;
   showSocketErrorAlert?: boolean;
   socketInfoNum?: number;
+  resetKey?: string;
 };
 
 const ZetaChainCCTxsTable = ({
@@ -39,12 +40,13 @@ const ZetaChainCCTxsTable = ({
   isLoading,
   filters = {},
   onFilterChange,
-  isPlaceholderData,
   showStatusFilter = true,
   showSocketInfo = false,
   showSocketErrorAlert = false,
   socketInfoNum = 0,
+  resetKey,
 }: Props) => {
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: txs, isEnabled: !isLoading, resetKey });
   const initialList = useInitialList({
     data: txs ?? [],
     idFn: (item) => item.index,
@@ -66,7 +68,7 @@ const ZetaChainCCTxsTable = ({
                   columnName="Age"
                   filters={ filters }
                   handleFilterChange={ onFilterChange }
-                  isLoading={ isPlaceholderData }
+                  isLoading={ isLoading }
                 />
                 <TimeFormatToggle ml={ 0 }/>
               </Flex>
@@ -81,7 +83,7 @@ const ZetaChainCCTxsTable = ({
                   columnName="Status"
                   filters={ filters }
                   handleFilterChange={ onFilterChange }
-                  isLoading={ isPlaceholderData }
+                  isLoading={ isLoading }
                 />
               ) }
             </TableColumnHeader>
@@ -94,7 +96,7 @@ const ZetaChainCCTxsTable = ({
                 columnName="Sender"
                 filters={ filters }
                 handleFilterChange={ onFilterChange }
-                isLoading={ isPlaceholderData }
+                isLoading={ isLoading }
               />
             </TableColumnHeader>
             <TableColumnHeader width="165px">
@@ -106,7 +108,7 @@ const ZetaChainCCTxsTable = ({
                 columnName="Receiver"
                 filters={ filters }
                 handleFilterChange={ onFilterChange }
-                isLoading={ isPlaceholderData }
+                isLoading={ isLoading }
               />
             </TableColumnHeader>
             <TableColumnHeader width="100%" isNumeric>
@@ -118,7 +120,7 @@ const ZetaChainCCTxsTable = ({
                 columnName="Asset"
                 filters={ filters }
                 handleFilterChange={ onFilterChange }
-                isLoading={ isPlaceholderData }
+                isLoading={ isLoading }
               />
             </TableColumnHeader>
           </TableRow>
@@ -132,7 +134,7 @@ const ZetaChainCCTxsTable = ({
               isLoading={ isLoading }
             />
           ) }
-          { txs.map((item, index) => (
+          { txs.slice(0, renderedItemsNum).map((item, index) => (
             <ZetaChainCCTxsTableItem
               key={ item.index + (isLoading ? index : '') }
               tx={ item }
@@ -141,6 +143,7 @@ const ZetaChainCCTxsTable = ({
               animation={ initialList.getAnimationProp(item) }
             />
           )) }
+          <TableRow ref={ cutRef }/>
         </TableBody>
       </TableRoot>
     </AddressHighlightProvider>

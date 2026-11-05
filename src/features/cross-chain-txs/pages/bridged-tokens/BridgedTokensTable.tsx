@@ -3,10 +3,11 @@
 import React from 'react';
 
 import type { CrossChainBridgedTokensSortingValue, CrossChainBridgedTokensSortingField } from '../../types/api';
-import type { StatsBridgedTokenRow } from '@blockscout/interchain-indexer-types';
+import type { ChainInfo, StatsBridgedTokenRow } from '@blockscout/interchain-indexer-types';
 import { BridgedTokensSort } from '@blockscout/interchain-indexer-types';
 
 import config from 'src/config';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 import getNextSortValue from 'src/shared/sort/get-next-sort-value';
 
 import { TableBody, TableColumnHeader, TableColumnHeaderSortable, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
@@ -21,9 +22,13 @@ interface Props {
   setSorting: ({ value }: { value: Array<string> }) => void;
   page: number;
   top?: number;
+  chainsData?: Array<ChainInfo>;
+  resetKey?: string;
 }
 
-const BridgedTokensTable = ({ data, isLoading, sort, setSorting, page, top }: Props) => {
+const BridgedTokensTable = ({ data, isLoading, sort, setSorting, page, top, chainsData, resetKey }: Props) => {
+
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: data, isEnabled: !isLoading, resetKey });
 
   const onSortToggle = React.useCallback((field: CrossChainBridgedTokensSortingField) => {
     const value = getNextSortValue<CrossChainBridgedTokensSortingField, CrossChainBridgedTokensSortingValue>(BRIDGED_TOKENS_SORT_SEQUENCE, field)(sort);
@@ -31,16 +36,17 @@ const BridgedTokensTable = ({ data, isLoading, sort, setSorting, page, top }: Pr
   }, [ sort, setSorting ]);
 
   return (
-    <TableRoot minW="1100px">
+    <TableRoot minW="900px">
       <TableHeaderSticky top={ top }>
         <TableRow>
-          <TableColumnHeader>Token</TableColumnHeader>
+          <TableColumnHeader w="55%">Token</TableColumnHeader>
           <TableColumnHeaderSortable
             isNumeric
             sortField={ BridgedTokensSort.INPUT_TRANSFERS_COUNT }
             sortValue={ sort }
             onSortToggle={ onSortToggle }
             disabled={ isLoading }
+            w="15%"
           >
             In transfers
           </TableColumnHeaderSortable>
@@ -50,6 +56,7 @@ const BridgedTokensTable = ({ data, isLoading, sort, setSorting, page, top }: Pr
             sortValue={ sort }
             onSortToggle={ onSortToggle }
             disabled={ isLoading }
+            w="15%"
           >
             Out transfers
           </TableColumnHeaderSortable>
@@ -59,25 +66,31 @@ const BridgedTokensTable = ({ data, isLoading, sort, setSorting, page, top }: Pr
             sortValue={ sort }
             onSortToggle={ onSortToggle }
             disabled={ isLoading }
+            w="15%"
           >
             Total transfers
           </TableColumnHeaderSortable>
         </TableRow>
       </TableHeaderSticky>
       <TableBody>
-        { data.map((item, index) => {
-          const tokenCurrentChain = item.tokens.find((token) => String(token.chain_id) === config.chain.id);
+        { data.slice(0, renderedItemsNum).map((item, index) => {
+          const tokenInfo = item.tokens.find((token) => String(token.chain_id) === config.chain.id) ||
+            item.tokens.find((token) => String(token.chain_id) !== config.chain.id);
+          const chainInfo = chainsData?.find((chain) => chain.id === tokenInfo?.chain_id);
+
           return (
             <BridgedTokensTableItem
-              key={ String(tokenCurrentChain?.token_address) + (isLoading ? index : '') }
+              key={ item.stats_asset_id + (isLoading ? index : '') }
               data={ item }
-              token={ tokenCurrentChain }
+              tokenInfo={ tokenInfo }
+              chainInfo={ chainInfo }
               index={ index }
               isLoading={ isLoading }
               page={ page }
             />
           );
         }) }
+        <TableRow ref={ cutRef }/>
       </TableBody>
     </TableRoot>
   );

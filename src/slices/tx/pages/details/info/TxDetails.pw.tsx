@@ -1,5 +1,3 @@
-import React from 'react';
-
 import * as tokenInstanceMock from 'src/slices/token/mocks/instance';
 import * as txMock from 'src/slices/tx/mocks/details';
 
@@ -10,7 +8,7 @@ import { arbitrumTxn } from 'src/features/rollup/arbitrum/mocks/tx';
 import { l2tx } from 'src/features/rollup/common/mocks/tx';
 
 import { ENVS_MAP } from 'playwright/fixtures/mockEnvs';
-import { test, expect } from 'playwright/lib';
+import { expect, test } from 'playwright/lib';
 import * as pwConfig from 'playwright/utils/config';
 
 import TxDetails from './TxDetails';
@@ -35,27 +33,10 @@ test('creating contact', async({ render, page }) => {
   });
 });
 
-test('with token transfer +@mobile', async({ render, page, mockAssetResponse }) => {
+test('with token transfer +@mobile', async({ render, page, mockAssetResponse, mockEnvs }) => {
+  await mockEnvs(ENVS_MAP.additionalTokenTypes);
   await mockAssetResponse(tokenInstanceMock.base.image_url as string, './playwright/mocks/image_s.jpg');
   const component = await render(<TxDetails data={ txMock.withTokenTransfer } isLoading={ false }/>);
-
-  await expect(component).toHaveScreenshot({
-    mask: [ page.locator(pwConfig.adsBannerSelector) ],
-    maskColor: pwConfig.maskColor,
-  });
-});
-
-test('with decoded revert reason', async({ render, page }) => {
-  const component = await render(<TxDetails data={ txMock.withDecodedRevertReason } isLoading={ false }/>);
-
-  await expect(component).toHaveScreenshot({
-    mask: [ page.locator(pwConfig.adsBannerSelector) ],
-    maskColor: pwConfig.maskColor,
-  });
-});
-
-test('with decoded raw reason', async({ render, page }) => {
-  const component = await render(<TxDetails data={ txMock.withRawRevertReason } isLoading={ false }/>);
 
   await expect(component).toHaveScreenshot({
     mask: [ page.locator(pwConfig.adsBannerSelector) ],

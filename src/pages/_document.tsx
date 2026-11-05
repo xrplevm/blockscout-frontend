@@ -5,11 +5,14 @@ import type { DocumentContext } from 'next/document';
 import Document, { Html, Head, Main, NextScript } from 'next/document';
 import React from 'react';
 
+import { getPrimerScript } from 'src/server/primedRequests';
 import logRequestFromBot from 'src/server/utils/logRequestFromBot';
 import * as serverTiming from 'src/server/utils/serverTiming';
 
 import config from 'src/config';
-import * as svgSprite from 'src/sprite/SpriteIcon';
+import { SPRITE_URL } from 'src/sprite/SpriteInjector';
+
+import { ColorModeProvider } from 'src/toolkit/chakra/color-mode';
 
 const marketplaceFeature = config.features.marketplace;
 const usercentrics = config.services.usercentrics;
@@ -35,9 +38,22 @@ class MyDocument extends Document {
   }
 
   render() {
+    const primerScript = getPrimerScript(this.props.__NEXT_DATA__.page);
+
     return (
       <Html lang="en">
         <Head>
+          { /* Color mode script: without children the provider renders only its inline script, which sets the theme */ }
+          { /* class on <html> before the first paint. The copy rendered by the app provider sits after the global styles */ }
+          { /* in <body>, and Firefox paints the page white before reaching it. */ }
+          <ColorModeProvider/>
+
+          { /* Early-fetch primer: fire the page's first-render API requests before the JS bundle boots */ }
+          { primerScript && <script dangerouslySetInnerHTML={{ __html: primerScript }}/> }
+
+          { /* Warm the SVG sprite request during HTML parse; SpriteInjector's fetch reuses this */ }
+          { /* preload (as="fetch" + crossOrigin match the fetch destination/credentials mode). */ }
+          <link rel="preload" as="fetch" crossOrigin="anonymous" href={ SPRITE_URL }/>
           { /* FONTS */ }
           { /* Instruct browsers to preconnect to fonts.gstatic.com for speeding up font loading */ }
           { !(config.misc.fonts.heading?.url && config.misc.fonts.body?.url) &&
@@ -73,7 +89,6 @@ class MyDocument extends Document {
           <link rel="shortcut icon" href="/assets/favicon/favicon.ico"/>
           <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon-180x180.png"/>
           <link rel="icon" type="image/png" sizes="192x192" href="/assets/favicon/android-chrome-192x192.png"/>
-          <link rel="preload" as="image" href={ svgSprite.href }/>
 
           { usercentrics && (
             <script

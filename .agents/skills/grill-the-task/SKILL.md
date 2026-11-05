@@ -1,8 +1,7 @@
 ---
 name: grill-the-task
 description: >-
-  Grill a product task (GitHub issue) into an implementable spec — research first, then a
-  one-question-at-a-time interview; also elaborates sub-specs for big steps of large tasks.
+  Grill a product task (GitHub issue) into implementable work.
 disable-model-invocation: true
 ---
 
@@ -10,15 +9,8 @@ disable-model-invocation: true
 
 Product task issues arrive thin — a title and a couple of links. This skill closes the gap: research
 everything researchable, then grill the developer about everything that is a *decision*, tracking what they
-can't answer as open questions for the responsible people. The output is a spec, written by the `to-spec`
-skill.
+can't answer as open questions for the responsible people. Input is a GitHub issue URL.
 
-**Two modes.**
-
-- **Task mode** (default): input is a GitHub issue URL; output is the task's main spec.
-- **Subtask mode**: input is an existing spec plus a step number (a big step of a `large` task); the session
-  scopes research and questions to that step and outputs its sub-spec (`subtasks/<NN>-<slug>.md`). Run it
-  just-in-time, right before the step starts, against the by-then-current code.
 
 ## Step 1 — Research
 
@@ -39,7 +31,7 @@ Gather, in roughly this order:
    is production-deployed or staging-only.
 4. **Figma mockups** — via the Figma MCP tools, **enumerate-only**: list screens/frames, their elements,
    columns, states, and record a node link per screen. Do **not** extract visual/styling details — appearance
-   stays with the mockups and the `[human]` style subtasks (see `.agents/rules/delegation.mdc`). If the Figma
+   stays with the mockups and the `[human]` style leaves (see `.agents/delegation.md`). If the Figma
    MCP is not connected, have the developer describe the mockups instead.
 
 Then run two mechanical cross-checks; every mismatch becomes an open question for the backend owner or PM:
@@ -54,28 +46,20 @@ Then run two mechanical cross-checks; every mismatch becomes an open question fo
 Research is complete when every linked source is read or flagged inaccessible, every named endpoint has a
 real sample response, and both cross-checks have run with each mismatch recorded as an open question.
 
-## Step 2 — Classify the size
+## Step 2 — The interview
 
-Propose a size to the developer and confirm it:
-
-- **small** — one step; implementable by an agent or a user right after this session.
-- **medium** — a flat list of small subtasks in one spec.
-- **large** — many steps; the main spec lists them, small steps fully specified now, big steps as one-liners
-  each getting its own subtask-mode grilling session later.
-
-## Step 3 — The interview
-
-**Invoke the `grilling` skill** and run the interview under its discipline: one question at a time with a
-recommended answer, decisions put to the developer while facts are looked up, and no enactment (Step 4)
-until shared understanding is confirmed. Skip anything the research already answered.
+**Invoke the `grilling` skill** and run the interview under its discipline. Skip anything the research already answered.
 
 **Start by picking the task's contacts**: for each relevant team in `.agents/TEAM.md`, ask which member
-owns this task (recommending the roster's default) — these go into the spec header. Also ask whether the
-task has (or deserves) a **dedicated Slack channel** — large features often get one, and it changes where
-open questions are sent (see the `to-spec` skill); record it in the spec header. When the developer doesn't
-know an answer, don't press — record the question with the owning contact and move on.
+owns this task, recommending the member marked ✓ in that team's Default column — and record that ✓ member
+whenever the developer has no task-specific pick. These go into the spec header, and Step 3 routes each open
+question to the contact that owns it. Don't ask what can be inferred: when the issue's author maps to a
+roster member of the relevant team (match the GitHub handle in `.agents/TEAM.md`), record them as that
+team's contact without asking — the PM slot in particular is usually just the task's author. When the
+developer doesn't know an answer, don't press — record the question with the owning contact and move on.
 
-Cover these domains:
+Cover these domains, each only where the task actually reaches it — a one-line bug fix touches almost none
+of them, and marching through all six regardless is how a five-minute task turns into a twenty-minute one:
 
 1. **Goal & users** — what problem, for whom.
 2. **Env gating** — does the feature sit behind a new `NEXT_PUBLIC_*` env var or not. (Just the decision —
@@ -88,25 +72,78 @@ Cover these domains:
 5. **Analytics & links** — custom Mixpanel events **only** if there's a new interactive element worth
    tracking (page views are auto-wired); UTM query params on any hardcoded links to Blockscout or partner
    products.
-6. **Delivery** — one question: deploy a demo after completion or not (executed via the `deploy-demo` skill
-   as a final subtask if yes).
 
-Testing is **not** an interview domain — the standing policy in `.agents/rules/delegation.mdc` applies.
+Testing is **not** an interview domain — the capability boundary in `.agents/delegation.md` settles it.
+Neither is human verification: which acceptance criteria are `(human)` follows the standing rule in "The
+ticket model" in `.agents/tasks/concepts.md`. Only ask when one sits genuinely on the line.
 
-**Front-load the executor skills' inputs.** Once the task breakdown has taken shape, go through every
-`[agent]` subtask that will run a project skill (`add-new-page`, `add-api-resource`, `add-env-var`, …):
-**open that skill and run its user-facing interview now** (e.g. `add-new-page` Step 0), from the skill's
-current text — don't work from memory of its questions. The answers are recorded with the subtask in the
-spec, so `implement-task` can later execute without stopping to ask. Do this in whichever session fully
-specifies the subtask: here for small/medium tasks and small steps, in the just-in-time subtask session for
-big steps.
+The interview is complete when every domain the task reaches is covered or explicitly skipped as
+research-answered, the contacts are settled, and every unanswered question has an owner.
 
-The interview is complete when every domain is covered or explicitly skipped as research-answered, the
-contacts and channel are settled, every unanswered question has an owner, and every fully-specified
-`[agent]` subtask has its executor skill's inputs collected.
+## Step 3 — Send open questions
 
-## Step 4 — Hand off to `to-spec`
+Route every question the session couldn't answer to the person who owns it.
 
-Invoke the **`to-spec`** skill. It writes the spec (or sub-spec, in subtask mode), tags subtasks
-`[agent]`/`[human]` per the delegation boundary, and runs the open-question outreach (grouping by owner,
-drafting Slack messages for the developer's approval, recording thread permalinks).
+1. Group them by owner.
+2. Pick each group's destination. Ask whether the task has a **dedicated Slack channel** only when the task
+   is large enough to warrant a spec — big features often get one, and it changes the routing; otherwise
+   assume there is none.
+   - Task has a **dedicated feature channel** → **all** questions go there, API ones included.
+   - Otherwise, **product questions go to the frontend channel** (see `.agents/TEAM.md`) — never a DM — so
+     colleagues from other teams (QA in particular) build the same understanding of the feature.
+   - Other questions (API, design) default to a DM with the owner.
+   - When posting to a channel, **always mention the addressee** — `<@member ID>` from `.agents/TEAM.md`
+     (people missing from the roster: resolve by name via `slack_search_users` and suggest adding them).
+3. Draft one message per owner: brief task context (issue link), the questions, and why they block progress.
+4. **Show every draft (with its destination) to the user and wait for explicit approval** — never send
+   unreviewed *new* outreach. (In-thread follow-ups on a thread already approved here are exempt — see
+   "Watch for replies" below.)
+5. Send (`slack_send_message`), then keep each thread's permalink for the question's `questions.md` entry.
+
+If the Slack MCP tools are unavailable, record the questions with owners anyway and tell the user to route
+them manually.
+
+Outreach is complete when every question has a recorded permalink — or an explicit note that the developer
+routes it manually.
+
+### Watch for replies and drive each question to settled
+
+Once the questions are sent, don't hand the reply round-trip back to the developer to poll. Launch the
+**`slack-watch`** skill with one `CHANNEL:THREAD_TS` argument per `pending` question thread (the channel
+id and parent `ts` from each `slack_send_message` you just sent). That skill owns how to start, stop, and
+relaunch on Claude Code vs Cursor — follow it. Adding or resolving a question later means stopping the
+watcher and relaunching with the new thread list; questions move at human pace, so the restart is free.
+If the tokens aren't set up, `slack-watch` guides the developer through it; until then, the developer
+polls manually as before.
+
+On each `NEW …` notification, read the reply with `slack_read_thread` on that `thread_ts`, then for the
+question that thread belongs to:
+
+- **Assess** the reply against the question's `Resolved when:` criterion — session-held here, since this
+  runs before `to-spec`; it only becomes a `questions.md` line once `to-spec` writes one (lifecycle step 2).
+- **Insufficient** → send a clarifying **follow-up to the colleague directly, in the same thread, without
+  developer approval** — this is continuing a conversation the developer already opened. Cap: **3**
+  consecutive follow-ups per question, then escalate. Opening a *new* thread or contacting a *new* person
+  stays approval-gated (Step 3 rules unchanged).
+- **Sufficient** → **propose in the session chat**: the answer arrived, the proposed resolution, and the
+  edits it implies. **Edit no file.** Apply only after the developer accepts in-session. Where the answer
+  lands depends on how far the task has come: once `to-spec` has run, fold it into `questions.md` (the
+  fold-in is `.agents/tasks/README.md` step 4) — so `implement-ticket`'s question gate never releases work
+  a human hasn't read; before that (still grilling, or a small task that never gets a spec), hold it in
+  session to inform the forthcoming spec or to unblock the in-session implementation.
+- **Escalate** (one line: which task/question and why it's stuck) when the answer needs *frontend*
+  knowledge only the developer has, the 3-follow-up cap is hit, or the colleague goes silent.
+  Claude Code: `PushNotification` with that line. Cursor: the same line in this session chat — Cursor has
+  no OS nudge.
+
+Every message posted to a colleague carries a disclosure — they must be able to tell they're in a
+technical back-and-forth with an agent — `.agents/slack-message.md` → Attribution.
+
+## Step 4 — Size and hand off
+
+Decide, by a rough sizing judgment, whether the task needs a spec — one session of work or not. No formal
+breakdown is needed for this call ("Not every task needs a spec" in `.agents/tasks/README.md`).
+
+- **Small task** — implement it in this same session, then hand off to the `create-pr` skill. If a `pending` question blocks the work, wait for the
+  reply and pick the implementation back up here.
+- **Larger task** — suggest proceeding with the `to-spec` skill **in this same session**.

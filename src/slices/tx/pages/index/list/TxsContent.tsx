@@ -20,7 +20,6 @@ import getNextSortValue from 'src/shared/sort/get-next-sort-value';
 import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 
 import TxsHeaderMobile from './TxsHeaderMobile';
-import TxsList from './TxsList';
 import TxsTable from './TxsTable';
 
 const SORT_SEQUENCE: Record<TransactionsSortingField, Array<TransactionsSortingValue>> = {
@@ -39,12 +38,13 @@ type Props = {
   enableTimeIncrement?: boolean;
   top?: number;
   items?: Array<schemas['Transaction']>;
-  isPlaceholderData: boolean;
+  isInitialLoading: boolean;
+  isTransitioning?: boolean;
   isError: boolean;
   setSorting?: (value: TransactionsSortingValue) => void;
   sort: TransactionsSortingValue;
   stickyHeader?: boolean;
-  showTableView?: boolean;
+  resetKey?: string;
 };
 
 const TxsContent = ({
@@ -57,66 +57,47 @@ const TxsContent = ({
   enableTimeIncrement,
   top,
   items,
-  isPlaceholderData,
+  isInitialLoading,
+  isTransitioning,
   isError,
   setSorting,
   sort,
   stickyHeader = true,
-  showTableView,
+  resetKey,
 }: Props) => {
   const isMobile = useIsMobile();
-
-  const isTableView = isMobile ? showTableView : true;
-  const isLoading = isPlaceholderData;
 
   const onSortToggle = React.useCallback((field: TransactionsSortingField) => {
     const value = getNextSortValue<TransactionsSortingField, TransactionsSortingValue>(SORT_SEQUENCE, field)(sort);
     setSorting?.(value);
   }, [ sort, setSorting ]);
 
-  const translationQuery = useDescribeTxs(items, currentAddress, isPlaceholderData);
+  const translationQuery = useDescribeTxs(items, currentAddress, isInitialLoading);
 
-  const content = (() => {
-    if (items && items.length > 0) {
-      if (isTableView) {
-        return (
-          <TableContainerScrollable>
-            <TxsTable
-              txs={ items }
-              sort={ sort }
-              onSortToggle={ setSorting ? onSortToggle : undefined }
-              showBlockInfo={ showBlockInfo }
-              socketType={ socketType }
-              top={ top || (pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0) }
-              currentAddress={ currentAddress }
-              enableTimeIncrement={ enableTimeIncrement }
-              isLoading={ isLoading }
-              stickyHeader={ !isMobile && stickyHeader }
-              translationQuery={ translationQuery }
-            />
-          </TableContainerScrollable>
-        );
-      }
-      return (
-        <TxsList
-          showBlockInfo={ showBlockInfo }
-          socketType={ socketType }
-          isLoading={ isLoading }
-          enableTimeIncrement={ enableTimeIncrement }
-          currentAddress={ currentAddress }
-          items={ items }
-          translationQuery={ translationQuery }
-        />
-      );
-    }
-    return null;
-  })();
+  const content = items && items.length > 0 ? (
+    <TableContainerScrollable>
+      <TxsTable
+        txs={ items }
+        sort={ sort }
+        onSortToggle={ setSorting ? onSortToggle : undefined }
+        showBlockInfo={ showBlockInfo }
+        socketType={ socketType }
+        top={ top || (pagination.isVisible ? ACTION_BAR_HEIGHT_DESKTOP : 0) }
+        currentAddress={ currentAddress }
+        enableTimeIncrement={ enableTimeIncrement }
+        isLoading={ isInitialLoading }
+        stickyHeader={ !isMobile && stickyHeader }
+        translationQuery={ translationQuery }
+        resetKey={ resetKey }
+      />
+    </TableContainerScrollable>
+  ) : null;
 
   const actionBar = isMobile ? (
     <TxsHeaderMobile
       mt={ -6 }
       sorting={ sort }
-      setSorting={ !isTableView ? setSorting : undefined }
+      setSorting={ setSorting }
       paginationProps={ pagination }
       showPagination={ pagination.isVisible }
       filterComponent={ filter }
@@ -142,6 +123,7 @@ const TxsContent = ({
       emptyText="There are no transactions."
       actionBar={ actionBar }
       hasActiveFilters={ Boolean(filterValue) }
+      isTransitioning={ isTransitioning }
       emptyStateProps={{
         term: 'transaction',
       }}

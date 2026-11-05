@@ -1,44 +1,33 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { Box } from '@chakra-ui/react';
 import React from 'react';
 
 import type { TxQuery } from 'src/slices/tx/hooks/useTxQuery';
 
 import DataList from 'src/shared/lists/DataList';
-import type { QueryWithPagesResult } from 'src/shared/pagination/useQueryWithPages';
+import type { ApiPaginatedQueryResult } from 'src/shared/pagination/useApiPaginatedQuery';
 
-import TokenTransfersCrossChainListItem from '../../components/token-transfers/TokenTransfersCrossChainListItem';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
+
 import TokenTransfersCrossChainTable from '../../components/token-transfers/TokenTransfersCrossChainTable';
-import { getItemKey } from '../../components/token-transfers/utils';
 
 interface Props {
   txQuery: TxQuery;
-  crossChainQuery: QueryWithPagesResult<'interchainIndexer:tx_transfers'>;
+  crossChainQuery: ApiPaginatedQueryResult<'interchainIndexer:tx_transfers'>;
   isLoading?: boolean;
   tableTop?: number;
 }
 
 const TxTokenTransferCrossChain = ({ txQuery, crossChainQuery, isLoading, tableTop }: Props) => {
   const content = crossChainQuery.data?.items ? (
-    <>
-      <Box hideFrom="lg">
-        { crossChainQuery.data.items.map((item, index) => (
-          <TokenTransfersCrossChainListItem
-            key={ getItemKey(item, crossChainQuery.isPlaceholderData ? index : undefined) }
-            data={ item }
-            isLoading={ isLoading || crossChainQuery.isPlaceholderData }
-          />
-        )) }
-      </Box>
-      <Box hideBelow="lg">
-        <TokenTransfersCrossChainTable
-          data={ crossChainQuery.data.items }
-          isLoading={ isLoading || crossChainQuery.isPlaceholderData }
-          top={ tableTop }
-        />
-      </Box>
-    </>
+    <TableContainerScrollable>
+      <TokenTransfersCrossChainTable
+        data={ crossChainQuery.data.items }
+        isLoading={ isLoading || crossChainQuery.isInitialLoading }
+        top={ tableTop }
+        resetKey={ crossChainQuery.queryHash }
+      />
+    </TableContainerScrollable>
   ) : null;
 
   return (
@@ -49,6 +38,7 @@ const TxTokenTransferCrossChain = ({ txQuery, crossChainQuery, isLoading, tableT
       emptyStateProps={{
         term: 'token transfer',
       }}
+      isTransitioning={ crossChainQuery.isTransitioning }
     >
       { content }
     </DataList>

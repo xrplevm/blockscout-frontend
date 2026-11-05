@@ -14,7 +14,7 @@ import { SECOND } from 'src/toolkit/utils/consts';
 const flashblocksFeature = config.features.flashblocks;
 
 const MAX_FLASHBLOCKS_COUNT = 50;
-const QUEUE_TIME_THRESHOLD = 200;
+const QUEUE_TIME_THRESHOLD = 150;
 
 type Status = 'initial' | 'connected' | 'disconnected' | 'error';
 
@@ -75,12 +75,8 @@ export default function useFlashblocksSocketData() {
             if (isPausedRef.current) {
               setNewItemsNum((prev) => (prev ?? 0) + newItems.length);
             } else {
-              setItems((prev) => {
-                if (prev.length === 0) {
-                  setInitialTs(now);
-                }
-                return [ ...newItems, ...prev ].slice(0, MAX_FLASHBLOCKS_COUNT);
-              });
+              setInitialTs((prev) => prev ?? now);
+              setItems((prev) => [ ...newItems, ...prev ].slice(0, MAX_FLASHBLOCKS_COUNT));
             }
 
             setItemsNum((prev) => prev + newItems.length);

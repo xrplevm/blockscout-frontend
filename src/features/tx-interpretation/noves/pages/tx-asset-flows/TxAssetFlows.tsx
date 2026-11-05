@@ -18,11 +18,10 @@ import DataList from 'src/shared/lists/DataList';
 import Pagination from 'src/shared/pagination/Pagination';
 
 import { Skeleton } from 'src/toolkit/chakra/skeleton';
-import { TableBody, TableColumnHeader, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
+import { TableContainerScrollable } from 'src/toolkit/chakra/table';
 
 import { generateFlowViewData } from '../../utils/generateFlowViewData';
-import TxAssetFlowsListItem from './TxAssetFlowsListItem';
-import TxAssetFlowsTableItem from './TxAssetFlowsTableItem';
+import TxAssetFlowsTable from './TxAssetFlowsTable';
 
 interface FlowViewProps {
   hash: string;
@@ -56,6 +55,7 @@ export default function TxAssetFlows(props: FlowViewProps) {
   }), [ chunkedViewData, page, isPlaceholderData ]);
 
   const data = chunkedViewData [page - 1];
+  const resetKey = `${ props.hash }:${ page }`;
 
   const actionBar = (
     <ActionBar mt={ -6 } pb={{ base: 6, md: 5 }} flexDir={{ base: 'column', md: 'initial' }} gap={{ base: '2', md: 'initial' }} >
@@ -77,43 +77,15 @@ export default function TxAssetFlows(props: FlowViewProps) {
     </ActionBar>
   );
 
-  const content = (
-    <>
-      <Box hideFrom="lg">
-        { data?.map((item, i) => (
-          <TxAssetFlowsListItem
-            key={ `${ i }-${ item.accountAddress }` }
-            item={ item }
-            isPlaceholderData={ isPlaceholderData }
-          />
-        )) }
-      </Box>
-
-      <Box hideBelow="lg">
-        <TableRoot>
-          <TableHeaderSticky top={ 75 }>
-            <TableRow>
-              <TableColumnHeader>
-                Actions
-              </TableColumnHeader>
-              <TableColumnHeader width="450px">
-                From/To
-              </TableColumnHeader>
-            </TableRow>
-          </TableHeaderSticky>
-          <TableBody>
-            { data?.map((item, i) => (
-              <TxAssetFlowsTableItem
-                key={ `${ i }-${ item.accountAddress }` }
-                item={ item }
-                isPlaceholderData={ isPlaceholderData }
-              />
-            )) }
-          </TableBody>
-        </TableRoot>
-      </Box>
-    </>
-  );
+  const content = data ? (
+    <TableContainerScrollable>
+      <TxAssetFlowsTable
+        items={ data }
+        isPlaceholderData={ isPlaceholderData }
+        resetKey={ resetKey }
+      />
+    </TableContainerScrollable>
+  ) : null;
 
   return (
     <DataList

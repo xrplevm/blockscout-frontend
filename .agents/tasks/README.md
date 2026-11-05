@@ -1,8 +1,11 @@
 # Product task specs
 
-This directory holds one folder per product task, each with a `spec.md` (and, for large tasks, per-step
-sub-specs in `subtasks/`). Specs merge with their task's PR and **accumulate here as a permanent record** —
-consult past specs as precedent for how similar tasks were scoped and split.
+This directory holds one folder per specced product task. A task is worked through a spec-driven workflow —
+grill, spec, break into tickets, implement, land — and its `spec.md` survives here as a permanent record.
+
+Two companion docs carry the detail this spine points at: [`concepts.md`](concepts.md) for what the words
+mean and the rules that hold the workflow together (the ticket model, write-once, prune-on-land), and
+[`structure.md`](structure.md) for the task-folder layout and which skill owns which file.
 
 ## Why
 
@@ -11,43 +14,38 @@ that a developer fills the gaps with guesswork. The spec workflow fixes the inpu
 gaps, unanswerable questions get routed to the people who own the answers, and the resulting spec explicitly
 says which steps an agent does and which a developer does by hand.
 
+## Not every task needs a spec
+
+A spec exists to **hand work to a session that wasn't in the room**. A task small enough to grill,
+implement, and open as a PR inside one session never leaves the room, so it gets no folder here and its
+reasoning goes into the PR description instead. The fork is a rough sizing judgment made at the end of
+grilling — one session of work or not — no formal breakdown required to make the call.
+
 ## Lifecycle
 
-1. **Grill** — run the `grill-the-task` skill with the issue URL. It researches first (issue, codebase, live
-   API samples, Figma mockups — enumerate-only), then interviews you one question at a time. What you can't
-   answer becomes an open question with an owner.
-2. **Spec** — the session ends in the `to-spec` skill: it writes `spec.md` here, sizes the task
-   (small / medium / large), tags every subtask `[agent]` or `[human]` per the delegation boundary, then
-   drafts the open questions as Slack messages grouped by owner — you approve, it sends, and each thread's
-   permalink lands in the spec. (`to-spec` also works standalone, from any conversation worth capturing.)
-   Commit the spec to the feature branch and **open a draft PR right away** (`to-spec` walks you through
-   branch, commit, and draft PR at the end of the run) — a spec-only draft is the cheap moment to catch a
-   wrong split or a missed requirement, it links the issue to the work, and CI and demo deploys hang off it
-   for the rest of the task.
-3. **Answers** — when colleagues reply, run `to-spec` on the spec again: it harvests the Slack threads,
-   proposes resolutions, folds accepted decisions into the spec, and sends approved follow-ups.
-4. **Implement** — run the `implement-task` skill repeatedly, one subtask per run: it executes `[agent]`
-   subtasks (composing `add-api-resource`, `add-new-page`, `add-env-var`, …) and verifies them, or hands
-   `[human]` subtasks (styling to Figma mockups) over to you. You review the diff and commit between runs.
-   A subtask can't start while a question blocking it is `pending` — unrelated subtasks can.
-5. **Land** — flip the draft PR to **ready for review** when the spec's last box is checked; the feature
-   branch merges to `main` as one PR, spec included. Big subtasks may have had their own sub-branch + PR
-   into the feature branch along the way (same pattern: draft when the step starts with its sub-spec as the
-   first commit, ready when the step's boxes are checked); simple ones are single commits on it. Branch
-   names carry the addressing — feature branch is `issue-<number>` (`issue-3219`), a big step's sub-branch
-   adds `-step-<N>` (`issue-3219-step-2`) — so `implement-task` needs no arguments on a task branch.
+Each step names the skill that runs it; the session model — what runs where, and why — is in
+[`concepts.md`](concepts.md).
 
-## Task sizes
-
-- **small** — one step; an agent or an user can implement it right after the grilling session.
-- **medium** — one spec with a flat list of small subtasks.
-- **large** — main spec + sub-specs. Big steps get their sub-spec written **just-in-time** via a
-  `grill-the-task` subtask session right before they start; small steps are specified in the main session.
+1. **Grill** — run `grill-the-task` with the issue URL.
+2. **Spec** — `to-spec` writes `spec.md` and `questions.md`, then opens the draft PR.
+3. **Break into tickets** — `to-tickets` runs with the spec and open questions as its input. It writes the
+   ticket files and `progress.md`.
+4. **Answers** — when colleagues reply, read the threads and fold each decision into `questions.md`. When an
+   answer changes the work, realise it through `to-tickets` — a new sibling ticket, or an edit to the
+   affected ticket if it isn't implemented yet, retargeting `Blocked by` edges.
+5. **Implement** — run `implement-ticket <NN>` repeatedly, **one ticket per run**.
+6. **Land** — `finalize-task` prunes `tickets/`, `progress.md`, `questions.md` and any `md`-mode review file
+   (only `spec.md` survives), then hands off to `create-pr` to push, write the real description, and flip
+   the draft to ready for review.
 
 ## Supporting files
 
-- `.agents/rules/delegation.mdc` — the living agent/human boundary (incl. the scaffold → style split for UI
-  work and the standing testing policy). Loosen it via PR as the repo gets more agent-friendly.
-- `.agents/TEAM.md` — the team roster (members + Slack IDs); the grilling session picks one contact per
-  team for the task and records the picks in the spec header.
-- `.agents/skills/to-spec/spec-template.md` — the spec template.
+- [`concepts.md`](concepts.md) — the vocabulary, the ticket model, and the write-once / freeze / prune rules.
+- [`structure.md`](structure.md) — the task-folder layout and the file-ownership table.
+- [`../delegation.md`](../delegation.md) — the living capability boundary: what agents are trusted to do in
+  this repo today, and what stays with a developer. It decides every `[agent]` / `[human]` tag. Loosen it
+  via PR as the repo gets more agent-friendly, never per task.
+- [`../TEAM.md`](../TEAM.md) — the team roster (members + Slack IDs); grilling picks one contact per team for
+  the task and records the picks in the spec header.
+- [`../adr/0002-layer-shaped-ticket-leaves.md`](../adr/0002-layer-shaped-ticket-leaves.md) — why a ticket
+  cuts vertically while its leaves run along layers.

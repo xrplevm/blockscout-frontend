@@ -7,6 +7,7 @@ import type { ClustersDirectoryObject } from 'src/features/name-services/cluster
 import { AddressHighlightProvider } from 'src/slices/address/contexts/address-highlight';
 
 import TimeFormatToggle from 'src/shared/date-and-time/TimeFormatToggle';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 
 import { TableBody, TableHeaderSticky, TableRow, TableColumnHeader, TableRoot } from 'src/toolkit/chakra/table';
 
@@ -17,12 +18,15 @@ interface Props {
   isLoading?: boolean;
   top?: number;
   isClusterDetailsLoading?: boolean;
+  resetKey?: string;
 }
 
-const ClustersDirectoryTable = ({ data, isLoading, top, isClusterDetailsLoading }: Props) => {
+const ClustersDirectoryTable = ({ data, isLoading, top, isClusterDetailsLoading, resetKey }: Props) => {
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: data, isEnabled: !isLoading, resetKey });
+
   return (
     <AddressHighlightProvider>
-      <TableRoot>
+      <TableRoot minW="900px">
         <TableHeaderSticky top={ top }>
           <TableRow>
             <TableColumnHeader width="40%">Cluster name</TableColumnHeader>
@@ -35,7 +39,7 @@ const ClustersDirectoryTable = ({ data, isLoading, top, isClusterDetailsLoading 
           </TableRow>
         </TableHeaderSticky>
         <TableBody>
-          { data.map((item, index) => (
+          { data.slice(0, renderedItemsNum).map((item, index) => (
             <ClustersDirectoryTableItem
               key={ `${ item.name }-${ index }${ isLoading ? '-loading' : '' }` }
               item={ item }
@@ -43,6 +47,7 @@ const ClustersDirectoryTable = ({ data, isLoading, top, isClusterDetailsLoading 
               isClusterDetailsLoading={ isClusterDetailsLoading }
             />
           )) }
+          <TableRow ref={ cutRef }/>
         </TableBody>
       </TableRoot>
     </AddressHighlightProvider>

@@ -1,13 +1,12 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
-import { chakra, VStack } from '@chakra-ui/react';
+import { chakra, HStack, VStack } from '@chakra-ui/react';
 import { route } from 'nextjs-routes';
 import React from 'react';
 
 import type { InterchainMessage } from '@blockscout/interchain-indexer-types';
 
 import AddressEntityInterchain from 'src/slices/address/components/entity/AddressEntityInterchain';
-import AddressFromToIcon from 'src/slices/address/components/from-to/AddressFromToIcon';
 import TxEntityInterchain from 'src/slices/tx/components/entity/TxEntityInterchain';
 
 import config from 'src/config';
@@ -21,7 +20,7 @@ import { TableCell, TableRow } from 'src/toolkit/chakra/table';
 import { mdash } from 'src/toolkit/utils/htmlEntities';
 
 import CrossChainBridgeLink from '../CrossChainBridgeLink';
-import CrossChainFromToTag from '../CrossChainFromToTag';
+import CrossChainFromToTagTx from '../CrossChainFromToTagTx';
 import CrossChainMessageEntity from '../CrossChainMessageEntity';
 import CrossChainTxsStatusTag from '../CrossChainTxsStatusTag';
 
@@ -33,9 +32,11 @@ interface Props {
 
 const TransactionsCrossChainTableItem = ({ data, isLoading, currentAddress }: Props) => {
 
-  const firstTransfer = data.transfers.length > 0 ? data.transfers[0] : null;
+  const hasTransfers = data.transfers.length > 0;
+  const firstTransfer = hasTransfers ? data.transfers[0] : null;
+  const bridgeId = data.bridge?.id;
   const txHashWithTransfers = (() => {
-    if (data.transfers.length === 0) {
+    if (!hasTransfers) {
       return;
     }
 
@@ -53,18 +54,19 @@ const TransactionsCrossChainTableItem = ({ data, isLoading, currentAddress }: Pr
   return (
     <TableRow>
       <TableCell w="42px">
-        <CrossChainTxsStatusTag status={ data.status } loading={ isLoading }/>
+        <HStack gap={ 1 }>
+          <CrossChainTxsStatusTag status={ data.status } loading={ isLoading }/>
+          { currentAddress && (
+            <CrossChainFromToTagTx
+              data={ data }
+              currentAddress={ currentAddress }
+              isLoading={ isLoading }
+            />
+          ) }
+        </HStack>
       </TableCell>
-      { currentAddress && (
-        <TableCell>
-          <CrossChainFromToTag
-            type={ data.sender?.hash.toLowerCase() === currentAddress.toLowerCase() && config.chain.id === data.source_chain?.id ? 'out' : 'in' }
-            isLoading={ isLoading }
-          />
-        </TableCell>
-      ) }
       <TableCell>
-        <CrossChainMessageEntity id={ data.message_id } isLoading={ isLoading } lineHeight="24px" fontWeight={ 700 }/>
+        <CrossChainMessageEntity id={ data.message_id } bridgeId={ bridgeId } isLoading={ isLoading } lineHeight="24px" fontWeight={ 700 }/>
       </TableCell>
       <TableCell>
         <TimeWithTooltip
@@ -155,77 +157,83 @@ const TransactionsCrossChainTableItem = ({ data, isLoading, currentAddress }: Pr
       </TableCell>
       <TableCell maxW="150px">
         <VStack alignItems="start">
-          {
-            firstTransfer?.sender ? (
-              <AddressEntityInterchain
-                chain={ firstTransfer.source_chain }
-                address={ firstTransfer.sender }
-                isLoading={ isLoading }
-                truncation="constant"
-                noIcon
-                currentAddress={ currentAddress }
-                lineHeight="24px"
-                maxW="100%"
-              />
-            ) : dashElement
-          }
-          { firstTransfer?.source_token && (
-            <TokenValueInterchain
-              token={ firstTransfer.source_token }
-              amount={ firstTransfer.source_amount }
-              chain={ firstTransfer.source_chain }
-              loading={ isLoading }
-              textStyle="xs"
-              color="text.secondary"
-            />
-          ) }
-          { data.transfers.length > 1 && (
-            <Link
-              variant="secondary"
-              textDecorationStyle="dashed"
-              textDecorationLine="underline"
-              mt={ 2 }
-              href={ route({ pathname: '/cross-chain-tx/[id]', query: { id: data.message_id, tab: 'transfers' } }) }
-              textStyle="xs"
-            >
-              View all
-            </Link>
+          { hasTransfers && (
+            <>
+              {
+                firstTransfer?.sender ? (
+                  <AddressEntityInterchain
+                    chain={ firstTransfer.source_chain }
+                    address={ firstTransfer.sender }
+                    isLoading={ isLoading }
+                    truncation="constant"
+                    noIcon
+                    currentAddress={ currentAddress }
+                    lineHeight="24px"
+                    maxW="100%"
+                  />
+                ) : dashElement
+              }
+              { firstTransfer?.source_token && (
+                <TokenValueInterchain
+                  token={ firstTransfer.source_token }
+                  amount={ firstTransfer.source_amount }
+                  chain={ firstTransfer.source_chain }
+                  loading={ isLoading }
+                  textStyle="xs"
+                  color="text.secondary"
+                />
+              ) }
+              { data.transfers.length > 1 && bridgeId !== undefined && (
+                <Link
+                  variant="secondary"
+                  textDecorationStyle="dashed"
+                  textDecorationLine="underline"
+                  mt={ 2 }
+                  href={ route({
+                    pathname: '/bridge/[bridgeId]/cross-chain-tx/[id]',
+                    query: { bridgeId: String(bridgeId), id: data.message_id, tab: 'transfers' },
+                  }) }
+                  textStyle="xs"
+                >
+                  View all
+                </Link>
+              ) }
+            </>
           ) }
         </VStack>
-      </TableCell>
-      <TableCell>
-        <AddressFromToIcon type="unspecified" isLoading={ isLoading } mt={ 0.5 }/>
       </TableCell>
       <TableCell maxW="150px">
-        <VStack alignItems="start">
-          {
-            firstTransfer?.recipient ? (
-              <AddressEntityInterchain
+        { hasTransfers && (
+          <VStack alignItems="start">
+            {
+              firstTransfer?.recipient ? (
+                <AddressEntityInterchain
+                  chain={ firstTransfer.destination_chain }
+                  address={ firstTransfer.recipient }
+                  isLoading={ isLoading }
+                  truncation="constant"
+                  noIcon
+                  currentAddress={ currentAddress }
+                  lineHeight="24px"
+                  maxW="100%"
+                />
+              ) : dashElement
+            }
+            { firstTransfer?.destination_token && (
+              <TokenValueInterchain
+                token={ firstTransfer.destination_token }
+                amount={ firstTransfer.destination_amount }
                 chain={ firstTransfer.destination_chain }
-                address={ firstTransfer.recipient }
-                isLoading={ isLoading }
-                truncation="constant"
-                noIcon
-                currentAddress={ currentAddress }
-                lineHeight="24px"
-                maxW="100%"
+                loading={ isLoading }
+                textStyle="xs"
+                color="text.secondary"
               />
-            ) : dashElement
-          }
-          { firstTransfer?.destination_token && (
-            <TokenValueInterchain
-              token={ firstTransfer.destination_token }
-              amount={ firstTransfer.destination_amount }
-              chain={ firstTransfer.destination_chain }
-              loading={ isLoading }
-              textStyle="xs"
-              color="text.secondary"
-            />
-          ) }
-        </VStack>
+            ) }
+          </VStack>
+        ) }
       </TableCell>
       <TableCell>
-        <CrossChainBridgeLink data={ data.bridge } isLoading={ isLoading } lineHeight="24px"/>
+        <CrossChainBridgeLink data={ data.bridge } isLoading={ isLoading } messageId={ data.message_id } lineHeight="24px"/>
       </TableCell>
     </TableRow>
   );

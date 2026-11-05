@@ -10,6 +10,7 @@ import { currencyUnits } from 'src/slices/chain/units';
 import { useMultichainContext } from 'src/features/multichain/context';
 
 import TimeFormatToggle from 'src/shared/date-and-time/TimeFormatToggle';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 
 import { TableBody, TableColumnHeader, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
 
@@ -21,15 +22,17 @@ interface Props {
   isLoading?: boolean;
   top?: number;
   showBlockInfo?: boolean;
+  resetKey?: string;
 }
 
-const InternalTxsTable = ({ data, currentAddress, isLoading, top, showBlockInfo = true }: Props) => {
+const InternalTxsTable = ({ data, currentAddress, isLoading, top, showBlockInfo = true, resetKey }: Props) => {
   const multichainContext = useMultichainContext();
   const chainData = multichainContext?.chain;
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({ list: data, isEnabled: !isLoading, resetKey });
 
   return (
     <AddressHighlightProvider>
-      <TableRoot minW="900px">
+      <TableRoot minW="1000px">
         <TableHeaderSticky top={ top ?? 68 }>
           <TableRow>
             { chainData && <TableColumnHeader width="38px"></TableColumnHeader> }
@@ -46,9 +49,9 @@ const InternalTxsTable = ({ data, currentAddress, isLoading, top, showBlockInfo 
           </TableRow>
         </TableHeaderSticky>
         <TableBody>
-          { data.map((item, index) => (
+          { data.slice(0, renderedItemsNum).map((item, index) => (
             <InternalTxsTableItem
-              key={ item.transaction_hash + '_' + index }
+              key={ item.transaction_hash + '_' + item.index + (isLoading ? index : '') }
               data={ item }
               currentAddress={ currentAddress }
               isLoading={ isLoading }
@@ -58,6 +61,7 @@ const InternalTxsTable = ({ data, currentAddress, isLoading, top, showBlockInfo 
           )) }
         </TableBody>
       </TableRoot>
+      <div ref={ cutRef }/>
     </AddressHighlightProvider>
 
   );

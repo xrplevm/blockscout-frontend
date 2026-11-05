@@ -17,7 +17,6 @@ import useAddressFungibleTokensQuery from 'src/slices/token/pages/address/useAdd
 import useAddressNftQuery from 'src/slices/token/pages/address/useAddressNftQuery';
 import { FUNGIBLE_TOKEN_TYPES } from 'src/slices/token/pages/address/utils';
 
-import config from 'src/config';
 import useIsMobile from 'src/shared/hooks/useIsMobile';
 import useIsMounted from 'src/shared/hooks/useIsMounted';
 import Pagination from 'src/shared/pagination/Pagination';
@@ -67,18 +66,17 @@ const AddressTokens = ({ shouldRender = true, isQueryEnabled = true }: Props) =>
   const tabs = [
     {
       id: 'tokens_erc20',
-      title: [
-        `${ config.slices.token.standard }-20`,
-        ...config.slices.token.additionalTypes.map((item) => item.name),
-      ].join(' & '),
+      title: 'Tokens',
       component: (
         <AddressFungibleTokens
           items={ fungibleTokensQuery.data?.items }
-          isLoading={ fungibleTokensQuery.isPlaceholderData }
+          isLoading={ fungibleTokensQuery.isInitialLoading }
+          isTransitioning={ fungibleTokensQuery.isTransitioning }
           pagination={ fungibleTokensQuery.pagination }
           isError={ fungibleTokensQuery.isError }
           tokenTypes={ fungibleTokenTypes }
           onTokenTypesChange={ handleFungibleTokenTypesChange }
+          resetKey={ fungibleTokensQuery.queryHash }
         />
       ),
     },
@@ -100,8 +98,8 @@ const AddressTokens = ({ shouldRender = true, isQueryEnabled = true }: Props) =>
   }
 
   const hasNftData =
-    (!nftsQuery.isPlaceholderData && nftsQuery.data?.items.length) ||
-    (!collectionsQuery.isPlaceholderData && collectionsQuery.data?.items.length);
+    Boolean(!nftsQuery.isInitialLoading && nftsQuery.data?.items.length) ||
+    Boolean(!collectionsQuery.isInitialLoading && collectionsQuery.data?.items.length);
 
   const isNftTab = tab !== 'tokens' && tab !== 'tokens_erc20';
   const hasFungibleTokenFilter = !isNftTab && (!isMobile || !pagination.isVisible) && FUNGIBLE_TOKEN_TYPES.length > 1;

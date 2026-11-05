@@ -14,8 +14,9 @@ import { useMultichainContext } from 'src/features/multichain/context';
 
 import useIsMobile from 'src/shared/hooks/useIsMobile';
 import DataList from 'src/shared/lists/DataList';
+import useLazyRenderedList from 'src/shared/lists/useLazyRenderedList';
 import Pagination from 'src/shared/pagination/Pagination';
-import type { QueryWithPagesResult } from 'src/shared/pagination/useQueryWithPages';
+import type { ApiPaginatedQueryResult } from 'src/shared/pagination/useApiPaginatedQuery';
 import { route } from 'src/shared/router/routes';
 
 import { Link } from 'src/toolkit/chakra/link';
@@ -25,8 +26,12 @@ import AddressNftItem from './AddressNftItem';
 import AddressNftItemContainer from './AddressNftItemContainer';
 import AddressNftTypeFilter from './AddressNftTypeFilter';
 
+// each rendered row is a whole collection with its own nested grid of NFTs, so the initial
+// window is smaller than the flat-grid layouts
+const INITIAL_RENDERED_COLLECTIONS_NUM = 10;
+
 type Props = {
-  collectionsQuery: QueryWithPagesResult<'core:address_collections'>;
+  collectionsQuery: ApiPaginatedQueryResult<'core:address_collections'>;
   address: string;
   tokenTypes: Array<NftTokenType> | undefined;
   onTokenTypesChange: (value: Array<NftTokenType>) => void;
@@ -36,7 +41,15 @@ const AddressNftsCollections = ({ collectionsQuery, address, tokenTypes, onToken
   const isMobile = useIsMobile();
   const multichainContext = useMultichainContext();
 
-  const { isError, isPlaceholderData, data, pagination } = collectionsQuery;
+  const { isError, isInitialLoading, isTransitioning, data, pagination } = collectionsQuery;
+
+  const items = data?.items?.filter((item) => item.token_instances.length > 0);
+  const { cutRef, renderedItemsNum } = useLazyRenderedList({
+    list: items,
+    isEnabled: !isInitialLoading,
+    minItemsNum: INITIAL_RENDERED_COLLECTIONS_NUM,
+    resetKey: collectionsQuery.queryHash,
+  });
 
   const hasActiveFilters = Boolean(tokenTypes?.length);
 
@@ -47,7 +60,7 @@ const AddressNftsCollections = ({ collectionsQuery, address, tokenTypes, onToken
     </ActionBar>
   );
 
-  const content = data?.items ? data?.items.filter((item) => item.token_instances.length > 0).map((item, index) => {
+  const renderedCollections = items?.slice(0, renderedItemsNum).map((item, index) => {
     const collectionUrl = route({
       pathname: '/token/[hash]',
       query: {
@@ -58,21 +71,21 @@ const AddressNftsCollections = ({ collectionsQuery, address, tokenTypes, onToken
     }, { chain: multichainContext?.chain });
     const hasOverload = Number(item.amount) > item.token_instances.length;
     return (
-      <Box key={ item.token.address_hash + index } mb={ 6 }>
+      <Box key={ item.token.address_hash + (isInitialLoading ? index : '') } mb={ 6 }>
         <Flex mb={ 3 } flexWrap="wrap" lineHeight="30px">
           <TokenEntity
             width="auto"
             noSymbol
             token={ item.token }
-            isLoading={ isPlaceholderData }
+            isLoading={ isInitialLoading }
             noCopy
             fontWeight="600"
             chain={ multichainContext?.chain }
           />
-          <Skeleton loading={ isPlaceholderData } mr={ 3 }>
+          <Skeleton loading={ isInitialLoading } mr={ 3 }>
             <Text color="text.secondary" whiteSpace="pre">{ ` - ${ Number(item.amount).toLocaleString() } item${ Number(item.amount) > 1 ? 's' : '' }` }</Text>
           </Skeleton>
-          <Link href={ collectionUrl } loading={ isPlaceholderData }>
+          <Link href={ collectionUrl } loading={ isInitialLoading }>
             View in collection
           </Link>
         </Flex>
@@ -84,14 +97,14 @@ const AddressNftsCollections = ({ collectionsQuery, address, tokenTypes, onToken
           gridTemplateColumns={{ base: 'repeat(2, calc((100% - 12px)/2))', lg: 'repeat(auto-fill, minmax(210px, 1fr))' }}
         >
           { item.token_instances.map((instance, index) => {
-            const key = item.token.address_hash + '_' + (instance.id && !isPlaceholderData ? `id_${ instance.id }` : `index_${ index }`);
+            const key = item.token.address_hash + '_' + (instance.id && !isInitialLoading ? `id_${ instance.id }` : `index_${ index }`);
 
             return (
               <AddressNftItem
                 key={ key }
                 instance={ instance }
                 token={ item.token }
-                isLoading={ isPlaceholderData }
+                isLoading={ isInitialLoading }
                 chain={ multichainContext?.chain }
               />
             );
@@ -111,7 +124,14 @@ const AddressNftsCollections = ({ collectionsQuery, address, tokenTypes, onToken
         </Grid>
       </Box>
     );
-  }) : null;
+  });
+
+  const content = renderedCollections ? (
+    <>
+      { renderedCollections }
+      <div ref={ cutRef }/>
+    </>
+  ) : null;
 
   return (
     <DataList
@@ -123,6 +143,7 @@ const AddressNftsCollections = ({ collectionsQuery, address, tokenTypes, onToken
       emptyStateProps={{
         term: 'token',
       }}
+      isTransitioning={ isTransitioning }
     >
       { content }
     </DataList>

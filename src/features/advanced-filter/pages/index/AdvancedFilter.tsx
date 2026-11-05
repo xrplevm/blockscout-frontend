@@ -1,37 +1,33 @@
 // SPDX-License-Identifier: LicenseRef-Blockscout
 
 import {
-  Box,
-  Text,
-  chakra,
   Flex,
   HStack,
+  Text,
 } from '@chakra-ui/react';
 import { omit } from 'es-toolkit';
-import { useRouter } from 'next/router';
 import React from 'react';
 import PeersystPageWrapper from 'src/theme/components/PeersystPageWrapper';
 
 import type { AdvancedFilterParams } from '../../types/api';
-import { ADVANCED_FILTER_AGES, ADVANCED_FILTER_ADDRESS_RELATION } from '../../types/api';
+import { ADVANCED_FILTER_ADDRESS_RELATION, ADVANCED_FILTER_AGES } from '../../types/api';
 import type { ColumnsIds } from '../../types/client';
+import type { ClusterChainConfig } from 'src/features/multichain/types/client';
 
 import useApiQuery from 'src/api/hooks/useApiQuery';
+import type { PaginationFilters } from 'src/api/resources';
 
 import ActionBar from 'src/shell/page/action-bar/ActionBar';
 import PageTitle from 'src/shell/page/title/PageTitle';
-
-import { AddressHighlightProvider } from 'src/slices/address/contexts/address-highlight';
 
 import CsvExport from 'src/features/csv-export/components/CsvExport';
 import { useMultichainContext } from 'src/features/multichain/context';
 
 import dayjs from 'src/shared/date-and-time/dayjs';
-import TimeFormatToggle from 'src/shared/date-and-time/TimeFormatToggle';
-import ChainIcon from 'src/shared/external-chains/ChainIcon';
 import DataList from 'src/shared/lists/DataList';
 import Pagination from 'src/shared/pagination/Pagination';
-import useQueryWithPages from 'src/shared/pagination/useQueryWithPages';
+import useApiPaginatedQuery from 'src/shared/pagination/useApiPaginatedQuery';
+import { usePaginationParams } from 'src/shared/pagination/usePaginationParams';
 import { generateListStub } from 'src/shared/pagination/utils';
 import getFilterValueFromQuery from 'src/shared/router/get-filter-value-from-query';
 import getFilterValuesFromQuery from 'src/shared/router/get-filter-values-from-query';
@@ -40,54 +36,61 @@ import getValuesArrayFromQuery from 'src/shared/router/get-values-array-from-que
 import SpriteIcon from 'src/sprite/SpriteIcon';
 
 import { Link } from 'src/toolkit/chakra/link';
-import { TableBody, TableCell, TableColumnHeader, TableHeaderSticky, TableRoot, TableRow } from 'src/toolkit/chakra/table';
 import { Tag } from 'src/toolkit/chakra/tag';
 
 import ColumnsButton from '../../components/ColumnsButton';
-import FilterByColumn from '../../components/FilterByColumn';
-import ItemByColumn from '../../components/ItemByColumn';
 import { ADVANCED_FILTER_ITEM } from '../../stubs';
-import { TABLE_COLUMNS } from '../../utils/consts';
+import { getTableColumns, TABLE_COLUMNS } from '../../utils/consts';
 import { getAdvancedFilterTypes, getDurationFromAge, getFilterTags } from '../../utils/lib';
+import AdvancedFilterTable from './AdvancedFilterTable';
 
 const COLUMNS_CHECKED = {} as Record<ColumnsIds, boolean>;
 TABLE_COLUMNS.forEach(c => COLUMNS_CHECKED[c.id] = true);
 
-const AdvancedFilter = () => {
-  const router = useRouter();
-  const multichainContext = useMultichainContext();
+const AGE_RANGE_FIELDS = [ 'age_from', 'age_to' ] as const;
 
-  const [ filters, setFilters ] = React.useState<AdvancedFilterParams>(() => {
-    const age = getFilterValueFromQuery(ADVANCED_FILTER_AGES, router.query.age);
-    const addressRelation = getFilterValueFromQuery(ADVANCED_FILTER_ADDRESS_RELATION, router.query.address_relation);
-    return {
-      transaction_types: getFilterValuesFromQuery(
-        getAdvancedFilterTypes(multichainContext?.chain?.app_config).map(t => t.id),
-        router.query.transaction_types,
-      ),
-      methods: getValuesArrayFromQuery(router.query.methods),
-      methods_names: getValuesArrayFromQuery(router.query.methods_names),
-      amount_from: getQueryParamString(router.query.amount_from),
-      amount_to: getQueryParamString(router.query.amount_to),
-      age,
-      age_to: age ? dayjs().toISOString() : getQueryParamString(router.query.age_to),
-      age_from: age ? dayjs((dayjs().valueOf() - getDurationFromAge(age))).toISOString() : getQueryParamString(router.query.age_from),
-      address_relation: addressRelation,
-      token_contract_address_hashes_to_exclude: getValuesArrayFromQuery(router.query.token_contract_address_hashes_to_exclude),
-      token_contract_symbols_to_exclude: getValuesArrayFromQuery(router.query.token_contract_symbols_to_exclude),
-      token_contract_address_hashes_to_include: getValuesArrayFromQuery(router.query.token_contract_address_hashes_to_include),
-      token_contract_symbols_to_include: getValuesArrayFromQuery(router.query.token_contract_symbols_to_include),
-      to_address_hashes_to_include: getValuesArrayFromQuery(router.query.to_address_hashes_to_include),
-      from_address_hashes_to_include: getValuesArrayFromQuery(router.query.from_address_hashes_to_include),
-      to_address_hashes_to_exclude: getValuesArrayFromQuery(router.query.to_address_hashes_to_exclude),
-      from_address_hashes_to_exclude: getValuesArrayFromQuery(router.query.from_address_hashes_to_exclude),
-    };
-  });
+type UrlFilters = PaginationFilters<'core:advanced_filter'>;
+
+function getFiltersFromQuery(query: UrlFilters, chainConfig: ClusterChainConfig['app_config'] | undefined): AdvancedFilterParams {
+  const age = getFilterValueFromQuery(ADVANCED_FILTER_AGES, query.age);
+  const addressRelation = getFilterValueFromQuery(ADVANCED_FILTER_ADDRESS_RELATION, query.address_relation);
+  return {
+    transaction_types: getFilterValuesFromQuery(getAdvancedFilterTypes(chainConfig).map(t => t.id), query.transaction_types),
+    methods: getValuesArrayFromQuery(query.methods),
+    methods_names: getValuesArrayFromQuery(query.methods_names),
+    amount_from: getQueryParamString(query.amount_from),
+    amount_to: getQueryParamString(query.amount_to),
+    age,
+    age_to: age ? dayjs().toISOString() : getQueryParamString(query.age_to),
+    age_from: age ? dayjs((dayjs().valueOf() - getDurationFromAge(age))).toISOString() : getQueryParamString(query.age_from),
+    address_relation: addressRelation,
+    token_contract_address_hashes_to_exclude: getValuesArrayFromQuery(query.token_contract_address_hashes_to_exclude),
+    token_contract_symbols_to_exclude: getValuesArrayFromQuery(query.token_contract_symbols_to_exclude),
+    token_contract_address_hashes_to_include: getValuesArrayFromQuery(query.token_contract_address_hashes_to_include),
+    token_contract_symbols_to_include: getValuesArrayFromQuery(query.token_contract_symbols_to_include),
+    to_address_hashes_to_include: getValuesArrayFromQuery(query.to_address_hashes_to_include),
+    from_address_hashes_to_include: getValuesArrayFromQuery(query.from_address_hashes_to_include),
+    to_address_hashes_to_exclude: getValuesArrayFromQuery(query.to_address_hashes_to_exclude),
+    from_address_hashes_to_exclude: getValuesArrayFromQuery(query.from_address_hashes_to_exclude),
+  };
+}
+
+const AdvancedFilter = () => {
+  const multichainContext = useMultichainContext();
+  const chainConfig = multichainContext?.chain?.app_config;
+
+  // Keyed by the filter values rather than the object: the URL object changes on every page change, and an age
+  // preset's computed range must stay the same across pages so cached pages are found again.
+  const urlFiltersKey = JSON.stringify(usePaginationParams('core:advanced_filter').filters);
+  const filters = React.useMemo(
+    () => getFiltersFromQuery(JSON.parse(urlFiltersKey) as UrlFilters, chainConfig),
+    [ urlFiltersKey, chainConfig ],
+  );
 
   const [ columns, setColumns ] = React.useState<Record<ColumnsIds, boolean>>(COLUMNS_CHECKED);
-  const { data, isError, isLoading, pagination, onFilterChange, isPlaceholderData } = useQueryWithPages({
+  const { data, isError, isLoading, pagination, onFilterChange, isInitialLoading, isTransitioning, queryHash } = useApiPaginatedQuery({
     resourceName: 'core:advanced_filter',
-    filters,
+    queryParams: filters,
     options: {
       placeholderData: generateListStub<'core:advanced_filter'>(
         ADVANCED_FILTER_ITEM,
@@ -113,14 +116,23 @@ const AdvancedFilter = () => {
   useApiQuery('core:tokens', { queryParams: { limit: '7', q: '' }, queryOptions: { refetchOnMount: false } });
   useApiQuery('core:advanced_filter_methods', { queryParams: { q: '' }, queryOptions: { refetchOnMount: false } });
 
-  const handleFilterChange = React.useCallback(<T extends keyof AdvancedFilterParams>(field: T, val: AdvancedFilterParams[T]) => {
-    setFilters(prevState => {
-      const newState = { ...prevState };
+  const latestFilters = React.useRef(filters);
+  latestFilters.current = filters;
+  const pendingFilters = React.useRef<AdvancedFilterParams | null>(null);
 
-      newState[field] = val;
-      onFilterChange(newState.age ? omit(newState, [ 'age_from', 'age_to' ]) : newState);
-      return newState;
-    });
+  // The filter components report one field per call and several per user action (an age preset sets its range
+  // and the preset, the asset filter sets addresses and symbols). The calls of one tick are collected and
+  // pushed to the URL together, so one action is one navigation and one request.
+  const handleFilterChange = React.useCallback(<T extends keyof AdvancedFilterParams>(field: T, val: AdvancedFilterParams[T]) => {
+    if (pendingFilters.current === null) {
+      pendingFilters.current = { ...latestFilters.current };
+      queueMicrotask(() => {
+        const nextFilters = pendingFilters.current ?? {};
+        pendingFilters.current = null;
+        onFilterChange(nextFilters.age ? omit(nextFilters, AGE_RANGE_FIELDS) : nextFilters);
+      });
+    }
+    pendingFilters.current[field] = val;
   }, [ onFilterChange ]);
 
   const onClearFilter = React.useCallback((key: keyof AdvancedFilterParams) => () => {
@@ -141,105 +153,33 @@ const AdvancedFilter = () => {
   }, [ handleFilterChange ]);
 
   const clearAllFilters = React.useCallback(() => {
-    setFilters({});
     onFilterChange({});
   }, [ onFilterChange ]);
 
-  const columnsToShow = TABLE_COLUMNS.filter(c => columns[c.id]);
+  const tableColumns = React.useMemo(() => getTableColumns(chainConfig), [ chainConfig ]);
+  const columnsToShow = React.useMemo(() => tableColumns.filter(c => columns[c.id]), [ columns, tableColumns ]);
 
   if (isLoading) {
     return null;
   }
 
-  const filterTags = getFilterTags(filters, multichainContext?.chain?.app_config);
+  const filterTags = getFilterTags(filters, chainConfig);
 
-  const content = (
-    <AddressHighlightProvider>
-      <Box maxW="100%" display="grid" overflowX="scroll" whiteSpace="nowrap">
-        <TableRoot tableLayout="fixed" minWidth="950px" w="100%">
-          <TableHeaderSticky>
-            <TableRow>
-              { multichainContext?.chain && <TableColumnHeader width="38px"/> }
-              { columnsToShow.map(column => {
-                return (
-                  <TableColumnHeader
-                    key={ column.id }
-                    isNumeric={ column.isNumeric }
-                    minW={ column.width }
-                    w={ column.width }
-                    wordBreak="break-word"
-                    whiteSpace="normal"
-                  >
-                    { Boolean(column.name) && (
-                      <chakra.span mr={ 2 } lineHeight="24px" verticalAlign="middle">
-                        { column.id === 'age' ? 'Timestamp' : column.name }
-                      </chakra.span>
-                    ) }
-                    <FilterByColumn
-                      column={ column.id }
-                      columnName={ column.name }
-                      handleFilterChange={ handleFilterChange }
-                      filters={ filters }
-                      searchParams={ data?.search_params }
-                      isLoading={ isPlaceholderData }
-                    />
-                    { column.id === 'age' && <TimeFormatToggle ml={ 1 } verticalAlign="middle"/> }
-                  </TableColumnHeader>
-                );
-              }) }
-            </TableRow>
-          </TableHeaderSticky>
-          <TableBody>
-            { data?.items.map((item, index) => (
-              <TableRow key={ item.hash + String(index) }>
-                { multichainContext?.chain && (
-                  <TableCell>
-                    <ChainIcon data={ multichainContext.chain } isLoading={ isPlaceholderData }/>
-                  </TableCell>
-                ) }
-                { columnsToShow.map(column => {
-                  const textAlign = (() => {
-                    if (column.id === 'or_and') {
-                      return 'center';
-                    }
-                    if (column.isNumeric) {
-                      return 'right';
-                    }
-                    return 'start';
-                  })();
-
-                  return (
-                    <TableCell
-                      key={ item.hash + column.id }
-                      isNumeric={ column.isNumeric }
-                      minW={ column.width }
-                      maxW={ column.width }
-                      w={ column.width }
-                      wordBreak="break-word"
-                      whiteSpace="nowrap"
-                      overflow="hidden"
-                      textAlign={ textAlign }
-                    >
-                      <ItemByColumn
-                        item={ item }
-                        column={ column.id }
-                        isLoading={ isPlaceholderData }
-                        chainConfig={ multichainContext?.chain?.app_config }
-                      />
-                    </TableCell>
-                  );
-                }) }
-              </TableRow>
-            )) }
-          </TableBody>
-        </TableRoot>
-      </Box>
-    </AddressHighlightProvider>
-  );
+  const content = data?.items ? (
+    <AdvancedFilterTable
+      items={ data.items }
+      columns={ columnsToShow }
+      filters={ filters }
+      searchParams={ data.search_params }
+      handleFilterChange={ handleFilterChange }
+      isLoading={ isInitialLoading }
+      resetKey={ queryHash }
+    />
+  ) : null;
 
   const actionBar = (
     <ActionBar mt={ -6 }>
-      <ColumnsButton columns={ columns } onChange={ setColumns }/>
+      <ColumnsButton tableColumns={ tableColumns } columns={ columns } onChange={ setColumns }/>
       <CsvExport
         type="advanced_filters"
         resourceName="core:advanced_filter_csv"
@@ -300,6 +240,7 @@ const AdvancedFilter = () => {
         emptyStateProps={{
           term: 'transaction',
         }}
+        isTransitioning={ isTransitioning }
       >
         { content }
       </DataList>

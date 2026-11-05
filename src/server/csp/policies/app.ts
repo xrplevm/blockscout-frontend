@@ -11,6 +11,15 @@ const MAIN_DOMAINS = [
   config.app.host,
 ].filter(Boolean);
 
+const COLOR_MODE_SCRIPT_HASHES = [
+  // defaultTheme: system
+  '\'sha256-yYJq8IP5/WhJj6zxyTmujEqBFs/MufRufp2QKJFU76M=\'',
+  // defaultTheme: dark
+  '\'sha256-Os32ny+s3zEaX+XxoAVngBThnQv/IOycQlrqgxXOgRI=\'',
+  // defaultTheme: light
+  '\'sha256-/ZmmXHg9XaKeWp0VJihBDn4cJ7lLM1jUtpgqdgVFvmA=\'',
+];
+
 const externalFontsDomains = (() => {
   try {
     return [
@@ -23,7 +32,7 @@ const externalFontsDomains = (() => {
   } catch (error) {}
 })();
 
-export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
+export function app(isPrivateMode = false, primerScriptHashes: Array<string> = []): CspDev.DirectiveDescriptor {
   return {
     'default-src': [
       // KEY_WORDS.NONE,
@@ -36,7 +45,7 @@ export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
       KEY_WORDS.SELF,
       ...MAIN_DOMAINS,
 
-      // webpack hmr in safari doesn't recognize localhost as 'self' for some reason
+      // Next.js WebSocket HMR
       config.app.isDev ? 'ws://localhost:3000/_next/webpack-hmr' : '',
 
       // APIs
@@ -65,11 +74,15 @@ export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
       // https://github.com/vercel/next.js/issues/14221#issuecomment-657258278
       config.app.isDev ? KEY_WORDS.UNSAFE_EVAL : '',
 
-      // hash of ColorModeScript: system + dark
-      '\'sha256-yYJq8IP5/WhJj6zxyTmujEqBFs/MufRufp2QKJFU76M=\'',
+      // next-themes bakes defaultTheme into its inline script, so every default has its own hash;
+      // a blocked script leaves <html> without the color mode class until hydration (white flash on dark themes)
+      ...COLOR_MODE_SCRIPT_HASHES,
 
       // CapybaraRunner
       '\'sha256-5+YTmTcBwCYdJ8Jetbr6kyjGp0Ry/H7ptpoun6CrSwQ=\'',
+
+      // early-fetch primer scripts (src/server/primedRequests), hashed at startup
+      ...primerScriptHashes,
     ],
 
     'style-src': [
@@ -85,6 +98,9 @@ export function app(isPrivateMode = false): CspDev.DirectiveDescriptor {
 
       // google fonts
       'fonts.googleapis.com',
+
+      // custom fonts are loaded as external stylesheets
+      ...(externalFontsDomains || []),
     ],
 
     'img-src': [
